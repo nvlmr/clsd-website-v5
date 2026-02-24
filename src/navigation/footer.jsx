@@ -5,8 +5,13 @@ const Footer = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (<footer className="bg-gray-800 text-white py-4">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <p>&copy; 2024 My Website. All rights reserved.</p>
+    <div className="max-w-8xl mx-auto px-4 flex justify-between items-center">
+      <p>&copy; 2026 CLSD. All rights reserved.</p>
+
+      <div className="flex gap-6">
+        <p>Privacy Policy</p>
+        <p>Terms of Service</p>
+      </div>
     </div>
   </footer>
   );

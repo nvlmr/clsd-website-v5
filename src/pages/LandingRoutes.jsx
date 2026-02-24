@@ -1,0 +1,37 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "./Home";
+import AboutResearchUnits from "./Research Units/AboutResearchUnits";
+import MBML from "./Research Units/MBML";
+import AnalyticalServicesLab from "./Research Units/AnalyticalServicesLab";
+import FoodInnovationLab from "./Research Units/FoodInnovationLab";
+import AquacultureResearchStation from "./Research Units/AquacultureResearchStation";
+import GeneralFacilities from "./Research Units/GeneralFacilities";
+import ClsdEquipmentList from "./Research Units/ClsdEquipmentList";
+
+import AboutCenterForLakes from "./Research and Development/AboutCenterForLakes";
+import ResearchTeam from "./Research and Development/ResearchTeam";
+import ClsdProject from "./Research and Development/ClsdProject";
+import ClsdResearchPaper from "./Research and Development/ClsdResearchPaper";
+import PDL from "./Research and Development/PLD";
+
+function LandingRoutes () {
+  return (
+    <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/AboutResearchUnits" element={<AboutResearchUnits />} />
+        <Route path="/MBML" element={<MBML />} />
+        <Route path="/AnalyticalServicesLab" element={<AnalyticalServicesLab />} />
+        <Route path="/FoodInnovationLab" element={<FoodInnovationLab />} />
+        <Route path="/AquacultureResearchStation" element={<AquacultureResearchStation />} />
+        <Route path="/GeneralFacilities" element={<GeneralFacilities />} />
+        <Route path="/ClsdEquipmentList" element={<ClsdEquipmentList />} />
+        <Route path="/AboutCenterForLakes" element={<AboutCenterForLakes />} />
+        <Route path="/ResearchTeam" element={<ResearchTeam />} />
+        <Route path="/ClsdProject" element={<ClsdProject />} />
+        <Route path="/ClsdResearchPaper" element={<ClsdResearchPaper />} />
+        <Route path="/PDL" element={<PDL />} />
+    </Routes>
+  );
+}
+
+export default LandingRoutes;
