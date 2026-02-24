@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
-import NavBar from "./navigation/NavBar";
-import Footer from "./navigation/Footer";
-import bgImage from "./assets/images/background.jpg";
+import NavBar from "../navigation/NavBar";
+import Footer from "../navigation/Footer";
+import bgImage from "../assets/images/background.jpg";
 
 function Landing() {
   return (
