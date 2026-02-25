@@ -120,12 +120,12 @@ const NavBar = () => {
               />
             </Link>
             <div className="block min-w-0">
-              <p className={`text-[clamp(0.5rem,2vw,0.875rem)] font-semibold truncate transition-colors duration-300 ${
+              <p className={`text-[clamp(0.62rem,2vw,0.875rem)] font-semibold truncate transition-colors duration-300 ${
                 shouldShowWhiteNav ? "text-black" : "text-white"
               }`}>
                 Center for Lakes Sustainable Development
               </p>
-              <p className={`text-[clamp(0.4rem,1.5vw,0.75rem)] truncate transition-colors duration-300 ${
+              <p className={`text-[clamp(0.6rem,1.5vw,0.75rem)] truncate transition-colors duration-300 ${
                 shouldShowWhiteNav ? "text-gray-700" : "text-gray-100"
               }`}>
                 Research and Development
