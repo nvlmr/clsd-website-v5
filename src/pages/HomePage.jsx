@@ -33,7 +33,7 @@ function Home() {
           </h1>
           
           <p className="text-xl md:text-2xl font-normal text-blue-300 mb-4 tracking-wide">
-            Center for Lakes Sustainable Development hehehe
+            Center for Lakes Sustainable Development
           </p>
 
           <p className="max-w-2xl mx-auto text-base md:text-lg text-slate-100 leading-relaxed mb-10 opacity-90">
