@@ -1,28 +1,28 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./HomePage";
-import AboutResearchUnits from "./Research Units/AboutResearchUnits";
-import MBML from "./Research Units/MBML";
-import AnalyticalServicesLab from "./Research Units/AnalyticalServicesLab";
-import FoodInnovationLab from "./Research Units/FoodInnovationLab";
-import AquacultureResearchStation from "./Research Units/AquacultureResearchStation";
-import GeneralFacilities from "./Research Units/GeneralFacilities";
-import ClsdEquipmentList from "./Research Units/ClsdEquipmentList";
+import Home from "./HomePage.jsx";
+import AboutResearchUnits from "./Research Units/AboutResearchUnits.jsx";
+import MBML from "./Research Units/MBML.jsx";
+import AnalyticalServicesLab from "./Research Units/AnalyticalServicesLab.jsx";
+import FoodInnovationLab from "./Research Units/FoodInnovationLab.jsx";
+import AquacultureResearchStation from "./Research Units/AquacultureResearchStation.jsx";
+import GeneralFacilities from "./Research Units/GeneralFacilities.jsx";
+import ClsdEquipmentList from "./Research Units/ClsdEquipmentList.jsx";
 
-import AboutCenterForLakes from "./Research and Development/AboutCenterForLakes";
-import ResearchTeam from "./Research and Development/ResearchTeam";
-import ClsdProject from "./Research and Development/ClsdProject";
-import ClsdResearchPaper from "./Research and Development/ClsdResearchPaper";
-import PDL from "./Research and Development/PLD";
+import AboutCenterForLakes from "./Research and Development/AboutCenterForLakes.jsx";
+import ResearchTeam from "./Research and Development/ResearchTeam.jsx";
+import ClsdProject from "./Research and Development/ClsdProject.jsx";
+import ClsdResearchPaper from "./Research and Development/ClsdResearchPaper.jsx";
+import PDL from "./Research and Development/PLD.jsx";
 
-import AboutScienceAndResearch from "./Science and Research/AboutS&R";
-import DostFundedProject from "./Science and Research/DostFundedProject";
+import AboutScienceAndResearch from "./Science and Research/AboutS&R.jsx";
+import DostFundedProject from "./Science and Research/DostFundedProject.jsx";
 
-import IEC_Materials from "./Media/IEC_Materials";
-import VideoGallery from "./Media/VideoGallery";
+import IEC_Materials from "./Media/IEC_Materials.jsx";
+import VideoGallery from "./Media/VideoGallery.jsx";
 
-import Calendar from "./Calendar/Calendar";
-import Contact from "./Contact/Contact";
-import Esentry from "./E-Sentry/E-sentry";
+import Calendar from "./Calendar/Calendar.jsx";
+import Contact from "./Contact/Contact.jsx";
+import Esentry from "./E-Sentry/E-sentry.jsx";
 
 function LandingRoutes () {
   return (

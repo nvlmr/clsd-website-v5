@@ -1,6 +1,6 @@
 import React from "react";
-import NavBar from "../navigation/NavBar";
-import Footer from "../navigation/Footer";
+import NavBar from "../navigation/NavBar.jsx";
+import Footer from "../navigation/Footer.jsx";
 import bgImage from "../assets/images/background.jpg";
 import { ArrowRight } from 'lucide-react';
 
