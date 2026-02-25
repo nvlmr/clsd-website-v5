@@ -70,7 +70,7 @@ const NavBar = () => {
       label: "Research and Development",
       type: "dropdown",
       items: [
-        { label: "About Center for Lakes", path: "/AboutCenterForForLakes" },
+        { label: "About Center for Lakes", path: "/AboutCenterForLakes" },
         { label: "Research Team", path: "/ResearchTeam" },
         { label: "CLSD Project", path: "/ClsdProject" },
         { label: "CLSD Research Paper", path: "/ClsdResearchPaper" },
@@ -81,21 +81,21 @@ const NavBar = () => {
       label: "Science and Research",
       type: "dropdown",
       items: [
-        { label: "About Science and Research", path: "/sr1" },
-        { label: "DOST Funded Projects", path: "/sr2" },
+        { label: "About Science and Research", path: "/AboutS&R" },
+        { label: "DOST Funded Projects", path: "/DostFundedProject" },
       ],
     },
     {
       label: "Media",
       type: "dropdown",
       items: [
-        { label: "Video Gallery", path: "/media1" },
-        { label: "IEC Materials", path: "/media2" },
+        { label: "Video Gallery", path: "/VideoGallery" },
+        { label: "IEC Materials", path: "/IEC_Materials" },
       ],
     },
-    { label: "Contact", path: "/contact", type: "link" },
-    { label: "E-Sentry", path: "/esentry", type: "link" },
-    { label: "Calendar", path: "/calendar", type: "link" },
+    { label: "Contact", path: "/Contact", type: "link" },
+    { label: "E-Sentry", path: "/E-Sentry", type: "link" },
+    { label: "Calendar", path: "/Calendar", type: "link" },
   ];
 
   return (

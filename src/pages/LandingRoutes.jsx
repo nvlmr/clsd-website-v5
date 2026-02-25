@@ -14,6 +14,16 @@ import ClsdProject from "./Research and Development/ClsdProject";
 import ClsdResearchPaper from "./Research and Development/ClsdResearchPaper";
 import PDL from "./Research and Development/PLD";
 
+import AboutScienceAndResearch from "./Science and Research/AboutS&R";
+import DostFundedProject from "./Science and Research/DostFundedProject";
+
+import IEC_Materials from "./Media/IEC_Materials";
+import VideoGallery from "./Media/VideoGallery";
+
+import Calendar from "./Calendar/Calendar";
+import Contact from "./Contact/Contact";
+import Esentry from "./E-Sentry/E-sentry";
+
 function LandingRoutes () {
   return (
     <Routes>
@@ -30,6 +40,13 @@ function LandingRoutes () {
         <Route path="/ClsdProject" element={<ClsdProject />} />
         <Route path="/ClsdResearchPaper" element={<ClsdResearchPaper />} />
         <Route path="/PDL" element={<PDL />} />
+        <Route path="/AboutS&R" element={<AboutScienceAndResearch/>} />
+        <Route path="/DostFundedProject" element={<DostFundedProject/>} />
+        <Route path="/IEC_Materials" element={<IEC_Materials/>} />
+        <Route path="/VideoGallery" element={<VideoGallery/>} />
+        <Route path="/Contact" element={<Contact/>} />
+        <Route path="/Calendar" element={<Calendar/>} />
+        <Route path="/E-sentry" element={<Esentry/>} />
     </Routes>
   );
 }
