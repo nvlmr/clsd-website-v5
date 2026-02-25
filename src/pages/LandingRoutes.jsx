@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Home from "./Home";
+import Home from "./Home.jsx";
 import AboutResearchUnits from "./Research Units/AboutResearchUnits";
 import MBML from "./Research Units/MBML";
 import AnalyticalServicesLab from "./Research Units/AnalyticalServicesLab";
