@@ -1,5 +1,5 @@
 import React from "react";
-import NavBar from "../../navigation/NavBar";
+import NavBar from "../../navigation/NavBar.jsx";
 
 function AboutScienceAndResearch() {
   return (
