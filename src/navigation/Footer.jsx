@@ -56,7 +56,7 @@ const FooterLink = ({ name, url }) => (
   );
 
   return (
-    <footer className="relative bg-white overflow-hidden">
+    <footer className="relative bg-white overflow-hidden mt-15">
       {/* Partners Section - Only zoom hover effect */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div className="text-center space-y-2 mb-10">
@@ -66,7 +66,7 @@ const FooterLink = ({ name, url }) => (
           <div className="h-1 w-12 bg-blue-100 mx-auto rounded-full"></div>
         </div>
 
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-16">
+        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-20">
           {partnerLogos.map((logo, index) => {
             const content = (
               <div className="group transition-transform duration-300 hover:scale-150">
