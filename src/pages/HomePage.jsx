@@ -42,16 +42,16 @@ function Home() {
             and conservation through cutting-edge science and collaborative partnerships.
           </p>
           <div className="group flex flex-row justify-center gap-2 sm:gap-4 w-full max-w-md mx-auto">
-            <button className="group/btn-primary flex-1 flex items-center justify-center gap-2 px-4 sm:px-10 py-3 rounded-md font-semibold transition-all duration-300 shadow-xl border-2 
+            <button className="group/btn-primary flex-1 flex items-center justify-center gap-2 px-4 sm:px-10 py-3 rounded-md font-normal transition-all duration-300 shadow-xl border-2 
               bg-blue-600 text-white border-blue-600
               group-hover:bg-transparent group-hover:text-white group-hover:border-white
               hover:!bg-blue-600 hover:!text-white hover:!border-blue-600 text-sm sm:text-base whitespace-nowrap">
-              <span>Get Started</span>
+              <span>Explore Research</span>
               <ArrowRight className="w-5 h-5 transition-all duration-300 group-hover:opacity-0 group-hover:invisible group-hover:w-0 group-hover/btn-primary:opacity-100 group-hover/btn-primary:visible group-hover/btn-primary:w-5" />
             </button>
             <button 
               onClick={scrollToSecondSection}
-              className="group/btn-secondary flex-1 px-4 sm:px-10 py-3 rounded-md font-semibold transition-all duration-300 shadow-xl border-2 border-white
+              className="group/btn-secondary flex-1 px-4 sm:px-10 py-3 rounded-md font-normal transition-all duration-300 shadow-xl border-2 border-white
               bg-transparent text-white
               hover:bg-blue-600 hover:border-blue-600 hover:text-white text-sm sm:text-base whitespace-nowrap">
               <span className="flex items-center justify-center gap-2">
