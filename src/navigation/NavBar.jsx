@@ -229,12 +229,11 @@ const NavBar = () => {
           <div className="flex items-center gap-3">
             <img src={Logo} alt="Logo" className="h-10 w-auto" />
             <div>
-              <p className="text-sm font-bold text-gray-900 leading-tight">CLSD</p>
+              <p className="text-sm font-bold text-gray-600 leading-tight">CLSD</p>
               <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">Research Center</p>
             </div>
           </div>
         </div>
-        
         {/* Mobile Navigation Links */}
         <div className="pt-4 px-4 pb-20 h-full overflow-y-auto">
           {navItems.map((item, index) => (
@@ -242,7 +241,7 @@ const NavBar = () => {
               {item.type === "link" ? (
                 <Link
                   to={item.path}
-                  className="block text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-xl text-base font-semibold transition-all"
+                  className="block text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-xl text-sm font-semibold transition-all" // Changed from text-base to text-sm
                   onClick={closeMenus}
                 >
                   {item.label}
@@ -251,9 +250,9 @@ const NavBar = () => {
                 <div>
                   <button
                     onClick={() => toggleDropdown(index)}
-                    className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-base font-semibold transition-all ${
+                    className={`flex items-center justify-between w-full px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                       activeDropdown === index ? "text-blue-600 bg-blue-50/50" : "text-gray-700"
-                    }`}
+                    }`} // Changed from text-base to text-sm
                   >
                     <span>{item.label}</span>
                     <ChevronDown className={`h-5 w-5 transition-transform ${activeDropdown === index ? "rotate-180" : ""}`} />
@@ -267,7 +266,7 @@ const NavBar = () => {
                         <Link
                           key={subIndex}
                           to={subItem.path}
-                          className="block text-gray-600 hover:text-blue-600 px-4 py-2.5 text-sm font-medium"
+                          className="block text-gray-600 hover:text-blue-600 px-4 py-2.5 text-xs font-medium" // Changed from text-sm to text-xs
                           onClick={closeMenus}
                         >
                           {subItem.label}
