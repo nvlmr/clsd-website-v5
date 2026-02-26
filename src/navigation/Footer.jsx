@@ -12,18 +12,19 @@ import denrlogo from "../assets/logo/DENR.png";
 import uplblogo from "../assets/logo/UPLB.png";
 import lagunalogo from "../assets/logo/LAGUNA.png";
 import clsdlogo from "../assets/logo/LSD.png";
+import { href } from "react-router-dom";
 
 const Footer = () => {
   const partnerLogos = [
-    { src: lspulogo, alt: "LSPU Logo", name: "LSPU" },
-    { src: dostlogo, alt: "DOST Logo", name: "DOST" },
-    { src: pcieerdlogo, alt: "PCIEERD Logo", name: "PCIEERD" },
-    { src: pcaarrdlogo, alt: "PCAARRD Logo", name: "PCAARRD" },
-    { src: nrcplogo, alt: "NRCP Logo", name: "NRCP" },
-    { src: dabfarlogo, alt: "DA-BFAR Logo", name: "DA-BFAR" },
+    { src: lspulogo, alt: "LSPU Logo", name: "LSPU", href:'https://lspu.edu.ph/' },
+    { src: dostlogo, alt: "DOST Logo", name: "DOST", href:'https://www.dost.gov.ph/' },
+    { src: pcieerdlogo, alt: "PCIEERD Logo", name: "PCIEERD", href:'https://pcieerd.dost.gov.ph/' },
+    { src: pcaarrdlogo, alt: "PCAARRD Logo", name: "PCAARRD", href:'http://www.pcaarrd.dost.gov.ph/home/portal/' },
+    { src: nrcplogo, alt: "NRCP Logo", name: "NRCP", href:'https://nrcp.dost.gov.ph/' },
+    { src: dabfarlogo, alt: "DA-BFAR Logo", name: "DA-BFAR", href: 'https://www.bfar.da.gov.ph/'},
     { src: denrlogo, alt: "DENR Logo", name: "DENR" },
-    { src: uplblogo, alt: "UPLB Logo", name: "UPLB" },
-    { src: lagunalogo, alt: "Laguna Logo", name: "LAGUNA" },
+    { src: uplblogo, alt: "UPLB Logo", name: "UPLB", href: 'https://uplb.edu.ph/main/' },
+    { src: lagunalogo, alt: "Laguna Logo", name: "LAGUNA", href: 'http://laguna.gov.ph/' },
   ];
 
   const governmentLinks = [
@@ -31,8 +32,8 @@ const Footer = () => {
     { name: "Office of the Vice President", url: "https://ovp.gov.ph/" },
     { name: "Senate of the Philippines", url: "http://legacy.senate.gov.ph/" },
     { name: "House of Representatives", url: "https://www.congress.gov.ph/" },
-    { name: "Supreme Court", url: "#" },
-    { name: "Court of Appeals", url: "https://sc.judiciary.gov.ph/" },
+    { name: "Supreme Court", url: "https://sc.judiciary.gov.ph/" },
+    { name: "Court of Appeals", url: "" },
     { name: "Sandiganbayan", url: "https://sb.judiciary.gov.ph/" },
   ];
 
@@ -56,9 +57,6 @@ const FooterLink = ({ name, url }) => (
 
   return (
     <footer className="relative bg-white pt-16 overflow-hidden">
-      {/* Decorative top border with a subtle gradient */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-teal-400 to-blue-600"></div>
-
       {/* Partners Section - Only zoom hover effect */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div className="text-center space-y-2 mb-10">
@@ -69,19 +67,31 @@ const FooterLink = ({ name, url }) => (
         </div>
 
         <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-16">
-          {partnerLogos.map((logo, index) => (
-            <div
-              key={index}
-              className="group transition-transform duration-300 hover:scale-150"
-            >
-              <img
-                src={logo.src}
-                alt={logo.alt}
-                title={logo.name}
-                className="h-9 md:h-14 w-auto object-contain"
-              />
-            </div>
-          ))}
+          {partnerLogos.map((logo, index) => {
+            const content = (
+              <div className="group transition-transform duration-300 hover:scale-150">
+                <img
+                  src={logo.src}
+                  alt={logo.alt}
+                  title={logo.name}
+                  className="h-9 md:h-14 w-auto object-contain cursor-pointer"
+                />
+              </div>
+            );
+
+            return logo.href ? (
+              <a
+                key={index}
+                href={logo.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {content}
+              </a>
+            ) : (
+              <div key={index}>{content}</div>
+            );
+          })}
         </div>
       </div>
 
