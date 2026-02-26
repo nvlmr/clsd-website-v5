@@ -85,7 +85,7 @@ const FooterLink = ({ name, url }) => (
         </div>
       </div>
 
-      <div className="bg-slate-50/50 border-t border-slate-100">
+      <div className="bg-slate-50/50 border-t border-slate-100 flex-j">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
             
@@ -108,7 +108,7 @@ const FooterLink = ({ name, url }) => (
             </div>
 
             {/* GOVPH Info Column */}
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-4 mr-30">
               <div className="flex items-center space-x-2 mb-1.5">
                 <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-1.5 border-l-2 border-blue-500 pl-3">
                   About GOVPH
@@ -127,7 +127,7 @@ const FooterLink = ({ name, url }) => (
             </div>
 
             {/* Government Links Column */}
-            <div className="lg:col-span-4">
+            <div className="lg:col-span-3">
               <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-1.5 border-l-2 border-blue-500 pl-3">
                 Government Links
               </h4>
