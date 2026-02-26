@@ -1,10 +1,10 @@
 function AboutCLSD() {
   return (
-    <div className="relative bg-gradient-to-b from-gray-50 to-white py-16 sm:py-20 lg:py-24">
+    <div className="relative bg-gradient-to-b from-gray-50 to-white py-16 sm:py-20 lg:py-24 lg:px-10">
       {/* Decorative top gradient */}
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-teal-400 to-blue-600"></div>
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-1">
         {/* Section Header */}
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-light text-gray-900 mb-4">
@@ -16,7 +16,10 @@ function AboutCLSD() {
         {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Card 1 - Research */}
-          <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100">
+          <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 relative">
+            {/* Hover line at top */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-teal-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+            
             <div className="p-6 sm:p-8">
               <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-blue-500 group-hover:text-blue-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,11 +33,13 @@ function AboutCLSD() {
                 Pioneering innovative research in lake ecosystems, water quality monitoring, and sustainable management practices to protect our freshwater resources.
               </p>
             </div>
-            <div className="h-1 bg-gradient-to-r from-blue-400 to-teal-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
           </div>
 
           {/* Card 2 - Sustainable Solutions */}
-          <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100">
+          <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 relative">
+            {/* Hover line at top */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-green-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+            
             <div className="p-6 sm:p-8">
               <div className="w-14 h-14 bg-teal-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-teal-500 group-hover:text-teal-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -48,11 +53,13 @@ function AboutCLSD() {
                 Developing cutting-edge technologies and strategies for sustainable lake management, conservation, and ecosystem restoration.
               </p>
             </div>
-            <div className="h-1 bg-gradient-to-r from-teal-400 to-green-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
           </div>
 
           {/* Card 3 - Education */}
-          <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100">
+          <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden border border-gray-100 relative">
+            {/* Hover line at top */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+            
             <div className="p-6 sm:p-8">
               <div className="w-14 h-14 bg-green-50 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                 <svg className="w-7 h-7 text-green-500 group-hover:text-green-600 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,7 +75,6 @@ function AboutCLSD() {
                 Empowering the next generation of environmental scientists through comprehensive training programs, workshops, and educational resources.
               </p>
             </div>
-            <div className="h-1 bg-gradient-to-r from-green-400 to-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
           </div>
         </div>
       </div>
