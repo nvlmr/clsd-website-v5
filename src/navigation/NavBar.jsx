@@ -136,7 +136,7 @@ const NavBar = () => {
           <div className="flex flex-col">
             {/* Main title */}
             <p
-              className={`text-xs sm:text-sm md:text-base lg:text-md xl:text-md font-normal leading-tight transition-colors duration-300 ${
+              className={`text-xs sm:text-sm md:text-base lg:text-sm xl:text-md font-semibold leading-tight transition-colors duration-300 ${
                 shouldShowWhiteNav ? "text-black" : "text-white"
               }`}
             >
@@ -155,13 +155,13 @@ const NavBar = () => {
         </Link>
 
         {/* Desktop Navigation Right */}
-        <nav className="hidden xl:flex xl:items-center xl:space-x-3 2xl:space-x-4">
+        <nav className="hidden xl:flex xl:items-center xl:space-x-0 2xl:space-x-0">
           {navItems.map((item, index) => (
             <div key={index} className="relative">
               {item.type === "link" ? (
                 <Link
                   to={item.path}
-                  className={`relative px-2 2xl:px-3 py-2 text-sm font-semibold transition-all duration-300 group whitespace-nowrap inline-flex items-center ${
+                  className={`relative px-2 2xl:px-2.5 py-2 text-sm font-semibold transition-all duration-300 group whitespace-nowrap inline-flex items-center ${
                     shouldShowWhiteNav ? "text-gray-700" : "text-white"
                   }`}
                   style={{ lineHeight: '1.5' }}
