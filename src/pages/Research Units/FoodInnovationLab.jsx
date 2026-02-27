@@ -48,7 +48,7 @@ function FoodInnovationLab() {
             {/* About Text */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-600 mb-6 mt-5">
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-600 mb-7">
                   About the Laboratory
                 </h2>
                 <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"></div>

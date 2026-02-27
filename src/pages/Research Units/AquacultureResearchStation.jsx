@@ -48,7 +48,7 @@ function AquacultureResearchStation() {
             {/* About Text */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-600 mb-6 mt-10">
+                <h2 className="text-3xl sm:text-4xl font-bold text-gray-600 mb-7">
                   About the Laboratory
                 </h2>
                 <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"></div>
@@ -56,10 +56,12 @@ function AquacultureResearchStation() {
               
               <div className="space-y-5">
                 <p className="text-base sm:text-lg text-gray-600 leading-relaxed">
-                    Aquaculture Research Station- Develop and improve farming technologies for aquatic species, 
-                    pilot trials and demonstration projects, facilities for industry and researchers to carry 
-                    out projects and trials, work with others towards sustainable aquaculture and fisheries, 
-                    train staff and students and educate the public about aquaculture.
+                    Aquaculture Research Station – Develop and improve farming technologies for aquatic species, 
+                    conduct pilot trials and demonstration projects, provide facilities for industry and researchers 
+                    to carry out projects and trials, collaborate towards sustainable aquaculture and fisheries, 
+                    train staff and students, and educate the public about aquaculture. It also supports innovation 
+                    and knowledge transfer to strengthen the growth of the aquaculture sector.
+
                 </p>
               </div>
             </div>
