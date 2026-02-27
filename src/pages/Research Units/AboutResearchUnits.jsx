@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import MolecularLab from "../../assets/images/About Research Units/Molecular Lab.jpg";
@@ -9,6 +10,7 @@ import FoodInnovation from "../../assets/images/About Research Units/Food Innova
 import ResearchUnit from "../../assets/images/About Research Units/Research Unit.jpg";
 
 function AboutResearchUnits() {
+  const navigate = useNavigate();
   const scrollContainerRef = useRef(null);
   const animationRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -21,29 +23,45 @@ function AboutResearchUnits() {
     {
       name: "Molecular Laboratory",
       description: "State-of-the-art facility for DNA analysis, PCR, and molecular research applications.",
-      image: MolecularLab
+      image: MolecularLab,
+      path: "/MBML"
     },
     {
       name: "Analytical Laboratory",
       description: "Equipped with advanced instruments for chemical analysis and material testing.",
-      image: AnalyticalLab
+      image: AnalyticalLab,
+      path: "/AnalyticalServicesLab"
     },
     {
       name: "Food Innovation Laboratory",
       description: "Dedicated space for food product development, testing, and quality analysis.",
-      image: FoodInnovation
+      image: FoodInnovation,
+      path: "/FoodInnovationLab"
     },
     {
       name: "Aquaculture Station",
       description: "Research facility for aquatic species cultivation and marine biology studies.",
-      image: AquacultureStation
+      image: AquacultureStation,
+      path: "/AquacultureResearchStation"
     },
     {
       name: "General Facility Station",
       description: "Multi-purpose laboratory space for various scientific experiments and research.",
-      image: GeneralFacility
+      image: GeneralFacility,
+      path: "/GeneralFacilities"
     }
   ];
+
+  const handleCardClick = (path) => {
+    navigate(path);
+  };
+
+  const handleKeyDown = (e, path) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      navigate(path);
+    }
+  };
 
   // Check viewport size
   useEffect(() => {
@@ -226,7 +244,11 @@ function AboutResearchUnits() {
               {researchFacilities.map((facility, index) => (
                 <div 
                   key={index}
-                  className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100"
+                  onClick={() => handleCardClick(facility.path)}
+                  onKeyDown={(e) => handleKeyDown(e, facility.path)}
+                  role="button"
+                  tabIndex={0}
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                 >
                   <div className="relative h-48 overflow-hidden bg-gray-50">
                     <img 
@@ -243,7 +265,13 @@ function AboutResearchUnits() {
                     <p className="text-sm text-gray-500 mb-4 leading-relaxed">
                       {facility.description}
                     </p>
-                    <button className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors group/btn">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCardClick(facility.path);
+                      }}
+                      className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors group/btn"
+                    >
                       <span>Explore facility</span>
                       <svg className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
@@ -275,7 +303,11 @@ function AboutResearchUnits() {
                   {researchFacilities.map((facility, index) => (
                     <div 
                       key={index}
-                      className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden w-80 sm:w-96 flex-shrink-0 border border-gray-100"
+                      onClick={() => handleCardClick(facility.path)}
+                      onKeyDown={(e) => handleKeyDown(e, facility.path)}
+                      role="button"
+                      tabIndex={0}
+                      className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden w-80 sm:w-96 flex-shrink-0 border border-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
                     >
                       <div className="relative h-56 sm:h-64 overflow-hidden bg-gray-50">
                         <img 
@@ -292,7 +324,13 @@ function AboutResearchUnits() {
                         <p className="text-gray-500 mb-5 leading-relaxed line-clamp-3">
                           {facility.description}
                         </p>
-                        <button className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors group/btn text-sm font-medium">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCardClick(facility.path);
+                          }}
+                          className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors group/btn text-sm font-medium"
+                        >
                           <span>Learn more</span>
                           <svg className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>

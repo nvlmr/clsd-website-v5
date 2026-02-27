@@ -1,7 +1,7 @@
 import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
-import AnalyticalLab from "../../assets/images/About Research Units/Analytical Lab.jpg";
+import AnalyticalLabImg from "../../assets/images/About Research Units/Analytical Lab.jpg";
 
 import { 
   FlaskConical, 
@@ -69,7 +69,7 @@ function AnalyticalServicesLab() {
             <div className="flex items-stretch">
               <div className="relative w-full overflow-hidden rounded-2xl shadow-xl bg-gray-100">
                 <img 
-                  src={AnalyticalLab} 
+                  src={AnalyticalLabImg} 
                   alt="Analytical Services Laboratory" 
                   className="w-full h-full object-contain lg:object-cover"
                   style={{ maxHeight: '500px' }}
@@ -89,7 +89,7 @@ function AnalyticalServicesLab() {
             {/* Services Grid - Modern cards with Lucide icons */}
             <div className="grid grid-cols-2 xs:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-9">
               {[
-                { name: "Sample classification", icon: FlaskConical },
+                { name: "Sample Classification", icon: FlaskConical },
                 { name: "Assaying", icon: Beaker },
                 { name: "Chemical Sample Analysis", icon: TestTube },
                 { name: "Material Sample Analysis", icon: Microscope },

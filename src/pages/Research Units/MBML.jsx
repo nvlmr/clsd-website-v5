@@ -1,7 +1,7 @@
 import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
-import MolecularLab from "../../assets/images/About Research Units/Molecular Lab.jpg";
+import MolecularLabImg from "../../assets/images/About Research Units/Molecular Lab.jpg";
 import { 
   BeakerIcon, 
   MicroscopeIcon, 
@@ -71,7 +71,7 @@ function MBML() {
             <div className="flex items-stretch">
               <div className="relative w-full overflow-hidden rounded-2xl shadow-xl bg-gray-100">
                 <img 
-                  src={MolecularLab} 
+                  src={MolecularLabImg} 
                   alt="Molecular Biology Laboratory" 
                   className="w-full h-full object-contain lg:object-cover"
                   style={{ maxHeight: '500px' }}
@@ -91,14 +91,14 @@ function MBML() {
             {/* Services Grid - Modern cards with Lucide icons */}
             <div className="grid grid-cols-2 xs:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
               {[
-                { name: "Isolation and purification", icon: FlaskConicalIcon },
-                { name: "Biochemical characterization", icon: BeakerIcon },
-                { name: "Phenotypic characterization", icon: MicroscopeIcon },
-                { name: "DNA extraction", icon: DnaIcon },
-                { name: "Molecular identification", icon: TestTubeIcon },
-                { name: "Disc diffusion assay", icon: FlaskRoundIcon },
-                { name: "Agar dilution assay", icon: DropletsIcon },
-                { name: "Broth dilution assay", icon: SyringeIcon }
+                { name: "Isolation and Purification", icon: FlaskConicalIcon },
+                { name: "Biochemical Characterization", icon: BeakerIcon },
+                { name: "Phenotypic Characterization", icon: MicroscopeIcon },
+                { name: "DNA Extraction", icon: DnaIcon },
+                { name: "Molecular Identification", icon: TestTubeIcon },
+                { name: "Disc Diffusion Assay", icon: FlaskRoundIcon },
+                { name: "Agar Dilution Assay", icon: DropletsIcon },
+                { name: "Broth Dilution Assay", icon: SyringeIcon }
               ].map((service, index) => {
                 const IconComponent = service.icon;
                 return (
