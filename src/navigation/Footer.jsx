@@ -56,7 +56,7 @@ const FooterLink = ({ name, url }) => (
   );
 
   return (
-    <footer className="relative bg-white overflow-hidden mt-15">
+    <footer className="relative bg-white overflow-hidden">
       {/* Partners Section - Only zoom hover effect */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
         <div className="text-center space-y-2 mt-10 mb-10">

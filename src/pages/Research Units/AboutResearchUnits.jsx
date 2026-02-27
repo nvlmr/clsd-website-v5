@@ -138,7 +138,7 @@ function AboutResearchUnits() {
             {/* Title with minimal styling */}
             <div className="text-center mb-8 sm:mb-10 lg:mb-12 mt-10">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-gray-700 tracking-tight">
-                About Research Units
+                About <span className="text-blue-600">Research Units</span>
               </h1>
               <div className="mt-4 flex justify-center">
                 <div className="w-30 h-0.5 bg-blue-600"></div>
@@ -188,7 +188,7 @@ function AboutResearchUnits() {
                 </p> 
                 <div className="grid mt-8">
                   <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="text-3xl font-light text-blue-600 mb-2">2015</div>
+                    <div className="text-3xl font-light text-blue-600 mb-2 font-semibold">2015</div>
                     <p className="text-gray-600">
                       Acquisition of basic laboratory wares and simple equipment for teaching laboratories. 
                       Additionally, the Atomic Absorption Spectrometer (AAS) was acquired as SRL's very first research instrument.
@@ -306,7 +306,7 @@ function AboutResearchUnits() {
 
               {/* Navigation Instructions */}
               {(isTablet || isDesktop) && (
-                <div className="flex justify-center mt-8">
+                <div className="flex justify-center mt-8 mb-5">
                   <p className="text-gray-400 text-xs flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
