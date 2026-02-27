@@ -1,145 +1,325 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
+import MolecularLab from "../../assets/images/About Research Units/Molecular Lab.jpg";
+import AnalyticalLab from "../../assets/images/About Research Units/Analytical Lab.jpg";
+import AquacultureStation from "../../assets/images/About Research Units/Aquaculture Station.jpg";
+import GeneralFacility from "../../assets/images/About Research Units/General Facility Station.jpg";
+import FoodInnovation from "../../assets/images/About Research Units/Food Innovation Lab.jpg";
+import ResearchUnit from "../../assets/images/About Research Units/Research Unit.jpg";
 
 function AboutResearchUnits() {
+  const scrollContainerRef = useRef(null);
+  const animationRef = useRef(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isTouching, setIsTouching] = useState(false);
+
   const researchFacilities = [
     {
       name: "Molecular Laboratory",
       description: "State-of-the-art facility for DNA analysis, PCR, and molecular research applications.",
-      image: "/images/molecular-lab.jpg" // Replace with actual image path
+      image: MolecularLab
     },
     {
       name: "Analytical Laboratory",
       description: "Equipped with advanced instruments for chemical analysis and material testing.",
-      image: "/images/analytical-lab.jpg" // Replace with actual image path
+      image: AnalyticalLab
     },
     {
       name: "Food Innovation Laboratory",
       description: "Dedicated space for food product development, testing, and quality analysis.",
-      image: "/images/food-innovation.jpg" // Replace with actual image path
+      image: FoodInnovation
     },
     {
       name: "Aquaculture Station",
       description: "Research facility for aquatic species cultivation and marine biology studies.",
-      image: "/images/aquaculture.jpg" // Replace with actual image path
+      image: AquacultureStation
     },
     {
       name: "General Facility Station",
       description: "Multi-purpose laboratory space for various scientific experiments and research.",
-      image: "/images/general-facility.jpg" // Replace with actual image path
+      image: GeneralFacility
     }
   ];
 
+  // Check viewport size
+  useEffect(() => {
+    const checkViewport = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 640);
+      setIsTablet(width >= 640 && width < 1024);
+      setIsDesktop(width >= 1024);
+    };
+    
+    checkViewport();
+    window.addEventListener('resize', checkViewport);
+    
+    return () => window.removeEventListener('resize', checkViewport);
+  }, []);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || isMobile) return;
+
+    let scrollPosition = scrollContainer.scrollLeft;
+    const cardWidth = 320;
+    const gap = 24;
+    const totalWidth = (cardWidth + gap) * researchFacilities.length;
+    const containerWidth = scrollContainer.clientWidth;
+    const maxScroll = totalWidth - containerWidth;
+    
+    const scroll = () => {
+      if (!scrollContainer) return;
+      
+      if (isHovered || isTouching) {
+        animationRef.current = requestAnimationFrame(scroll);
+        return;
+      }
+      
+      scrollPosition += 0.5;
+      
+      if (scrollPosition >= maxScroll) {
+        scrollPosition = 0;
+      }
+      
+      scrollContainer.scrollLeft = scrollPosition;
+      
+      animationRef.current = requestAnimationFrame(scroll);
+    };
+
+    animationRef.current = requestAnimationFrame(scroll);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [researchFacilities.length, isHovered, isTouching, isMobile]);
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer || isMobile) return;
+
+    const handleWheel = (e) => {
+      if (isHovered) {
+        e.preventDefault();
+        scrollContainer.scrollLeft += e.deltaY;
+      }
+    };
+
+    scrollContainer.addEventListener('wheel', handleWheel, { passive: false });
+    
+    return () => {
+      scrollContainer.removeEventListener('wheel', handleWheel);
+    };
+  }, [isHovered, isMobile]);
+
+  const handleTouchStart = () => setIsTouching(true);
+  const handleTouchEnd = () => setIsTouching(false);
+  const handleTouchCancel = () => setIsTouching(false);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <NavBar />
       
-      {/* Hero Section with Modern Design */}
-      <section className="relative bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 text-white overflow-hidden">
-        {/* Abstract Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '60px 60px'
-          }}></div>
+      {/* Minimalist Hero Section */}
+      <section className="relative pt-20 sm:pt-24 lg:pt-28 pb-12 sm:pb-16 lg:pb-20 overflow-hidden">
+        {/* Subtle Background Pattern */}
+        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600 rounded-full filter blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600 rounded-full filter blur-3xl"></div>
         </div>
-        
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 leading-tight mt-10">
-              About Research Units
-            </h1>
-            <div className="w-24 h-1 bg-blue-400 mx-auto rounded-full"></div>
+
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto">
+            {/* Title with minimal styling */}
+            <div className="text-center mb-8 sm:mb-10 lg:mb-12 mt-10">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-gray-700 tracking-tight">
+                About Research Units
+              </h1>
+              <div className="mt-4 flex justify-center">
+                <div className="w-30 h-0.5 bg-blue-600"></div>
+              </div>
+            </div>
+            
+            {/* Enlarged Hero Image with Minimalist Design */}
+            <div className="relative max-w-5xl mx-auto">
+              {/* Main Image Container - Significantly Larger */}
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl aspect-[16/9] sm:aspect-[21/9]">
+                <img 
+                  src={ResearchUnit} 
+                  alt="Research Unit" 
+                  className="w-full h-full object-cover"
+                />
+                {/* Minimal Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/20 via-transparent to-transparent"></div>
+              </div>
+
+              {/* Minimal Decorative Elements */}
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-600/5 rounded-full blur-2xl"></div>
+              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-indigo-600/5 rounded-full blur-2xl"></div>
+            </div>
           </div>
         </div>
-        
-        {/* Bottom Wave Decoration */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg className="w-full h-6 sm:h-8 lg:h-12 text-white" preserveAspectRatio="none" viewBox="0 0 1440 74" fill="currentColor">
-            <path d="M0,0 C480,74 960,74 1440,0 L1440,74 L0,74 L0,0 Z"></path>
-          </svg>
-        </div>
       </section>
-
+      
       {/* Main Content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-        
-        {/* History Section with Modern Card Design */}
-        <section className="max-w-5xl mx-auto mb-16 sm:mb-20 lg:mb-24">
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl overflow-hidden">
-            <div className="relative h-2 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600"></div>
-            <div className="p-6 sm:p-8 lg:p-10">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-2 pb-0">  
+      
+        {/* History Section - Minimalist Card Design */}
+        <section className="max-w-4xl mx-auto mb-15 sm:mb-24 lg:mb-20">
+          <div className="relative">
+            {/* Timeline marker */}
+            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-600 via-transparent to-transparent hidden sm:block"></div>
+            
+            <div className="sm:pl-8 w-full px-4 sm:px-6 lg:px-8">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-600 mb-4 sm:mb-10">
+                Our Journey
+              </h2>
               
-              <div className="space-y-6 text-gray-600 leading-relaxed">
-                <p className="text-base sm:text-lg">
-                  The Science Research Laboratory (SRL) of the Laguna State Polytechnic University - Los Baños Campus (LSPU-LBC) was first established in early 2014 as the Science Laboratory Annex Building of the College of Fisheries (COF), originally designed for instruction purposes.
-                </p>
-                
-                <p className="text-base sm:text-lg">
-                  With support from the former University President, Dr. Nestor M. De Vera, and the former Campus Director (LSPU-LB), Dr. Daniel D. Bunal, the plans to develop this laboratory facility into a science research complex was then approved through the initiative of Prof. Christian Paul P. de la Cruz, who served as the founding Station Manager.
-                </p>
-                <p className="text-base sm:text-lg">
-                  In 2015, some basic laboratory wares and simple equipment commonly used in science classes were acquired, in support of its original function as a teaching laboratory.
-                </p>
-                <p className="text-base sm:text-lg">
-                  In the same year, the Atomic Absorption Spectrometer (AAS) was acquired as SRL's very first research instrument.
+              <div className="space-y-7 text-gray-600">
+                <p className="text-base sm:text-lg leading-relaxed">
+                  The Science Research Laboratory (SRL) of the Laguna State Polytechnic University - Los Baños Campus 
+                  (LSPU-LBC) was first established in early 2014 as the Science Laboratory Annex Building of the College 
+                  of Fisheries (COF), originally designed for instruction purposes.
+                </p> 
+                <div className="grid mt-8">
+                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="text-3xl font-light text-blue-600 mb-2">2015</div>
+                    <p className="text-gray-600">
+                      Acquisition of basic laboratory wares and simple equipment for teaching laboratories. 
+                      Additionally, the Atomic Absorption Spectrometer (AAS) was acquired as SRL's very first research instrument.
+                    </p>
+                  </div>
+                </div>
+                <p className="text-base sm:text-lg leading-relaxed">
+                  With support from the former University President, Dr. Nestor M. De Vera, and the former Campus 
+                  Director (LSPU-LB), Dr. Daniel D. Bunal, the plans to develop this laboratory facility into a science 
+                  research complex was then approved through the initiative of Prof. Christian Paul P. De La Cruz, who 
+                  served as the founding Station Manager.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Facilities Grid with Modern Cards */}
-        <section className="">
-          <div className="text-center mb-10 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-4">
-              Our Research Facilities
+        {/* Facilities Section - Clean and Minimal */}
+        <section className="mb-0">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 mb-4">
+              Research Facilities
             </h2>
-            <div className="w-24 h-1 bg-blue-600 mx-auto rounded-full"></div>
+            <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base">
+              State-of-the-art laboratories equipped for advanced scientific research and innovation
+            </p>
+            <div className="mt-6 flex justify-center">
+              <div className="w-30 h-0.5 bg-blue-600"></div>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-            {researchFacilities.map((facility, index) => (
-              <div 
-                key={index}
-                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2"
-              >
-                {/* Image Container with Overlay */}
-                <div className="relative h-48 sm:h-56 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
-                  <img 
-                    src={facility.image} 
-                    alt={facility.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "https://via.placeholder.com/400x200?text=Laboratory+Image";
-                    }}
-                  />
-                  <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                    Featured
+          {/* Mobile View */}
+          {isMobile ? (
+            <div className="grid grid-cols-1 gap-6 px-4 max-w-md mx-auto">
+              {researchFacilities.map((facility, index) => (
+                <div 
+                  key={index}
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100"
+                >
+                  <div className="relative h-48 overflow-hidden bg-gray-50">
+                    <img 
+                      src={facility.image} 
+                      alt={facility.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                  </div>
+                  
+                  <div className="p-5">
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      {facility.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 mb-4 leading-relaxed">
+                      {facility.description}
+                    </p>
+                    <button className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 transition-colors group/btn">
+                      <span>Explore facility</span>
+                      <svg className="w-4 h-4 ml-1 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                      </svg>
+                    </button>
                   </div>
                 </div>
-                
-                {/* Content */}
-                <div className="p-5 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">
-                    {facility.name}
-                  </h3>
-                  <p className="text-sm sm:text-base text-gray-600 mb-4 line-clamp-3">
-                    {facility.description}
-                  </p>
-                  <button className="inline-flex items-center text-blue-600 font-semibold hover:text-blue-800 transition-colors group/btn">
-                    <span>Learn more</span>
-                    <svg className="w-4 h-4 ml-2 group-hover/btn:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                  </button>
+              ))}
+            </div>
+          ) : (
+            /* Desktop and Tablet View */
+            <div className="relative">
+              {/* Subtle Gradient Overlays */}
+              <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none"></div>
+              <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-gray-50 to-transparent z-10 pointer-events-none"></div>
+              
+              {/* Scrollable Cards Container */}
+              <div 
+                ref={scrollContainerRef}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onTouchCancel={handleTouchCancel}
+                className="overflow-x-auto pb-8 scrollbar-hide"
+                style={{ scrollBehavior: 'auto' }}
+              >
+                <div className="flex flex-row gap-6 lg:gap-8 min-w-min px-8">
+                  {researchFacilities.map((facility, index) => (
+                    <div 
+                      key={index}
+                      className="group bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden w-80 sm:w-96 flex-shrink-0 border border-gray-100"
+                    >
+                      <div className="relative h-56 sm:h-64 overflow-hidden bg-gray-50">
+                        <img 
+                          src={facility.image} 
+                          alt={facility.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        />
+                      </div>
+                      
+                      <div className="p-6">
+                        <h3 className="text-xl font-medium text-gray-900 mb-3">
+                          {facility.name}
+                        </h3>
+                        <p className="text-gray-500 mb-5 leading-relaxed line-clamp-3">
+                          {facility.description}
+                        </p>
+                        <button className="inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors group/btn text-sm font-medium">
+                          <span>Learn more</span>
+                          <svg className="w-4 h-4 ml-2 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Navigation Instructions */}
+              {(isTablet || isDesktop) && (
+                <div className="flex justify-center mt-8">
+                  <p className="text-gray-400 text-xs flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    <span>{isTablet ? 'Swipe to explore' : 'Scroll or swipe to explore'}</span>
+                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </section>
       </main>
       <Footer />
