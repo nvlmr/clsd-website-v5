@@ -2,6 +2,8 @@ import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import MolecularLabImg from "../../assets/images/About Research Units/Molecular Lab.jpg";
+import AutoScroll from "../AutoScroll.jsx";
+
 import { 
   BeakerIcon, 
   MicroscopeIcon, 
@@ -16,6 +18,7 @@ import {
 function MBML() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      <AutoScroll/>
       <NavBar />
       
       {/* Main content with navbar offset */}

@@ -2,6 +2,7 @@ import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AquacultureStationImg from "../../assets/images/About Research Units/Aquaculture Station.jpg";
+import AutoScroll from "../AutoScroll.jsx";
 
 import { 
   TestTube,
@@ -17,6 +18,7 @@ import {
 function AquacultureResearchStation() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      <AutoScroll/>
       <NavBar />
       
       {/* Main content with navbar offset */}

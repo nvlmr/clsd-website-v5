@@ -8,6 +8,7 @@ import AquacultureStation from "../../assets/images/About Research Units/Aquacul
 import GeneralFacility from "../../assets/images/About Research Units/General Facility Station.jpg";
 import FoodInnovation from "../../assets/images/About Research Units/Food Innovation Lab.jpg";
 import ResearchUnit from "../../assets/images/About Research Units/Research Unit.jpg";
+import AutoScroll from "../AutoScroll.jsx";
 
 function AboutResearchUnits() {
   const navigate = useNavigate();
@@ -141,6 +142,7 @@ function AboutResearchUnits() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+      <AutoScroll/>
       <NavBar />
       
       {/* Minimalist Hero Section */}

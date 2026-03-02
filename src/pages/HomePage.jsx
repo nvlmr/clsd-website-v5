@@ -3,6 +3,7 @@ import NavBar from "../navigation/NavBar.jsx";
 import Footer from "../navigation/Footer.jsx";
 import AboutCLSD from "./AboutCLSD.jsx";
 import bgImage from "../assets/images/background.jpg";
+import AutoScroll from "./AutoScroll.jsx";
 import { ArrowRight } from 'lucide-react';
 
 function Home() {
@@ -22,6 +23,7 @@ function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
+      <AutoScroll/>
       <NavBar />
       
       {/* Hero Section with Background Image */}

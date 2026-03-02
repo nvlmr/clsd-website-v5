@@ -2,6 +2,7 @@ import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AnalyticalLabImg from "../../assets/images/About Research Units/Analytical Lab.jpg";
+import AutoScroll from "../AutoScroll.jsx";
 
 import { 
   FlaskConical, 
@@ -16,6 +17,7 @@ import {
 function AnalyticalServicesLab() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      <AutoScroll/>
       <NavBar />
       
       {/* Main content with navbar offset */}

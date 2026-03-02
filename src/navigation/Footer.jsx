@@ -3,7 +3,6 @@ import { ChevronRight, ExternalLink, Globe } from "lucide-react";
 
 // Logo imports (Keeping your exact paths)
 import lspulogo from "../assets/logo/LSPU.png";
-import dostlogo from "../assets/logo/DOST.png";
 import pcieerdlogo from "../assets/logo/PCIEERD.png";
 import pcaarrdlogo from "../assets/logo/PCAARRD.png";
 import nrcplogo from "../assets/logo/NRCP.png";
@@ -12,6 +11,7 @@ import denrlogo from "../assets/logo/DENR.png";
 import uplblogo from "../assets/logo/UPLB.png";
 import lagunalogo from "../assets/logo/LAGUNA.png";
 import clsdlogo from "../assets/logo/LSD.png";
+import dostlogo from "../assets/logo/DOST.png";
 import { href } from "react-router-dom";
 
 const Footer = () => {
@@ -66,7 +66,7 @@ const FooterLink = ({ name, url }) => (
           <div className="h-1 w-12 bg-blue-100 mx-auto rounded-full"></div>
         </div>
 
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-20">
+        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 lg:gap-10">
           {partnerLogos.map((logo, index) => {
             const content = (
               <div className="group transition-transform duration-300 hover:scale-150">
@@ -100,7 +100,7 @@ const FooterLink = ({ name, url }) => (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
             
             {/* Brand/About Section */}
-            <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-5 space-y-3">
               <div className="flex flex-col space-y-4">
                 <div>
                   <h4 className="text-xl font-semibold text-slate-900 tracking-tight leading-tight">
@@ -109,7 +109,7 @@ const FooterLink = ({ name, url }) => (
                   </h4>
                 </div>
               </div>
-              <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
+              <p className="text-sm text-slate-500 leading-relaxed max-w-sm leading-snug">
                 Under the <span className="text-slate-700 font-medium">"Accelerated R&D Program for Capacity Building of Research 
                 and Development Institutions and Industrial Competitiveness Niche 
                 Centers in the Regions for R&D (NICER)"</span>. 
@@ -124,13 +124,13 @@ const FooterLink = ({ name, url }) => (
                   About GOVPH
                 </h4>
               </div>
-              <p className="text-sm text-slate-500 mb-11 leading-relaxed">
+              <p className="text-sm text-slate-500 mb-6 leading-[1.3]">
                 Learn more about the Philippine government, its structure, and the people behind it.
               </p>
               <h5 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-1.5 border-l-2 border-blue-500 pl-3">
                 Quick Links
               </h5>
-              <div className="flex flex-col">
+              <div className="flex flex-col -space-y-3">
                 <FooterLink name="Official Gazette" url="https://www.officialgazette.gov.ph/" />
                 <FooterLink name="Open Data Portal" url="#" />
               </div>
@@ -138,16 +138,17 @@ const FooterLink = ({ name, url }) => (
 
             {/* Government Links Column */}
             <div className="lg:col-span-3">
-              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-1.5 border-l-2 border-blue-500 pl-3">
+              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-4 border-l-2 border-blue-500 pl-3">
                 Government Links
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-x-4">
-                {governmentLinks.map((link, index) => (
-                  <FooterLink key={index} name={link.name} url={link.url} />
-                ))}
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-x-">
+                  {governmentLinks.map((link, index) => (
+                    <div className="-mt-2">
+                      <FooterLink key={index} name={link.name} url={link.url} />
+                    </div>
+                  ))}
+                </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -156,11 +157,11 @@ const FooterLink = ({ name, url }) => (
       <div className="bg-white border-t border-slate-100 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
               <img
                 src={clsdlogo}
                 alt="CLSD Logo"
-                className="h-8 w-auto"
+                className="h-15 w-auto"
               />
               <div className="flex flex-col">
                 <span className="text-xs font-semibold text-slate-900 uppercase tracking-tight">

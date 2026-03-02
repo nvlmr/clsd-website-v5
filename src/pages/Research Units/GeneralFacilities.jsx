@@ -2,6 +2,7 @@ import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import GeneralFacilityImg from "../../assets/images/About Research Units/General Facility Station.jpg";
+import AutoScroll from "../AutoScroll.jsx";
 
 import { 
   TestTube,
@@ -14,9 +15,11 @@ import {
   FlaskConical
 } from "lucide-react";
 
+
 function GeneralFacilities() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
+      <AutoScroll/>
       <NavBar />
       
       {/* Main content with navbar offset */}

@@ -33,6 +33,23 @@ const NavBar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleNavigation = (path) => {
+    // Close all menus
+    setIsOpen(false);
+    setActiveDropdown(null);
+    
+    // Scroll to top
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+    
+    // If it's an external link (starts with http), handle separately
+    if (path.startsWith('http')) {
+      window.open(path, '_blank');
+    }
+  };
+
   // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isOpen) {
@@ -82,7 +99,7 @@ const NavBar = () => {
         { label: "Food Innovation Laboratory", path: "/FoodInnovationLab" },
         { label: "Aquaculture Research Station", path: "/AquacultureResearchStation" },
         { label: "General Facilities", path: "/GeneralFacilities" },
-        { label: "CLSD Equipment List", path: "/CLSDEquipmentList" },
+        { label: "CLSD Equipment List", path: "/ClsdEquipmentList" },
       ],
     },
     {
@@ -127,7 +144,11 @@ const NavBar = () => {
       {/* Full-width flex wrapper (no container padding) */}
       <div className="flex justify-between items-center h-16 sm:h-20 px-4 xl:px-8">
         {/* Logo Left */}
-        <Link to="/" className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        <Link 
+          to="/" 
+          className="flex items-center gap-2 sm:gap-3 md:gap-4"
+          onClick={() => handleNavigation('/')}
+        >
           <img 
             src={Logo} 
             alt="Logo" 
@@ -161,6 +182,7 @@ const NavBar = () => {
               {item.type === "link" ? (
                 <Link
                   to={item.path}
+                  onClick={() => handleNavigation(item.path)}
                   className={`relative px-2 2xl:px-2.5 py-2 text-sm font-semibold transition-all duration-300 group whitespace-nowrap inline-flex items-center ${
                     shouldShowWhiteNav ? "text-gray-700" : "text-white"
                   }`}
@@ -200,7 +222,7 @@ const NavBar = () => {
                           key={subIndex}
                           to={subItem.path}
                           className="block px-4 py-2.5 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-colors duration-200"
-                          onClick={() => setActiveDropdown(null)}
+                          onClick={() => handleNavigation(subItem.path)}
                         >
                           {subItem.label}
                         </Link>
@@ -271,7 +293,7 @@ const NavBar = () => {
                   <Link
                     to={item.path}
                     className="block text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-xl text-sm font-semibold transition-all"
-                    onClick={closeMenus}
+                    onClick={() => handleNavigation(item.path)}
                   >
                     {item.label}
                   </Link>
@@ -296,7 +318,7 @@ const NavBar = () => {
                             key={subIndex}
                             to={subItem.path}
                             className="block text-gray-600 hover:text-blue-600 px-4 py-2.5 text-sm font-medium"
-                            onClick={closeMenus}
+                            onClick={() => handleNavigation(subItem.path)}
                           >
                             {subItem.label}
                           </Link>
