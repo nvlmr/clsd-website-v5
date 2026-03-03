@@ -125,7 +125,7 @@ function AboutResearchUnits() {
           </div>
           
           {/* Partner Cards Grid - Moderately Compact */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5">
             {partners.map((partner, index) => {
               const IconComponent = partner.icon;
               return (
@@ -173,7 +173,10 @@ function AboutResearchUnits() {
               </p>
 
               {/* CTA */}
-              <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group w-fit text-sm sm:text-base">
+              <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-600 
+              hover:from-blue-700 hover:to-indigo-700 text-white font-normal px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 
+              rounded-lg sm:rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group w-fit 
+              text-sm sm:text-base">
                 <span>Explore Research Projects</span>
                 <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 ml-1 sm:ml-1.5 lg:ml-2 group-hover:translate-x-1 transition-transform" />
               </button>
