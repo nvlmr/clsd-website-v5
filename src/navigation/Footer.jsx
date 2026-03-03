@@ -103,9 +103,9 @@ const FooterLink = ({ name, url }) => (
             <div className="lg:col-span-5 space-y-3">
               <div className="flex flex-col space-y-4">
                 <div>
-                  <h4 className="text-xl font-semibold text-slate-900 tracking-tight leading-tight">
-                    Center for Lakes <br />
-                    <span className="text-blue-600 font-bold italic">Sustainable Development</span>
+                  <h4 className="text-lg font-semibold text-slate-900 tracking-tight leading-tight">
+                    Center for Lakes Sustainable Development <br />
+                    <span className="text-blue-600 font-bold italic"></span>
                   </h4>
                 </div>
               </div>

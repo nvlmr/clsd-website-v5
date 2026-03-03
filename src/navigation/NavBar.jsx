@@ -93,13 +93,12 @@ const NavBar = () => {
       label: "Research Units",
       type: "dropdown",
       items: [
-        { label: "About Research Units", path: "/AboutResearchUnits" },
-        { label: "Molecular Biology and Microbiology Laboratory", path: "/MBML" },
-        { label: "Analytical Services Laboratory", path: "/AnalyticalServicesLab" },
-        { label: "Food Innovation Laboratory", path: "/FoodInnovationLab" },
+        { label: "Molecular Biology and Microbiology", path: "/MBML" },
+        { label: "Analytical Instrumentation", path: "/AnalyticalServicesLab" },
+        { label: "Food Innovation ", path: "/FoodInnovationLab" },
         { label: "Aquaculture Research Station", path: "/AquacultureResearchStation" },
         { label: "General Facilities", path: "/GeneralFacilities" },
-        { label: "CLSD Equipment List", path: "/ClsdEquipmentList" },
+        { label: "CLSD Equipment", path: "/ClsdEquipmentList" },
       ],
     },
     {
@@ -119,6 +118,7 @@ const NavBar = () => {
       items: [
         { label: "About Science and Research", path: "/AboutS&R" },
         { label: "DOST Funded Projects", path: "/DostFundedProject" },
+        { label: "E-Sentry", path: "/E-Sentry", type: "link" }
       ],
     },
     {
@@ -129,9 +129,15 @@ const NavBar = () => {
         { label: "IEC Materials", path: "/IEC_Materials" },
       ],
     },
-    { label: "Contact", path: "/Contact", type: "link" },
-    { label: "E-Sentry", path: "/E-Sentry", type: "link" },
-    { label: "Calendar", path: "/Calendar", type: "link" },
+    {
+      label: "Project and Events",
+      type: "dropdown",
+      items: [
+        { label: "Project", path: "/Project" },
+        { label: "Events", path: "/Events" },
+      ],
+    },
+    
   ];
 
   return (

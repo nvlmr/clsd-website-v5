@@ -1,16 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import NavBar from "../../navigation/NavBar.jsx";
-import Footer from "../../navigation/Footer.jsx";
-import MolecularLab from "../../assets/images/About Research Units/Molecular Lab.jpg";
-import AnalyticalLab from "../../assets/images/About Research Units/Analytical Lab.jpg";
-import AquacultureStation from "../../assets/images/About Research Units/Aquaculture Station.jpg";
-import GeneralFacility from "../../assets/images/About Research Units/General Facility Station.jpg";
-import FoodInnovation from "../../assets/images/About Research Units/Food Innovation Lab.jpg";
-import ResearchUnit from "../../assets/images/About Research Units/Research Unit.jpg";
-import AutoScroll from "../AutoScroll.jsx";
+import MolecularLab from "../assets/images/About Research Units/Molecular Lab.jpg";
+import AnalyticalLab from "../assets/images/About Research Units/Analytical Lab.jpg";
+import AquacultureStation from "../assets/images/About Research Units/Aquaculture Station.jpg";
+import GeneralFacility from "../assets/images/About Research Units/General Facility Station.jpg";
+import FoodInnovation from "../assets/images/About Research Units/Food Innovation Lab.jpg";
 
-function AboutResearchUnits() {
+function ResearchUnits() {
   const navigate = useNavigate();
   const scrollContainerRef = useRef(null);
   const animationRef = useRef(null);
@@ -141,92 +137,8 @@ function AboutResearchUnits() {
   const handleTouchCancel = () => setIsTouching(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      <AutoScroll/>
-      <NavBar />
-      
-      {/* Minimalist Hero Section */}
-      <section className="relative pt-20 sm:pt-24 lg:pt-28 pb-12 sm:pb-16 lg:pb-20 overflow-hidden">
-        {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.02] pointer-events-none">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-blue-600 rounded-full filter blur-3xl"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-indigo-600 rounded-full filter blur-3xl"></div>
-        </div>
-
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Title with minimal styling */}
-            <div className="text-center mb-8 sm:mb-10 lg:mb-12 mt-10">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-gray-700 tracking-tight">
-                About <span className="text-blue-600">Research Units</span>
-              </h1>
-              <div className="mt-4 flex justify-center">
-                <div className="w-30 h-0.5 bg-blue-600"></div>
-              </div>
-            </div>
-            
-            {/* Enlarged Hero Image with Minimalist Design */}
-            <div className="relative max-w-5xl mx-auto">
-              {/* Main Image Container - Significantly Larger */}
-              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl aspect-[16/9] sm:aspect-[21/9]">
-                <img 
-                  src={ResearchUnit} 
-                  alt="Research Unit" 
-                  className="w-full h-full object-cover"
-                />
-                {/* Minimal Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/20 via-transparent to-transparent"></div>
-              </div>
-
-              {/* Minimal Decorative Elements */}
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-blue-600/5 rounded-full blur-2xl"></div>
-              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-indigo-600/5 rounded-full blur-2xl"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Main Content */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-2 pb-0">  
-      
-        {/* History Section - Minimalist Card Design */}
-        <section className="max-w-4xl mx-auto mb-15 sm:mb-24 lg:mb-20">
-          <div className="relative">
-            {/* Timeline marker */}
-            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-600 via-transparent to-transparent hidden sm:block"></div>
-            
-            <div className="sm:pl-8 w-full px-4 sm:px-6 lg:px-8">
-              <h2 className="text-2xl sm:text-3xl font-semibold text-gray-600 mb-4 sm:mb-10">
-                Our Journey
-              </h2>
-              
-              <div className="space-y-7 text-gray-600">
-                <p className="text-base sm:text-lg leading-relaxed">
-                  The Science Research Laboratory (SRL) of the Laguna State Polytechnic University - Los Baños Campus 
-                  (LSPU-LBC) was first established in early 2014 as the Science Laboratory Annex Building of the College 
-                  of Fisheries (COF), originally designed for instruction purposes.
-                </p> 
-                <div className="grid mt-8">
-                  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="text-3xl font-light text-blue-600 mb-2 font-semibold">2015</div>
-                    <p className="text-gray-600">
-                      Acquisition of basic laboratory wares and simple equipment for teaching laboratories. 
-                      Additionally, the Atomic Absorption Spectrometer (AAS) was acquired as SRL's very first research instrument.
-                    </p>
-                  </div>
-                </div>
-                <p className="text-base sm:text-lg leading-relaxed">
-                  With support from the former University President, Dr. Nestor M. De Vera, and the former Campus 
-                  Director (LSPU-LB), Dr. Daniel D. Bunal, the plans to develop this laboratory facility into a science 
-                  research complex was then approved through the initiative of Prof. Christian Paul P. De La Cruz, who 
-                  served as the founding Station Manager.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Facilities Section - Clean and Minimal */}
+    <div className="bg-gradient-to-b from-gray-50 to-white pt-12 pb-7">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-2 pb-0">
         <section className="mb-0">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 mb-4">
@@ -239,8 +151,6 @@ function AboutResearchUnits() {
               <div className="w-30 h-0.5 bg-blue-600"></div>
             </div>
           </div>
-          
-          {/* Mobile View */}
           {isMobile ? (
             <div className="grid grid-cols-1 gap-6 px-4 max-w-md mx-auto">
               {researchFacilities.map((facility, index) => (
@@ -284,7 +194,6 @@ function AboutResearchUnits() {
               ))}
             </div>
           ) : (
-            /* Desktop and Tablet View */
             <div className="relative">
               {/* Subtle Gradient Overlays */}
               <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-gray-50 to-transparent z-10 pointer-events-none"></div>
@@ -362,9 +271,8 @@ function AboutResearchUnits() {
           )}
         </section>
       </main>
-      <Footer />
     </div>
   );
 };
 
-export default AboutResearchUnits;
+export default ResearchUnits;

@@ -5,6 +5,7 @@ import AboutCLSD from "./AboutCLSD.jsx";
 import bgImage from "../assets/images/background.jpg";
 import AutoScroll from "./AutoScroll.jsx";
 import { ArrowRight } from 'lucide-react';
+import ResearchUnits from "./ResearchUnits.jsx";
 
 function Home() {
   // Extract YouTube video ID from URL
@@ -123,6 +124,7 @@ function Home() {
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-teal-400 to-blue-600"></div>
       </div>
       <AboutCLSD/>
+      <ResearchUnits/>
       <Footer />
     </div>
   );

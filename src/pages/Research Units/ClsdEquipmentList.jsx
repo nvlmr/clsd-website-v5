@@ -348,11 +348,6 @@ function ClsdEquipmentList() {
                   </svg>
                 </button>
               </div>
-
-              {/* Page info */}
-              <div className="text-center mt-4 text-sm text-gray-500">
-                Page {currentPage} of {totalPages}
-              </div>
             </div>
           ) : (
             /* Equipment Detail View */
