@@ -56,7 +56,9 @@ function Esentry() {
               <p className="text-gray-600 text-lg leading-relaxed mb-6 ">
                 Develop and improve farming technologies for aquatic species, pilot trials and demonstration projects, 
                 facilities for industry and researchers to carry out projects and trials, work with others towards 
-                sustainable aquaculture and fisheries, train staff and students and educate the public about aquaculture.
+                sustainable aquaculture and fisheries, train staff and students and educate the public about aquaculture. 
+                Strengthen partnerships between researchers, industry, and communities to accelerate the adoption of sustainable 
+                and efficient aquaculture technologies.
               </p>
               
               {/* Additional Details Section */}

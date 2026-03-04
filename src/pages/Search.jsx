@@ -17,7 +17,7 @@ const SearchComponent = () => {
   };
 
   return (
-    <div className="w-full bg-gradient-to-br from-blue-50 to-white py-8 pt-30 min-h-screen">
+    <div className="w-full bg-gradient-to-br from-blue-50 to-white py-8 pt-30 h-50">
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto relative">
           <form onSubmit={handleSearch} className="relative">
@@ -81,25 +81,6 @@ const SearchComponent = () => {
             </div>
           </form>
 
-          {/* Optional: Search suggestions dropdown */}
-          {isFocused && (
-            <div className="absolute z-50 mt-2 w-full max-w-2xl bg-white rounded-xl shadow-xl border border-blue-100">
-              <div className="p-4">
-                <p className="text-sm font-medium text-blue-600 mb-3">Popular searches:</p>
-                <div className="flex flex-wrap gap-2">
-                  {['Electronics', 'Clothing', 'Books', 'Home & Garden', 'Toys'].map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => setSearchTerm(item)}
-                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 rounded-full text-sm text-blue-700 transition-all hover:scale-105 hover:shadow-sm"
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

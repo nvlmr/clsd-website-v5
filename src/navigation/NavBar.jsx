@@ -106,14 +106,14 @@ const NavBar = () => {
       type: "dropdown",
       items: [
         { label: "About Center for Lakes", path: "/AboutCenterForLakes" },
-        { label: "Research Team", path: "/ResearchTeam" },
-        { label: "CLSD Project", path: "/ClsdProject" },
-        { label: "CLSD Research Paper", path: "/ClsdResearchPaper" },
+        { label: "Researcher", path: "/ResearchTeam" },
+        { label: "Research Initiatives", path: "/ClsdProject" },
+        { label: "Research Paper", path: "/ClsdResearchPaper" },
         { label: "Philippine Lakes Database", path: "/PDL" },
       ],
     },
     {
-      label: "Science and Research",
+      label: "Collaborative Research",
       type: "dropdown",
       items: [
         { label: "About Science and Research", path: "/AboutS&R" },
@@ -129,15 +129,7 @@ const NavBar = () => {
         { label: "IEC Materials", path: "/IEC_Materials" },
       ],
     },
-    {
-      label: "Project and Events",
-      type: "dropdown",
-      items: [
-        { label: "Project", path: "/Project" },
-        { label: "Events", path: "/Events" },
-      ],
-    },
-    
+    { label: "News and Events", path: "/NewsEvents", type: "link"}
   ];
 
   return (

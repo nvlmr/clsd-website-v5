@@ -21,8 +21,7 @@ import Esentry from "./Science and Research/E-sentry.jsx";
 import IEC_Materials from "./Media/IEC_Materials.jsx";
 import VideoGallery from "./Media/VideoGallery.jsx";
 
-import Project from "./Project & Events/Projects.jsx";
-import Events from "./Project & Events/Events.jsx";
+import NewsEvents from "./News & Events/NewsEvents.jsx";
 
 
 
@@ -47,8 +46,7 @@ function LandingRoutes () {
         <Route path="/IEC_Materials" element={<IEC_Materials/>} />
         <Route path="/VideoGallery" element={<VideoGallery/>} />
         <Route path="/E-sentry" element={<Esentry/>} />
-        <Route path="/Project" element={<Project/>}/>
-        <Route path="/Events" element={<Events/>}/>
+        <Route path="/NewsEvents" element={<NewsEvents/>}/>
     </Routes>
   );
 }
