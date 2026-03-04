@@ -127,7 +127,7 @@ const FooterLink = ({ name, url }) => (
               <p className="text-sm text-slate-500 mb-6 leading-[1.3]">
                 Learn more about the Philippine government, its structure, and the people behind it.
               </p>
-              <h5 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-1.5 border-l-2 border-blue-500 pl-3">
+              <h5 className="text-xs font-bold text-slate-900 uppercase tracking-widest mb-1.5 mt-7.5 border-l-2 border-blue-500 pl-3">
                 Quick Links
               </h5>
               <div className="flex flex-col -space-y-3">
