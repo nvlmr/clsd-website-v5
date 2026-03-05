@@ -15,7 +15,7 @@ import {
   FlaskConical
 } from "lucide-react";
 
-function FoodInnovationLab() {
+function FoodInnovation() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <AutoScroll/>
@@ -132,4 +132,4 @@ function FoodInnovationLab() {
   );
 }
 
-export default FoodInnovationLab;
+export default FoodInnovation;

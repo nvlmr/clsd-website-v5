@@ -3,10 +3,10 @@ import NavBar from "../../navigation/NavBar.jsx";
 import AutoScroll from "../AutoScroll.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import Search from "../Search.jsx";
-import PLDData from "../../data/PLD.js";
+import researchInitiatives from "../../data/ResearchInitiatives.js";
 
-function PLD() {
-  const [filteredProjects, setFilteredProjects] = useState(PLDData);
+function ResearchInitiatives() {
+  const [filteredProjects, setFilteredProjects] = useState(researchInitiatives);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 3 columns × 3 rows = 9 items per page
   const topRef = useRef(null);
@@ -57,28 +57,29 @@ function PLD() {
           <div className="max-w-4xl">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
-                Philippine Lakes Database
+                Research Initiatives
               </span>
             </h1>
             <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl">
-              Comprehensive database of research publications and studies about Philippine lakes.
+              Driving innovative research initiatives that transform ideas into impactful, real-world solutions.
             </p>
           </div>
         </div>
       </section>
       
       <Search 
-        data={PLDData}
-        searchKeys={['title', 'authors']}
+        data={researchInitiatives}
+        searchKeys={['title', 'fundingAgency', 'implementingAgency']}
         onSearchResults={setFilteredProjects}
         showResultCount={true}
       />
 
-      <div className="flex-grow container mx-auto px-4 mt-14">
+      <div className="flex-grow container mx-auto px-4">
+        <h1 className="text-3xl font-bold text-center mb-8">Research Units</h1>
         
         {filteredProjects.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No publications found.</p>
+            <p className="text-gray-500 text-lg">No research projects found.</p>
           </div>
         ) : (
           <>
@@ -86,32 +87,22 @@ function PLD() {
               {currentProjects.map((project) => (
                 <div 
                   key={project.id} 
-                  className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
+                  className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300"
                 >
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2">
+                  <div className="p-6">
+                    <h2 className="text-xl font-semibold mb-3 text-gray-800">
                       {project.title}
-                    </h3>
-                    <div className="space-y-3 flex-grow">
+                    </h2>
+                    <div className="space-y-2">
                       <p className="text-gray-600">
-                        <span className="font-medium">Authors:</span> {project.authors}
+                        <span className="font-medium">Duration:</span> {project.duration}
                       </p>
                       <p className="text-gray-600">
-                        <span className="font-medium">DOI:</span> {project.DOI}
+                        <span className="font-medium">Funding Agency:</span> {project.fundingAgency}
                       </p>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <a 
-                        href={project.ArticleLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
-                      >
-                        View Article
-                        <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
+                      <p className="text-gray-600">
+                        <span className="font-medium">Implementing Agency:</span> {project.implementingAgency}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -129,7 +120,6 @@ function PLD() {
                       ? 'text-gray-400 cursor-not-allowed'
                       : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                   }`}
-                  aria-label="Previous page"
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -147,8 +137,6 @@ function PLD() {
                           ? 'bg-blue-600 text-white'
                           : 'text-gray-600 hover:bg-gray-100'
                       }`}
-                      aria-label={`Go to page ${page}`}
-                      aria-current={currentPage === page ? 'page' : undefined}
                     >
                       {page}
                     </button>
@@ -163,7 +151,6 @@ function PLD() {
                       ? 'text-gray-400 cursor-not-allowed'
                       : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                   }`}
-                  aria-label="Next page"
                 >
                   <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -179,4 +166,4 @@ function PLD() {
   );
 };
 
-export default PLD;
+export default ResearchInitiatives;

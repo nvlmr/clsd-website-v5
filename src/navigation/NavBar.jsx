@@ -94,11 +94,11 @@ const NavBar = () => {
       type: "dropdown",
       items: [
         { label: "Molecular Biology and Microbiology", path: "/MBML" },
-        { label: "Analytical Instrumentation", path: "/AnalyticalServicesLab" },
-        { label: "Food Innovation ", path: "/FoodInnovationLab" },
+        { label: "Analytical Instrumentation", path: "/AnalyticalIntrumentation" },
+        { label: "Food Innovation ", path: "/FoodInnovation" },
         { label: "Aquaculture Research Station", path: "/AquacultureResearchStation" },
         { label: "General Facilities", path: "/GeneralFacilities" },
-        { label: "CLSD Equipment", path: "/ClsdEquipmentList" },
+        { label: "CLSD Equipment", path: "/ClsdEquipment" },
       ],
     },
     {
@@ -106,9 +106,9 @@ const NavBar = () => {
       type: "dropdown",
       items: [
         { label: "About Center for Lakes", path: "/AboutCenterForLakes" },
-        { label: "Researcher", path: "/ResearchTeam" },
-        { label: "Research Initiatives", path: "/ClsdProject" },
-        { label: "Research Paper", path: "/ClsdResearchPaper" },
+        { label: "Researcher", path: "/Researcher" },
+        { label: "Research Initiatives", path: "/ResearchInitiatives" },
+        { label: "Research Paper", path: "/ResearchPaper" },
         { label: "Philippine Lakes Database", path: "/PDL" },
       ],
     },

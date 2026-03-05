@@ -107,8 +107,8 @@ function AboutScienceAndResearch() {
                         <ChevronRight className="w-4 h-4 text-white" />
                       </div>
                     </div>
-                    <p className="text-gray-700 leading-relaxed italic pl-4">
-                      "In response, the research team led by Prof. de la Cruz (as Project Leader) was able to submit a viable project proposal on the development of milkfish aqua-synbiotic technology, that was approved for implementation in July 2016, with a total budget of <span className="font-bold text-blue-600 not-italic">PhP 4M</span>. Considered as the first externally-funded research, the milkfish aqua-synbiotic project was a huge breakthrough in the R&D history of LSPU."
+                    <p className="text-gray-700 leading-relaxed pl-4">
+                      In response, the research team led by Prof. de la Cruz (as Project Leader) was able to submit a viable project proposal on the development of milkfish aqua-synbiotic technology, that was approved for implementation in July 2016, with a total budget of <span className="font-bold text-blue-600 not-italic">PhP 4M</span>. Considered as the first externally-funded research, the milkfish aqua-synbiotic project was a huge breakthrough in the R&D history of LSPU.
                     </p>
                   </div>
 

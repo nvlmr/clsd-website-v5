@@ -18,7 +18,7 @@ const experts = [
     qualifications: "PhD in Computer Science",
     expertise: "Artificial Intelligence, Machine Learning",
     institution: "Laguna State Polytechnic University",
-    role: "Director"  // First person as Director
+    role: "Director"
   },
   {
     id: 2,
@@ -28,19 +28,8 @@ const experts = [
     qualifications: "MSc in Information Security",
     expertise: "Network Security, Ethical Hacking",
     institution: "MIT",
-    role: "Dean"  // Second person as Dean
+    role: "Unit Head"
   },
-  {
-    id: 32,
-    image: person2,
-    name: "Prof. David Anderson",
-    title: "Cybersecurity Specialist",
-    qualifications: "MSc in Information Security",
-    expertise: "Network Security, Ethical Hacking",
-    institution: "MIT",
-    role: "Dean"  // Second person as Dean
-  },
-
   {
     id: 3,
     image: person3,
@@ -52,86 +41,6 @@ const experts = [
     role: "Researcher"
   },
   {
-    id: 4,
-    image: person4,
-    name: "Dr. Michael Chen",
-    title: "Cloud Architect",
-    qualifications: "MSc in Cloud Computing",
-    expertise: "AWS, Azure, DevOps",
-    institution: "University of California, Berkeley",
-    role: "Researcher"
-  },
-  {
-    id: 5,
-    image: person5,
-    name: "Prof. Olivia Brown",
-    title: "UI/UX Researcher",
-    qualifications: "PhD in Human-Computer Interaction",
-    expertise: "User Experience Design, Accessibility",
-    institution: "Carnegie Mellon University",
-    role: "Researcher"
-  },
-  {
-    id: 6,
-    image: person6,
-    name: "Dr. James Wilson",
-    title: "Blockchain Developer",
-    qualifications: "MSc in Distributed Systems",
-    expertise: "Smart Contracts, Web3",
-    institution: "Oxford University",
-    role: "Researcher"
-  },
-  {
-    id: 7,
-    image: person7,
-    name: "Dr. Sophia Martinez",
-    title: "Robotics Engineer",
-    qualifications: "PhD in Robotics Engineering",
-    expertise: "Automation, Embedded Systems",
-    institution: "Georgia Institute of Technology",
-    role: "Assistant Researcher"
-  },
-  {
-    id: 78,
-    image: person7,
-    name: "Dr. Sophia Martinez",
-    title: "Robotics Engineer",
-    qualifications: "PhD in Robotics Engineering",
-    expertise: "Automation, Embedded Systems",
-    institution: "Georgia Institute of Technology",
-    role: "Assistant Researcher"
-  },
-  {
-    id: 76,
-    image: person7,
-    name: "Dr. Sophia Martinez",
-    title: "Robotics Engineer",
-    qualifications: "PhD in Robotics Engineering",
-    expertise: "Automation, Embedded Systems",
-    institution: "Georgia Institute of Technology",
-    role: "Assistant Researcher"
-  },
-  {
-    id: 74,
-    image: person7,
-    name: "Dr. Sophia Martinez",
-    title: "Robotics Engineer",
-    qualifications: "PhD in Robotics Engineering",
-    expertise: "Automation, Embedded Systems",
-    institution: "Georgia Institute of Technology",
-    role: "Assistant Researcher"
-  },
-  {
-    id: 8,
-    image: person8,
-    name: "Prof. Daniel Taylor",
-    title: "Full Stack Developer",
-    qualifications: "MSc in Software Engineering",
-    expertise: "React, Node.js, Database Design",
-    institution: "University of Toronto",
-    role: "Assistant Researcher"
-  },
-  {
     id: 9,
     image: person9,
     name: "Dr. Ava Thompson",
@@ -139,9 +48,9 @@ const experts = [
     qualifications: "PhD in Technology Policy",
     expertise: "Responsible AI, Data Governance",
     institution: "Yale University",
-    role: "Assistant Researcher"
+    role: "Affiliate Scientist"
   },
-    {
+      {
     id: 9,
     image: person9,
     name: "Dr. Ava Thompson",
@@ -149,48 +58,8 @@ const experts = [
     qualifications: "PhD in Technology Policy",
     expertise: "Responsible AI, Data Governance",
     institution: "Yale University",
-    role: "Assistant Researcher"
+    role: "Research Assistant"
   },
-    {
-    id: 9,
-    image: person9,
-    name: "Dr. Ava Thompson",
-    title: "AI Ethics Researcher",
-    qualifications: "PhD in Technology Policy",
-    expertise: "Responsible AI, Data Governance",
-    institution: "Yale University",
-    role: "Assistant Researcher"
-  },
-    {
-    id: 9,
-    image: person9,
-    name: "Dr. Ava Thompson",
-    title: "AI Ethics Researcher",
-    qualifications: "PhD in Technology Policy",
-    expertise: "Responsible AI, Data Governance",
-    institution: "Yale University",
-    role: "Assistant Researcher"
-  },
-    {
-    id: 9,
-    image: person9,
-    name: "Dr. Ava Thompson",
-    title: "AI Ethics Researcher",
-    qualifications: "PhD in Technology Policy",
-    expertise: "Responsible AI, Data Governance",
-    institution: "Yale University",
-    role: "Assistant Researcher"
-  },
-  {
-    id: 10,
-    image: person10,
-    name: "Prof. Ethan White",
-    title: "Mobile App Developer",
-    qualifications: "MSc in Computer Engineering",
-    expertise: "iOS, Android, Flutter",
-    institution: "University of Cambridge",
-    role: "Assistant Researcher"
-  }
 ];
 
 export default experts;

@@ -35,7 +35,7 @@ import ionChrom from "../../assets/images/Equipments/ion-chrom.jpg";
 import laminarFlowHood from "../../assets/images/Equipments/laminar flow hood.jpg";
 import microplateReader from "../../assets/images/Equipments/microplate reader.jpg";
 
-function ClsdEquipmentList() {
+function ClsdEquipment() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   
@@ -452,4 +452,4 @@ function ClsdEquipmentList() {
   );
 };
 
-export default ClsdEquipmentList;
+export default ClsdEquipment;

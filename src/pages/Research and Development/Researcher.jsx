@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../AutoScroll.jsx";
-import experts from "../../data/ResearchTeam";
+import experts from "../../data/ResearchTeam.js";
 import { ChevronLeft, ChevronRight, GraduationCap, Award, Building2 } from "lucide-react";
 
-function ResearchTeam() {
+function Researcher() {
   const [selectedPerson, setSelectedPerson] = useState(null);
 
   const ResearcherCard = ({ person }) => (
@@ -161,7 +161,7 @@ function ResearchTeam() {
           <section className="py-8 sm:py-10 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               {/* Group by role with headers */}
-              {['Director', 'Dean', 'Researcher', 'Assistant Researcher'].map((role) => {
+              {['Director', 'Unit Head', 'Researcher', 'Affiliate Scientist', 'Research Assistant' ].map((role) => {
                 const roleExperts = experts.filter(person => person.role === role);
                 if (roleExperts.length === 0) return null;
                 
@@ -186,7 +186,7 @@ function ResearchTeam() {
                     {/* Section header */}
                     <div className="flex items-center mb-4 sm:mb-6">
                       <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">
-                        {role}s
+                        {role}
                       </h2>
                       <div className="ml-3 flex-grow h-0.5 bg-gradient-to-r from-blue-200 to-transparent"></div>
                       <span className="ml-3 text-xs sm:text-sm text-gray-500">
@@ -213,4 +213,4 @@ function ResearchTeam() {
   );
 }
 
-export default ResearchTeam;
+export default Researcher;

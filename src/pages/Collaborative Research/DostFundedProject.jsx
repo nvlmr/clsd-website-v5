@@ -1,12 +1,13 @@
+// DostFundedProject.jsx
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import AutoScroll from "../AutoScroll.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import Search from "../Search.jsx";
-import PLDData from "../../data/PLD.js";
+import dostProjects from "../../data/DostFundedProject.js"; // Renamed import to avoid conflict
 
-function PLD() {
-  const [filteredProjects, setFilteredProjects] = useState(PLDData);
+function DostFundedProjectPage() { // Renamed component to avoid conflict
+  const [filteredProjects, setFilteredProjects] = useState(dostProjects);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9; // 3 columns × 3 rows = 9 items per page
   const topRef = useRef(null);
@@ -44,6 +45,20 @@ function PLD() {
     setCurrentPage(page);
   };
 
+  // Status badge color mapping
+  const getStatusColor = (status) => {
+    switch(status.toLowerCase()) {
+      case 'ongoing':
+        return 'bg-green-100 text-green-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      case 'proposed':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <AutoScroll/>
@@ -57,28 +72,27 @@ function PLD() {
           <div className="max-w-4xl">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
-                Philippine Lakes Database
+                DOST Funded Projects
               </span>
             </h1>
             <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl">
-              Comprehensive database of research publications and studies about Philippine lakes.
+              Explore research and development projects funded by the Department of Science and Technology (DOST).
             </p>
           </div>
         </div>
       </section>
       
       <Search 
-        data={PLDData}
-        searchKeys={['title', 'authors']}
+        data={dostProjects}
+        searchKeys={['title', 'projectLeader', 'fundingAgency']}
         onSearchResults={setFilteredProjects}
         showResultCount={true}
       />
 
       <div className="flex-grow container mx-auto px-4 mt-14">
-        
         {filteredProjects.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No publications found.</p>
+            <p className="text-gray-500 text-lg">No projects found.</p>
           </div>
         ) : (
           <>
@@ -89,30 +103,36 @@ function PLD() {
                   className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col h-full"
                 >
                   <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2">
+                    {/* Status Badge */}
+                    <div className="flex justify-between items-start mb-3">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.status)}`}>
+                        {project.status}
+                      </span>
+                      <span className="text-sm font-medium text-gray-500">
+                        {project.fundingAgency}
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2 min-h-[3.5rem]">
                       {project.title}
                     </h3>
+                    
                     <div className="space-y-3 flex-grow">
                       <p className="text-gray-600">
-                        <span className="font-medium">Authors:</span> {project.authors}
+                        <span className="font-medium">Project Leader:</span> {project.projectLeader}
                       </p>
                       <p className="text-gray-600">
-                        <span className="font-medium">DOI:</span> {project.DOI}
+                        <span className="font-medium">Duration:</span> {project.duration}
+                      </p>
+                      <p className="text-gray-600">
+                        <span className="font-medium">Budget:</span> {project.budget}
                       </p>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <a 
-                        href={project.ArticleLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
-                      >
-                        View Article
-                        <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                      </a>
-                    </div>
+                    
+                    {/* View Details Button */}
+                    <button className="mt-4 w-full bg-blue-50 text-blue-700 py-2 px-4 rounded-lg hover:bg-blue-100 transition-colors duration-200 font-medium text-sm">
+                      View Details
+                    </button>
                   </div>
                 </div>
               ))}
@@ -136,7 +156,7 @@ function PLD() {
                   </svg>
                 </button>
 
-                {/* Page numbers - hide on very small screens if too many */}
+                {/* Page numbers */}
                 <div className="flex items-center space-x-1 sm:space-x-2">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                     <button
@@ -179,4 +199,4 @@ function PLD() {
   );
 };
 
-export default PLD;
+export default DostFundedProjectPage;

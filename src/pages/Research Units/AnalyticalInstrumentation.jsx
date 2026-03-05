@@ -14,7 +14,7 @@ import {
   Leaf
 } from "lucide-react";
 
-function AnalyticalServicesLab() {
+function AnalyticalIntrumentation() {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <AutoScroll/>
@@ -132,4 +132,4 @@ function AnalyticalServicesLab() {
   );
 }
 
-export default AnalyticalServicesLab;
+export default AnalyticalIntrumentation;
