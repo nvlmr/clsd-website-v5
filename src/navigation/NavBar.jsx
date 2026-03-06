@@ -106,7 +106,7 @@ const NavBar = () => {
       type: "dropdown",
       items: [
         { label: "About Center for Lakes", path: "/AboutCenterForLakes" },
-        { label: "Researcher", path: "/Researcher" },
+        { label: "Organizational Structure", path: "/Researcher" },
         { label: "Research Initiatives", path: "/ResearchInitiatives" },
         { label: "Research Paper", path: "/ResearchPaper" },
         { label: "Philippine Lakes Database", path: "/PDL" },
