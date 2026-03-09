@@ -2,7 +2,7 @@ import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import MolecularLabImg from "../../assets/images/About Research Units/Molecular Lab.jpg";
-import AutoScroll from "../AutoScroll.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
 
 import { 
   BeakerIcon, 

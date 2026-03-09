@@ -2,7 +2,7 @@ import React from "react";
 import { MapPin, Check, Droplets, Fish, Activity, BarChart3 } from "lucide-react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
-import AutoScroll from "../AutoScroll.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
 import TadlacLake from "../../assets/images/E-sentry/tadlac lake.jpg";
 
 function Esentry() {

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
-import AutoScroll from "../AutoScroll.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
 import Footer from "../../navigation/Footer.jsx";
-import Search from "../Search.jsx";
+import Search from "../../components/Search.jsx";
 import PLDData from "../../data/PLD.js";
 
 function PLD() {

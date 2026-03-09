@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
-import AutoScroll from "../AutoScroll.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
 import { useResearchTeam } from "../../hooks/ResearchTeam.js";
 import { ChevronLeft, ChevronRight, GraduationCap, Award, Building2, User } from "lucide-react";
 

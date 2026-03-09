@@ -2,7 +2,7 @@ import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AnalyticalLabImg from "../../assets/images/About Research Units/Analytical Lab.jpg";
-import AutoScroll from "../AutoScroll.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
 
 import { 
   FlaskConical, 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
-import AutoScroll from "../AutoScroll.jsx";
-import Search from "../Search.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
+import Search from "../../components/Search.jsx";
 import researchPapersData from "../../data/ResearchPaper.js";
 
 function ResearchPaper() {

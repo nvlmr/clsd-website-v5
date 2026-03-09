@@ -1,7 +1,7 @@
 import React from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
-import AutoScroll from "../AutoScroll.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
 import SRLImg from "../../assets/images/About Science and Research/SRL.jpg";
 import { 
   Target, 
