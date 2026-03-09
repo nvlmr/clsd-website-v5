@@ -2,49 +2,17 @@ import React, { useState, useEffect } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
-
-// Equipment images imports
-import miniCentrifuge from "../../assets/images/Equipments/mini centrifuge.jpg";
-import multiParameter from "../../assets/images/Equipments/multi parameter.jpg";
-import photometer from "../../assets/images/Equipments/photometer.jpg";
-import reciprocalShaker from "../../assets/images/Equipments/Reciprocal shaker.jpg";
-import rotaryEvaporator from "../../assets/images/Equipments/rotary evaporator.jpg";
-import spectroPhotometer from "../../assets/images/Equipments/spectro photometer.jpg";
-import thermoShaker from "../../assets/images/Equipments/thermo shaker.jpg";
-import trinocularMicroscope from "../../assets/images/Equipments/trinocular microscope.jpg";
-import uvVisSpectrophotometer from "../../assets/images/Equipments/UV VIS spectrophotometer.jpg";
-import vanDorn from "../../assets/images/Equipments/van dorn.jpg";
-import waterBath from "../../assets/images/Equipments/water bath.jpg";
-import waterPurificationSystem from "../../assets/images/Equipments/water purification system.jpg";
-import xrf from "../../assets/images/Equipments/xrf.jpg";
-import analyticalWeighingScale from "../../assets/images/Equipments/analytical digital weighing scale.jpg";
-import autoclave from "../../assets/images/Equipments/autoclave.jpg";
-import benchtopCentrifuge from "../../assets/images/Equipments/benchtop centrifuge.jpg";
-import bioFreezer from "../../assets/images/Equipments/bio-freezer.jpg";
-import convectionOven from "../../assets/images/Equipments/convection oven.jpg";
-import conventionalPCR from "../../assets/images/Equipments/conventional pcr.jpg";
-import drone from "../../assets/images/Equipments/drone.jpg";
-import exo1MultiParameterSonde from "../../assets/images/Equipments/EXO1 Multi-Parameter Sonde(CTD).jpg";
-import freezeDryer from "../../assets/images/Equipments/freeze dryer.jpg";
-import fumeHood from "../../assets/images/Equipments/fume hood.jpg";
-import furnace from "../../assets/images/Equipments/furnace.jpg";
-import hplc from "../../assets/images/Equipments/hplc.jpg";
-import hybridCentrifuge from "../../assets/images/Equipments/hybrid centrifuge.jpg";
-import incubator from "../../assets/images/Equipments/incubator.jpg";
-import ionChrom from "../../assets/images/Equipments/ion-chrom.jpg";
-import laminarFlowHood from "../../assets/images/Equipments/laminar flow hood.jpg";
-import microplateReader from "../../assets/images/Equipments/microplate reader.jpg";
+import equipmentData from "../../data/ClsdEquipment.js"; // Import the data
 
 function ClsdEquipment() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   
-  // Responsive items per page
   const getItemsPerPage = () => {
     if (typeof window !== 'undefined') {
-      return window.innerWidth < 640 ? 6 : 8; // 2×3=6 on mobile, 4×2=8 on desktop
+      return window.innerWidth < 640 ? 6 : 8;
     }
-    return 8; // Default for SSR
+    return 8;
   };
 
   const [itemsPerPage, setItemsPerPage] = useState(getItemsPerPage());
@@ -58,160 +26,6 @@ function ClsdEquipment() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Equipment data array with descriptions
-  const equipmentData = [
-    { 
-      name: "Mini Centrifuge", 
-      image: miniCentrifuge,
-      description: "Compact laboratory device used for rapid separation of fluids based on density. Ideal for clinical and research applications requiring quick spin-down of samples."
-    },
-    { 
-      name: "Multi Parameter", 
-      image: multiParameter,
-      description: "Advanced water quality monitoring system that measures multiple parameters simultaneously including pH, conductivity, dissolved oxygen, and temperature."
-    },
-    { 
-      name: "Photometer", 
-      image: photometer,
-      description: "Precision instrument for measuring light intensity and chemical concentrations through colorimetric analysis. Essential for water quality testing and chemical analysis."
-    },
-    { 
-      name: "Reciprocal Shaker", 
-      image: reciprocalShaker,
-      description: "Laboratory equipment providing consistent horizontal shaking motion for mixing, dissolving, and suspending samples in various containers."
-    },
-    { 
-      name: "Rotary Evaporator", 
-      image: rotaryEvaporator,
-      description: "Efficient solvent removal system that uses vacuum distillation to gently concentrate or purify chemical samples at reduced pressures."
-    },
-    { 
-      name: "Spectro Photometer", 
-      image: spectroPhotometer,
-      description: "Analytical instrument measuring light intensity across wavelengths to determine concentration of chemical substances in solutions."
-    },
-    { 
-      name: "Thermo Shaker", 
-      image: thermoShaker,
-      description: "Combined heating and shaking device for precise temperature control during sample incubation and mixing processes."
-    },
-    { 
-      name: "Trinocular Microscope", 
-      image: trinocularMicroscope,
-      description: "Advanced microscope with three eyepiece tubes allowing simultaneous observation, photography, and video recording of specimens."
-    },
-    { 
-      name: "UV VIS Spectrophotometer", 
-      image: uvVisSpectrophotometer,
-      description: "High-precision instrument for measuring light absorption in ultraviolet and visible ranges, crucial for quantitative chemical analysis."
-    },
-    { 
-      name: "Van Dorn", 
-      image: vanDorn,
-      description: "Horizontal water sampling bottle designed for collecting water samples at specific depths without contamination from other depths."
-    },
-    { 
-      name: "Water Bath", 
-      image: waterBath,
-      description: "Temperature-controlled water bath for incubating samples, thawing materials, and conducting temperature-sensitive experiments."
-    },
-    { 
-      name: "Water Purification System", 
-      image: waterPurificationSystem,
-      description: "Multi-stage filtration system producing high-purity water for sensitive laboratory applications and analytical procedures."
-    },
-    { 
-      name: "XRF", 
-      image: xrf,
-      description: "X-Ray Fluorescence spectrometer for non-destructive elemental analysis of materials, from solids to liquids and powders."
-    },
-    { 
-      name: "Analytical Weighing Scale", 
-      image: analyticalWeighingScale,
-      description: "High-precision balance with microgram sensitivity for accurate measurement of small sample masses in analytical chemistry."
-    },
-    { 
-      name: "Autoclave", 
-      image: autoclave,
-      description: "Sterilization equipment using high-pressure steam to eliminate microorganisms from laboratory instruments and media."
-    },
-    { 
-      name: "Benchtop Centrifuge", 
-      image: benchtopCentrifuge,
-      description: "Compact centrifugal separator for rapid sedimentation of cellular components, proteins, and nucleic acids."
-    },
-    { 
-      name: "Bio-Freezer", 
-      image: bioFreezer,
-      description: "Ultra-low temperature freezer for long-term storage of biological samples, enzymes, and temperature-sensitive reagents."
-    },
-    { 
-      name: "Convection Oven", 
-      image: convectionOven,
-      description: "Laboratory oven with forced air circulation for uniform heating, drying, and sterilization of glassware and samples."
-    },
-    { 
-      name: "Conventional PCR", 
-      image: conventionalPCR,
-      description: "Polymerase Chain Reaction thermal cycler for DNA amplification, genetic analysis, and molecular biology research."
-    },
-    { 
-      name: "Drone", 
-      image: drone,
-      description: "Unmanned aerial vehicle equipped with sensors for environmental monitoring, lake surveying, and aerial imaging."
-    },
-    { 
-      name: "EXO1 Multi-Parameter Sonde", 
-      image: exo1MultiParameterSonde,
-      description: "Advanced water quality monitoring platform with multiple sensors for real-time environmental data collection."
-    },
-    { 
-      name: "Freeze Dryer", 
-      image: freezeDryer,
-      description: "Lyophilization system for preserving biological materials by removing water through sublimation under vacuum."
-    },
-    { 
-      name: "Fume Hood", 
-      image: fumeHood,
-      description: "Ventilated enclosure for safely handling hazardous chemicals, containing fumes and protecting laboratory personnel."
-    },
-    { 
-      name: "Furnace", 
-      image: furnace,
-      description: "High-temperature laboratory furnace for ashing samples, heat treatment, and material testing up to 1200°C."
-    },
-    { 
-      name: "HPLC", 
-      image: hplc,
-      description: "High-Performance Liquid Chromatography system for separating, identifying, and quantifying compounds in complex mixtures."
-    },
-    { 
-      name: "Hybrid Centrifuge", 
-      image: hybridCentrifuge,
-      description: "Versatile centrifuge combining refrigeration and multiple rotor options for various separation applications."
-    },
-    { 
-      name: "Incubator", 
-      image: incubator,
-      description: "Temperature-controlled chamber for cultivating microorganisms, cell cultures, and maintaining biological samples."
-    },
-    { 
-      name: "Ion Chromatography", 
-      image: ionChrom,
-      description: "Analytical system for separating and quantifying ions in solution, essential for water quality and environmental analysis."
-    },
-    { 
-      name: "Laminar Flow Hood", 
-      image: laminarFlowHood,
-      description: "Sterile workbench providing particle-free workspace for handling sensitive biological samples and cell cultures."
-    },
-    { 
-      name: "Microplate Reader", 
-      image: microplateReader,
-      description: "Multi-well plate analyzer for high-throughput screening, ELISA assays, and various photometric measurements."
-    }
-  ];
 
   // Calculate pagination
   const totalPages = Math.ceil(equipmentData.length / itemsPerPage);
@@ -230,12 +44,10 @@ function ClsdEquipment() {
     } else if (direction === 'prev' && currentPage > 1) {
       setCurrentPage(currentPage - 1);
     }
-    // Removed window.scrollTo to prevent scrolling to top
   };
 
   const goToPage = (page) => {
     setCurrentPage(page);
-    // Removed window.scrollTo to prevent scrolling to top
   };
 
   const handleEquipmentClick = (equipment) => {
@@ -400,37 +212,23 @@ function ClsdEquipment() {
                         </p>
                       </div>
                       
-                      <div className="bg-blue-50 rounded-lg p-4 sm:p-6">
-                        <h3 className="text-xs sm:text-sm font-semibold text-blue-800 mb-3">
-                          Applications
-                        </h3>
-                        <ul className="text-xs sm:text-sm text-gray-600 space-y-2">
-                          <li className="flex items-start">
-                            <svg className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Research & Development
-                          </li>
-                          <li className="flex items-start">
-                            <svg className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Quality Control
-                          </li>
-                          <li className="flex items-start">
-                            <svg className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Environmental Monitoring
-                          </li>
-                          <li className="flex items-start">
-                            <svg className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Sample Analysis
-                          </li>
-                        </ul>
-                      </div>
+                      {selectedEquipment.applications && (
+                        <div className="bg-blue-50 rounded-lg p-4 sm:p-6">
+                          <h3 className="text-xs sm:text-sm font-semibold text-blue-800 mb-3">
+                            Applications
+                          </h3>
+                          <ul className="text-xs sm:text-sm text-gray-600 space-y-2">
+                            {selectedEquipment.applications.map((app, index) => (
+                              <li key={index} className="flex items-start">
+                                <svg className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {app}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
 
                       {/* Additional Equipment Info */}
                       <div className="border-t border-gray-200 pt-4">

@@ -9,10 +9,11 @@ import GeneralFacilities from "./Research Units/GeneralFacilities.jsx";
 import ClsdEquipment from "./Research Units/ClsdEquipment.jsx";
 
 import AboutCenterForLakes from "./Research and Development/AboutCenterForLakes.jsx";
-import Researcher from "./Research and Development/Researcher.jsx";
+import OrganizationalStructure from "./Research and Development/OrganizationalStructure.jsx";
 import ResearchInitiatives from "./Research and Development/ResearchInitiatives.jsx";
 import ResearchPaper from "./Research and Development/ResearchPaper.jsx";
 import PDL from "./Research and Development/PLD.jsx";
+import SearchEngine from "./Research and Development/SearchEngine.jsx";
 
 import AboutScienceAndResearch from "./Collaborative Research/AboutS&R.jsx";
 import DostFundedProject from "./Collaborative Research/DostFundedProject.jsx";
@@ -37,10 +38,11 @@ function LandingRoutes () {
         <Route path="/ClsdEquipment" element={<ClsdEquipment />} />
 
         <Route path="/AboutCenterForLakes" element={<AboutCenterForLakes />} />
-        <Route path="/Researcher" element={<Researcher />} />
+        <Route path="/OrganizationalStructure" element={<OrganizationalStructure />} />
         <Route path="/ResearchInitiatives" element={<ResearchInitiatives />} />
         <Route path="/ResearchPaper" element={<ResearchPaper />} />
         <Route path="/PDL" element={<PDL />} />
+        <Route path="/SearchEngine" element={<SearchEngine/>} />
 
         <Route path="/AboutS&R" element={<AboutScienceAndResearch/>} />
         <Route path="/DostFundedProject" element={<DostFundedProject/>} />

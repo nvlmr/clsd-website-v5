@@ -5,14 +5,16 @@ import AutoScroll from "../../components/AutoScroll.jsx";
 import { useResearchTeam } from "../../hooks/ResearchTeam.js";
 import { ChevronLeft, ChevronRight, GraduationCap, Award, Building2, User } from "lucide-react";
 
-function Researcher() {
+function OrganizationalStructure() {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const { experts, isLive } = useResearchTeam();
 
   const ResearcherCard = ({ person }) => (
     <div 
       className="group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 w-full max-w-[200px] sm:max-w-[280px] mx-auto overflow-hidden cursor-pointer"
-      onClick={() => setSelectedPerson(person)}
+      onClick={() => {setSelectedPerson(person)
+      window.scrollTo(0, 0)
+      }}
     >
       <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-400"></div>
       <div className="p-3 sm:p-5 flex flex-col h-full">
@@ -256,4 +258,4 @@ function Researcher() {
   );
 }
 
-export default Researcher;
+export default OrganizationalStructure;
