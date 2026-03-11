@@ -1,9 +1,10 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\pages\News & Events\NewsEvents.jsx
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import Search from "../../components/Search.jsx";
-import NewsEventsData from "../../data/NewsEvents.js";
+import useNewsEvents from "../../hooks/NewsEvents.js";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -13,24 +14,59 @@ import {
   FileText, 
   ArrowLeft,
   Filter,
-  X
+  X,
+  Download,
+  X as XIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Maximize2,
+  WifiOff,
+  Image as ImageIcon
 } from "lucide-react";
 
 function NewsEvents() {
-  const [filteredEvents, setFilteredEvents] = useState(NewsEventsData);
+  const { 
+    data: NewsEventsData, 
+    loading, 
+    error, 
+    usingMock,
+    refresh,
+    getItemsByType,
+    searchItems 
+  } = useNewsEvents();
+
+  const [filteredEvents, setFilteredEvents] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
   const itemsPerPage = 9;
   const topRef = useRef(null);
 
-  // Get unique types from data (excluding 'all')
-  const eventTypes = [...new Set(NewsEventsData.map(event => event.type))];
+  // Update filteredEvents when data or filter changes
+  useEffect(() => {
+    if (NewsEventsData && NewsEventsData.length > 0) {
+      if (activeFilter === 'all') {
+        setFilteredEvents(NewsEventsData);
+      } else {
+        // Filter by type (case-insensitive)
+        const filtered = NewsEventsData.filter(event => 
+          event.type && event.type.toLowerCase() === activeFilter.toLowerCase()
+        );
+        setFilteredEvents(filtered);
+      }
+    }
+  }, [NewsEventsData, activeFilter]);
 
+  // Reset to page 1 when filtered events change
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredEvents]);
 
+  // Scroll to top when page changes or when returning from detail view
   useEffect(() => {
     if (topRef.current && !selectedEvent) {
       topRef.current.scrollIntoView({ 
@@ -42,18 +78,11 @@ function NewsEvents() {
 
   const handleFilterClick = (type) => {
     setActiveFilter(type);
-    if (type === 'all') {
-      setFilteredEvents(NewsEventsData);
-    } else {
-      const filtered = NewsEventsData.filter(event => event.type === type);
-      setFilteredEvents(filtered);
-    }
     setCurrentPage(1);
   };
 
   const clearFilter = () => {
     setActiveFilter('all');
-    setFilteredEvents(NewsEventsData);
     setCurrentPage(1);
   };
 
@@ -83,11 +112,100 @@ function NewsEvents() {
     setSelectedEvent(null);
   };
 
+  const handleSearchResults = (results) => {
+    setFilteredEvents(results);
+    setCurrentPage(1);
+  };
 
-  // Filter button styling - white and blue theme
+  // Gallery modal functions
+  const openGalleryModal = (images, index) => {
+    setSelectedImage(images);
+    setCurrentImageIndex(index);
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeGalleryModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+    document.body.style.overflow = 'unset';
+  };
+
+  const navigateGallery = (direction) => {
+    if (direction === 'next' && currentImageIndex < selectedImage.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+    } else if (direction === 'prev' && currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+    }
+  };
+
+  // Handle keyboard navigation for gallery
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isModalOpen) return;
+      
+      if (e.key === 'Escape') {
+        closeGalleryModal();
+      } else if (e.key === 'ArrowRight') {
+        navigateGallery('next');
+      } else if (e.key === 'ArrowLeft') {
+        navigateGallery('prev');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, currentImageIndex, selectedImage]);
+
+  // Format date for display
+  const formatEventDate = (startDate, endDate) => {
+    if (!startDate) return 'Date TBA';
+    
+    const start = new Date(startDate);
+    const end = endDate ? new Date(endDate) : start;
+    
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    
+    if (startDate === endDate || !endDate) {
+      return start.toLocaleDateString('en-US', options);
+    } else {
+      return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
+    }
+  };
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  // Download attachment
+  const downloadAttachment = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(url, '_blank');
+    }
+  };
+
+  // Filter button styling
   const getFilterButtonStyle = (type) => {
     const isActive = activeFilter === type;
-    return `px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 transform hover:scale-105 ${
+    const baseClasses = "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 min-w-[100px] text-center";
+    
+    return `${baseClasses} ${
       isActive 
         ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 ring-2 ring-blue-300 ring-offset-2'
         : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
@@ -103,9 +221,9 @@ function NewsEvents() {
       
       {/* Image Container */}
       <div className="relative h-48 overflow-hidden bg-gray-200">
-        {event.image ? (
+        {event.featured_image ? (
           <img 
-            src={event.image} 
+            src={event.featured_image} 
             alt={event.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
@@ -118,6 +236,13 @@ function NewsEvents() {
             <Calendar className="w-12 h-12 text-blue-400" />
           </div>
         )}
+        
+        {/* Featured badge */}
+        {event.featured && (
+          <div className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
+            Featured
+          </div>
+        )}
       </div>
       
       <div className="p-6 flex flex-col flex-grow">
@@ -128,12 +253,17 @@ function NewsEvents() {
         <div className="space-y-2">
           <p className="text-gray-600 flex items-start gap-2">
             <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm">{event.date}</span>
+            <span className="text-sm">{formatEventDate(event.event_start_date, event.event_end_date)}</span>
           </p>
           
           <p className="text-gray-600 flex items-start gap-2">
             <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm line-clamp-1">{event.location}</span>
+            <span className="text-sm line-clamp-1">{event.event_location || 'TBA'}</span>
+          </p>
+          
+          <p className="text-gray-600 flex items-start gap-2">
+            <Tag className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm capitalize">{event.type}</span>
           </p>
         </div>
       </div>
@@ -152,32 +282,58 @@ function NewsEvents() {
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
         {/* Hero Image */}
-        {event.image && (
+        {event.featured_image && (
           <div className="relative h-64 md:h-96 overflow-hidden">
             <img 
-              src={event.image} 
+              src={event.featured_image} 
               alt={event.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => window.open(event.featured_image, '_blank')}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            
+            {/* Expand button */}
+            <button
+              onClick={() => window.open(event.featured_image, '_blank')}
+              className="absolute top-4 right-4 bg-black bg-opacity-60 text-white p-2 rounded-full hover:bg-opacity-80 transition-all"
+            >
+              <Maximize2 className="w-4 h-4" />
+            </button>
           </div>
         )}
 
         <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
           <h1 className="text-2xl md:text-3xl font-bold mb-4">{event.title}</h1>
+          {event.featured && (
+            <span className="inline-block bg-yellow-500 text-white text-sm px-3 py-1 rounded-full">
+              Featured
+            </span>
+          )}
         </div>
 
         <div className="p-6 md:p-8">
+          {/* Excerpt */}
+          {event.excerpt && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600">
+              <p className="text-gray-700 italic">{event.excerpt}</p>
+            </div>
+          )}
+
+          {/* Full Content - Preserve Quill formatting */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
               <FileText className="w-5 h-5 text-blue-600" />
               <h2 className="text-lg font-bold text-gray-900">Description</h2>
             </div>
-            <p className="text-gray-700 ml-7 leading-relaxed whitespace-pre-line">
-              {event.description}
-            </p>
+            <div 
+              className="ml-7 prose prose-blue max-w-none text-gray-700"
+              dangerouslySetInnerHTML={{ 
+                __html: event.content || event.description || 'No description available.' 
+              }}
+            />
           </div>
 
+          {/* Event Details */}
           <div className="border-t border-gray-200 pt-6">
             <h3 className="text-md font-semibold text-gray-900 mb-4">Event Details</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,7 +343,17 @@ function NewsEvents() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Type</p>
-                  <p className="text-base font-medium text-gray-900">{event.type}</p>
+                  <p className="text-base font-medium text-gray-900 capitalize">{event.type}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <Tag className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Category</p>
+                  <p className="text-base font-medium text-gray-900">{event.category || 'General'}</p>
                 </div>
               </div>
               
@@ -197,25 +363,196 @@ function NewsEvents() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Date</p>
-                  <p className="text-base font-medium text-gray-900">{event.date}</p>
+                  <p className="text-base font-medium text-gray-900">
+                    {formatEventDate(event.event_start_date, event.event_end_date)}
+                  </p>
                 </div>
               </div>
               
-              <div className="flex items-start gap-3 md:col-span-2">
+              <div className="flex items-start gap-3">
                 <div className="bg-blue-100 p-2 rounded-lg">
                   <MapPin className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Location</p>
-                  <p className="text-base font-medium text-gray-900">{event.location}</p>
+                  <p className="text-base font-medium text-gray-900">{event.event_location || 'TBA'}</p>
                 </div>
               </div>
             </div>
           </div>
+
+          {/* Gallery */}
+          {event.gallery && event.gallery.length > 0 && (
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ImageIcon className="w-5 h-5 text-blue-600" />
+                <h3 className="text-md font-semibold text-gray-900">Gallery</h3>
+                <span className="text-sm text-gray-500 ml-2">({event.gallery.length} images)</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {event.gallery.map((image, index) => (
+                  <div
+                    key={index}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
+                    style={{ height: '180px' }}
+                    onClick={() => openGalleryModal(event.gallery, index)}
+                  >
+                    <div className="w-full h-full flex items-center justify-center p-2">
+                      <img
+                        src={image}
+                        alt={`Gallery ${index + 1}`}
+                        className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                        <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                          {index + 1}/{event.gallery.length}
+                        </span>
+                        <div className="bg-blue-600 text-white p-1.5 rounded-full">
+                          <Maximize2 className="w-4 h-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Attachments */}
+          {event.attachments && event.attachments.length > 0 && (
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FileText className="w-5 h-5 text-blue-600" />
+                <h3 className="text-md font-semibold text-gray-900">Attachments</h3>
+                <span className="text-sm text-gray-500 ml-2">({event.attachments.length} files)</span>
+              </div>
+              <div className="space-y-3">
+                {event.attachments.map((attachment, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-900 font-medium truncate">{attachment.name}</p>
+                        {attachment.size && (
+                          <p className="text-sm text-gray-500">{formatFileSize(attachment.size)}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <button
+                        onClick={() => downloadAttachment(attachment.url, attachment.name)}
+                        className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                        title="Download"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Registration Link */}
+          {event.event_registration_link && (
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <a
+                href={event.event_registration_link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <span>Register for this event</span>
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
+
+  // Gallery Modal
+  const GalleryModal = () => {
+    if (!isModalOpen || !selectedImage) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div 
+          className="absolute inset-0 bg-black bg-opacity-90 backdrop-blur-sm"
+          onClick={closeGalleryModal}
+        />
+        
+        <div className="relative z-10 w-full h-full flex items-center justify-center p-4">
+          <button
+            onClick={closeGalleryModal}
+            className="absolute top-4 right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 transition-all z-20"
+          >
+            <XIcon className="w-6 h-6" />
+          </button>
+
+          <div className="absolute top-4 left-4 text-white bg-black bg-opacity-50 px-3 py-1 rounded-full text-sm">
+            {currentImageIndex + 1} / {selectedImage.length}
+          </div>
+
+          {selectedImage.length > 1 && (
+            <>
+              <button
+                onClick={() => navigateGallery('prev')}
+                disabled={currentImageIndex === 0}
+                className={`absolute left-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all z-20 ${
+                  currentImageIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <ChevronLeftIcon className="w-6 h-6" />
+              </button>
+              <button
+                onClick={() => navigateGallery('next')}
+                disabled={currentImageIndex === selectedImage.length - 1}
+                className={`absolute right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all z-20 ${
+                  currentImageIndex === selectedImage.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <ChevronRightIcon className="w-6 h-6" />
+              </button>
+            </>
+          )}
+
+          <div className="flex items-center justify-center w-full h-full">
+            <img
+              src={selectedImage[currentImageIndex]}
+              alt={`Gallery ${currentImageIndex + 1}`}
+              className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-lg"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/800x600?text=Image+Not+Found";
+              }}
+            />
+          </div>
+
+          <a
+            href={selectedImage[currentImageIndex]}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-4 right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all z-20"
+            title="Download image"
+          >
+            <Download className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -238,16 +575,64 @@ function NewsEvents() {
           </div>
         </div>
       </section>
+
+      {/* Connection Status Banner */}
+      {usingMock && !loading && !error && (
+        <div className="container mx-auto px-4 mt-4">
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <WifiOff className="w-5 h-5 text-yellow-600" />
+              <p className="text-sm text-yellow-700">
+                ⚠️ You are viewing offline data. Connect to the server for latest updates.
+              </p>
+            </div>
+            <button
+              onClick={() => refresh()}
+              className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full transition-colors"
+            >
+              Retry Connection
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="container mx-auto px-4 mt-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-gray-600">Loading news and events...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="container mx-auto px-4 mt-8">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <p className="text-red-700">Error: {error}</p>
+            {usingMock && (
+              <p className="text-sm text-gray-600 mt-2">
+                ⚠️ Using offline data. Some information may not be up to date.
+              </p>
+            )}
+            <button
+              onClick={() => refresh()}
+              className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
       
-      {!selectedEvent && (
+      {!selectedEvent && !loading && !error && (
         <>
           <Search 
             data={NewsEventsData}
-            searchKeys={['title', 'description', 'location', 'type']}
-            onSearchResults={setFilteredEvents}
+            searchKeys={['title', 'content', 'excerpt', 'event_location', 'category']}
+            onSearchResults={handleSearchResults}
             showResultCount={true}
           />
-
+          
           {/* Filter Buttons */}
           <div className="container mx-auto px-4 mt-8">
             <div className="flex flex-col items-center">
@@ -256,18 +641,27 @@ function NewsEvents() {
                 <span className="text-sm font-medium text-gray-700">Filter by type:</span>
               </div>
               <div className="flex flex-wrap justify-center gap-3">
-                {eventTypes.map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => handleFilterClick(type)}
-                    className={getFilterButtonStyle(type)}
-                  >
-                    {type}
-                  </button>
-                ))}
+                <button
+                  onClick={() => handleFilterClick('all')}
+                  className={getFilterButtonStyle('all')}
+                >
+                  All
+                </button>
+                <button
+                  onClick={() => handleFilterClick('news')}
+                  className={getFilterButtonStyle('news')}
+                >
+                  News
+                </button>
+                <button
+                  onClick={() => handleFilterClick('event')}
+                  className={getFilterButtonStyle('event')}
+                >
+                  Events
+                </button>
               </div>
               
-              {/* Modern Clear Filter - Pill with X icon */}
+              {/* Clear Filter - Shows when any filter other than 'all' is active */}
               {activeFilter !== 'all' && (
                 <div className="mt-6 animate-fadeIn">
                   <button
@@ -278,7 +672,7 @@ function NewsEvents() {
                     <div className="p-0.5 bg-blue-200 rounded-full group-hover:bg-blue-300 transition-colors duration-300">
                       <X className="w-3.5 h-3.5 text-blue-700" />
                     </div>
-                    <span className="ml-1 px-2 py-0.5 bg-white bg-opacity-50 rounded-full text-xs text-blue-600">
+                    <span className="ml-1 px-2 py-0.5 bg-white bg-opacity-50 rounded-full text-xs text-blue-600 capitalize">
                       {activeFilter}
                     </span>
                   </button>
@@ -291,71 +685,76 @@ function NewsEvents() {
 
       <div className="flex-grow container mx-auto px-4 mt-8">
         {selectedEvent ? (
-          <DetailView event={selectedEvent} />
+          <>
+            <DetailView event={selectedEvent} />
+            <GalleryModal />
+          </>
         ) : (
           <>
-            {filteredEvents.length === 0 ? (
+            {!loading && !error && filteredEvents.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No news or events found.</p>
                 <button
                   onClick={clearFilter}
                   className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-200"
                 >
-                  View all news
+                  View all news & events
                 </button>
               </div>
             ) : (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-                  {currentEvents.map((event) => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
-                </div>
-
-                {totalPages > 1 && (
-                  <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
-                    <button
-                      onClick={() => handlePageChange('prev')}
-                      disabled={currentPage === 1}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        currentPage === 1
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                      }`}
-                    >
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => goToPage(page)}
-                          className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                            currentPage === page
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => handlePageChange('next')}
-                      disabled={currentPage === totalPages}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        currentPage === totalPages
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                      }`}
-                    >
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
+              !loading && !error && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                    {currentEvents.map((event) => (
+                      <EventCard key={event.id} event={event} />
+                    ))}
                   </div>
-                )}
-              </>
+
+                  {totalPages > 1 && (
+                    <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+                      <button
+                        onClick={() => handlePageChange('prev')}
+                        disabled={currentPage === 1}
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                          currentPage === 1
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                        }`}
+                      >
+                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+
+                      <div className="flex items-center space-x-1 sm:space-x-2">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => goToPage(page)}
+                            className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                              currentPage === page
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => handlePageChange('next')}
+                        disabled={currentPage === totalPages}
+                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                          currentPage === totalPages
+                            ? 'text-gray-400 cursor-not-allowed'
+                            : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                        }`}
+                      >
+                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    </div>
+                  )}
+                </>
+              )
             )}
           </>
         )}
