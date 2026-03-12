@@ -4,7 +4,10 @@ import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import Search from "../../components/Search.jsx";
+import { searchConfigs } from "../../config/searchConfigs.js";
+import { useSearch } from "../../hooks/useSearch.js";
 import useNewsEvents from "../../hooks/NewsEvents.js";
+
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -14,7 +17,6 @@ import {
   FileText, 
   ArrowLeft,
   Filter,
-  X,
   Download,
   X as XIcon,
   ChevronLeft as ChevronLeftIcon,
@@ -30,41 +32,58 @@ function NewsEvents() {
     loading, 
     error, 
     usingMock,
-    refresh,
-    getItemsByType,
-    searchItems 
+    refresh 
   } = useNewsEvents();
 
-  const [filteredEvents, setFilteredEvents] = useState([]);
+  // Use the custom search hook
+  const {
+    filteredData,
+    searchTerm,
+    isSearching,
+    searchResults,
+    handleSearchResults,
+    handleSearchStart,
+    handleSearchClear,
+    resetSearch
+  } = useSearch(NewsEventsData, searchConfigs.newsEvents);
+
+  // 1. State Management
+  const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedEvent, setSelectedEvent] = useState(null);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
+  // Gallery/Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
   const itemsPerPage = 9;
   const topRef = useRef(null);
 
-  // Update filteredEvents when data or filter changes
-  useEffect(() => {
-    if (NewsEventsData && NewsEventsData.length > 0) {
-      if (activeFilter === 'all') {
-        setFilteredEvents(NewsEventsData);
-      } else {
-        // Filter by type (case-insensitive)
-        const filtered = NewsEventsData.filter(event => 
-          event.type && event.type.toLowerCase() === activeFilter.toLowerCase()
-        );
-        setFilteredEvents(filtered);
-      }
-    }
-  }, [NewsEventsData, activeFilter]);
+  // 2. Apply filter to searched results
+  const filteredAndSearchedEvents = React.useMemo(() => {
+    let result = [...filteredData];
 
-  // Reset to page 1 when filtered events change
+    // Apply Category Filter
+    if (activeFilter !== 'all') {
+      result = result.filter(event => 
+        event.type?.toLowerCase() === activeFilter.toLowerCase()
+      );
+    }
+
+    return result;
+  }, [filteredData, activeFilter]);
+
+  // 3. Pagination calculation
+  const totalPages = Math.ceil(filteredAndSearchedEvents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentEvents = filteredAndSearchedEvents.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filter changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredEvents]);
+  }, [activeFilter, filteredData]);
 
   // Scroll to top when page changes or when returning from detail view
   useEffect(() => {
@@ -76,20 +95,10 @@ function NewsEvents() {
     }
   }, [currentPage, selectedEvent]);
 
+  // 4. Action Handlers
   const handleFilterClick = (type) => {
     setActiveFilter(type);
-    setCurrentPage(1);
   };
-
-  const clearFilter = () => {
-    setActiveFilter('all');
-    setCurrentPage(1);
-  };
-
-  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentEvents = filteredEvents.slice(startIndex, endIndex);
 
   const handlePageChange = (direction) => {
     if (direction === 'prev' && currentPage > 1) {
@@ -112,9 +121,9 @@ function NewsEvents() {
     setSelectedEvent(null);
   };
 
-  const handleSearchResults = (results) => {
-    setFilteredEvents(results);
-    setCurrentPage(1);
+  const handleClearFilters = () => {
+    setActiveFilter('all');
+    resetSearch();
   };
 
   // Gallery modal functions
@@ -132,6 +141,8 @@ function NewsEvents() {
   };
 
   const navigateGallery = (direction) => {
+    if (!selectedImage) return;
+    
     if (direction === 'next' && currentImageIndex < selectedImage.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1);
     } else if (direction === 'prev' && currentImageIndex > 0) {
@@ -319,7 +330,7 @@ function NewsEvents() {
             </div>
           )}
 
-          {/* Full Content - Preserve Quill formatting */}
+          {/* Full Content */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-3">
               <FileText className="w-5 h-5 text-blue-600" />
@@ -626,11 +637,14 @@ function NewsEvents() {
       
       {!selectedEvent && !loading && !error && (
         <>
+          {/* Search Component with configuration */}
           <Search 
+            className="mt-15"
             data={NewsEventsData}
-            searchKeys={['title', 'content', 'excerpt', 'event_location', 'category']}
+            {...searchConfigs.newsEvents}
             onSearchResults={handleSearchResults}
-            showResultCount={true}
+            onSearchStart={handleSearchStart}
+            onSearchClear={handleSearchClear}
           />
           
           {/* Filter Buttons */}
@@ -639,47 +653,38 @@ function NewsEvents() {
               <div className="flex items-center gap-2 mb-4">
                 <Filter className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium text-gray-700">Filter by type:</span>
+                {activeFilter !== 'all' && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded-full transition-colors ml-2"
+                  >
+                    Clear filters
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap justify-center gap-3">
-                <button
-                  onClick={() => handleFilterClick('all')}
-                  className={getFilterButtonStyle('all')}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => handleFilterClick('news')}
-                  className={getFilterButtonStyle('news')}
-                >
-                  News
-                </button>
-                <button
-                  onClick={() => handleFilterClick('event')}
-                  className={getFilterButtonStyle('event')}
-                >
-                  Events
-                </button>
-              </div>
-              
-              {/* Clear Filter - Shows when any filter other than 'all' is active */}
-              {activeFilter !== 'all' && (
-                <div className="mt-6 animate-fadeIn">
+                {['all', 'news', 'event'].map((type) => (
                   <button
-                    onClick={clearFilter}
-                    className="group inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-full text-sm font-medium text-blue-700 hover:from-blue-100 hover:to-blue-200 hover:border-blue-300 hover:shadow-md transition-all duration-300"
+                    key={type}
+                    onClick={() => handleFilterClick(type)}
+                    className={getFilterButtonStyle(type)}
                   >
-                    <span>Clear filter</span>
-                    <div className="p-0.5 bg-blue-200 rounded-full group-hover:bg-blue-300 transition-colors duration-300">
-                      <X className="w-3.5 h-3.5 text-blue-700" />
-                    </div>
-                    <span className="ml-1 px-2 py-0.5 bg-white bg-opacity-50 rounded-full text-xs text-blue-600 capitalize">
-                      {activeFilter}
-                    </span>
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
                   </button>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
           </div>
+
+          {/* Search Stats */}
+          {searchTerm && (
+            <div className="container mx-auto px-4 mt-4">
+              <p className="text-sm text-gray-600">
+                Found {filteredAndSearchedEvents.length} results for "{searchTerm}"
+                {activeFilter !== 'all' && ` in ${activeFilter} category`}
+              </p>
+            </div>
+          )}
         </>
       )}
 
@@ -691,70 +696,66 @@ function NewsEvents() {
           </>
         ) : (
           <>
-            {!loading && !error && filteredEvents.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No news or events found.</p>
-                <button
-                  onClick={clearFilter}
-                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 hover:shadow-lg hover:shadow-blue-200"
-                >
-                  View all news & events
-                </button>
-              </div>
-            ) : (
-              !loading && !error && (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-                    {currentEvents.map((event) => (
-                      <EventCard key={event.id} event={event} />
-                    ))}
-                  </div>
-
-                  {totalPages > 1 && (
-                    <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
-                      <button
-                        onClick={() => handlePageChange('prev')}
-                        disabled={currentPage === 1}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                          currentPage === 1
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                        }`}
-                      >
-                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
-
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => goToPage(page)}
-                            className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                              currentPage === page
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={() => handlePageChange('next')}
-                        disabled={currentPage === totalPages}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                          currentPage === totalPages
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                        }`}
-                      >
-                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </button>
+            {loading ? null : error ? null : (
+              <>
+                {filteredAndSearchedEvents.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                      {currentEvents.map((event) => (
+                        <EventCard key={event.id} event={event} />
+                      ))}
                     </div>
-                  )}
-                </>
-              )
+
+                    {totalPages > 1 && (
+                      <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+                        <button
+                          onClick={() => handlePageChange('prev')}
+                          disabled={currentPage === 1}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                            currentPage === 1
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                          }`}
+                        >
+                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => goToPage(page)}
+                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                                currentPage === page
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-gray-600 hover:bg-gray-100'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => handlePageChange('next')}
+                          disabled={currentPage === totalPages}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                            currentPage === totalPages
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                          }`}
+                        >
+                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">No news or events found.</p>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}

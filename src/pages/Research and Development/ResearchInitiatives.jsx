@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\pages\Research and Development\ResearchInitiatives.jsx
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import Search from "../../components/Search.jsx";
+import { searchConfigs } from "../../config/searchConfigs.js";
+import { useSearch } from "../../hooks/useSearch.js";
 import useResearchInitiatives from "../../hooks/ResearchInitiatives.js";
 import { 
   ChevronLeft, 
@@ -15,9 +18,11 @@ import {
   Users,
   MapPin,
   DollarSign,
-  Clock,
   Award,
-  UserCircle
+  UserCircle,
+  Filter,
+  WifiOff,
+  AlertCircle
 } from "lucide-react";
 
 function ResearchInitiatives() {
@@ -32,25 +37,70 @@ function ResearchInitiatives() {
     getInitiativeById
   } = useResearchInitiatives();
 
-  const [filteredProjects, setFilteredProjects] = useState([]);
+  // Safely prepare data for search
+  const searchData = useMemo(() => {
+    return (researchInitiatives && researchInitiatives.length > 0) 
+      ? researchInitiatives 
+      : (localData || []);
+  }, [researchInitiatives, localData]);
+
+  // Use the custom search hook with error handling
+  const searchConfig = useMemo(() => {
+    return searchConfigs.researchInitiatives || {
+      searchFields: ['title', 'description', 'project_lead'],
+      placeholder: 'Search research initiatives...'
+    };
+  }, []);
+
+  const {
+    filteredData,
+    searchTerm,
+    isSearching,
+    searchResults,
+    handleSearchResults,
+    handleSearchStart,
+    handleSearchClear,
+    resetSearch
+  } = useSearch(searchData, searchConfig);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [searchError, setSearchError] = useState(null);
+  
   const itemsPerPage = 9;
   const topRef = useRef(null);
 
-  // Update filtered projects when researchInitiatives changes
-  useEffect(() => {
-    // Use researchInitiatives if available, otherwise use localData as fallback
-    const projectsToShow = researchInitiatives && researchInitiatives.length > 0 
-      ? researchInitiatives 
-      : (localData || []);
-    setFilteredProjects(projectsToShow);
-  }, [researchInitiatives, localData]);
+  // Apply status filter to searched results
+  const filteredAndSearchedProjects = useMemo(() => {
+    try {
+      if (!filteredData || !Array.isArray(filteredData)) {
+        return [];
+      }
+      
+      let result = [...filteredData];
 
+      // Apply Status Filter
+      if (statusFilter !== 'all') {
+        result = result.filter(project => 
+          project?.status?.toLowerCase() === statusFilter.toLowerCase()
+        );
+      }
+
+      return result;
+    } catch (err) {
+      console.error("Error filtering projects:", err);
+      setSearchError("Error filtering projects");
+      return [];
+    }
+  }, [filteredData, statusFilter]);
+
+  // Reset pagination when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredProjects]);
+  }, [statusFilter, searchTerm]);
 
+  // Scroll to top when page changes or project selected
   useEffect(() => {
     if (topRef.current && !selectedProject) {
       topRef.current.scrollIntoView({ 
@@ -60,37 +110,70 @@ function ResearchInitiatives() {
     }
   }, [currentPage, selectedProject]);
 
-  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAndSearchedProjects.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentProjects = filteredProjects.slice(startIndex, endIndex);
+  const currentProjects = filteredAndSearchedProjects.slice(startIndex, endIndex);
 
-  const handlePageChange = (direction) => {
+  const handlePageChange = useCallback((direction) => {
     if (direction === 'prev' && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage(prev => prev - 1);
     } else if (direction === 'next' && currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+      setCurrentPage(prev => prev + 1);
     }
-  };
+  }, [currentPage, totalPages]);
 
-  const goToPage = (page) => {
+  const goToPage = useCallback((page) => {
     setCurrentPage(page);
-  };
+  }, []);
 
-  const handleCardClick = (project) => {
+  const handleCardClick = useCallback((project) => {
     setSelectedProject(project);
-    window.scrollTo(0, 0);
-  };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
-  const handleBackClick = () => {
+  const handleBackClick = useCallback(() => {
     setSelectedProject(null);
-  };
+  }, []);
 
-  const handleSearchResults = (results) => {
-    setFilteredProjects(results);
-  };
+  const handleStatusFilterClick = useCallback((status) => {
+    setStatusFilter(status);
+  }, []);
 
-  const formatDate = (dateString) => {
+  const handleClearFilters = useCallback(() => {
+    setStatusFilter('all');
+    resetSearch();
+  }, [resetSearch]);
+
+  // Wrapper for search handlers with error handling
+  const handleSearchResultsWrapper = useCallback((results) => {
+    try {
+      setSearchError(null);
+      handleSearchResults(results);
+    } catch (err) {
+      console.error("Search results error:", err);
+      setSearchError("Error processing search results");
+    }
+  }, [handleSearchResults]);
+
+  const handleSearchStartWrapper = useCallback(() => {
+    try {
+      handleSearchStart();
+    } catch (err) {
+      console.error("Search start error:", err);
+    }
+  }, [handleSearchStart]);
+
+  const handleSearchClearWrapper = useCallback(() => {
+    try {
+      handleSearchClear();
+    } catch (err) {
+      console.error("Search clear error:", err);
+    }
+  }, [handleSearchClear]);
+
+  const formatDate = useCallback((dateString) => {
     if (!dateString) return "N/A";
     try {
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -98,9 +181,9 @@ function ResearchInitiatives() {
     } catch (e) {
       return dateString;
     }
-  };
+  }, []);
 
-  const formatCurrency = (amount) => {
+  const formatCurrency = useCallback((amount) => {
     if (!amount) return "N/A";
     try {
       return new Intl.NumberFormat('en-PH', {
@@ -112,9 +195,9 @@ function ResearchInitiatives() {
     } catch (e) {
       return amount.toString();
     }
-  };
+  }, []);
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = useCallback((status) => {
     const statusColors = {
       ongoing: "bg-green-100 text-green-800",
       completed: "bg-blue-100 text-blue-800",
@@ -127,89 +210,101 @@ function ResearchInitiatives() {
         {status || "N/A"}
       </span>
     );
-  };
-const ProjectCard = ({ project }) => (
-  <div 
-    className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
-    onClick={() => handleCardClick(project)}
-  >
-    <div className="absolute top-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+  }, []);
+
+  const getStatusFilterButtonStyle = useCallback((status) => {
+    const isActive = statusFilter === status;
+    const baseClasses = "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 min-w-[100px] text-center";
     
-    {/* Status Badge and Featured Label */}
-    <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-      {/* Featured Label - appears above status if featured */}
-      {project.featured === 1 && (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-400 text-yellow-900 shadow-md">
-          <Award className="w-3 h-3 mr-1" />
-          Featured
-        </span>
-      )}
-      {getStatusBadge(project.status)}
-    </div>
+    return `${baseClasses} ${
+      isActive 
+        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 ring-2 ring-blue-300 ring-offset-2'
+        : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
+    }`;
+  }, [statusFilter]);
 
-    {/* Image Section */}
-    {project.image && (
-      <div className="h-48 overflow-hidden">
-        <img 
-          src={project.image} 
-          alt={project.title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/api/placeholder/400/320';
-          }}
-        />
+  const ProjectCard = useCallback(({ project }) => (
+    <div 
+      className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+      onClick={() => handleCardClick(project)}
+    >
+      {/* Card content remains the same */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+      
+      {/* Status Badge and Featured Label */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+        {project.featured === 1 && (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-400 text-yellow-900 shadow-md">
+            <Award className="w-3 h-3 mr-1" />
+            Featured
+          </span>
+        )}
+        {getStatusBadge(project.status)}
       </div>
-    )}
 
-    <div className="p-6 flex flex-col h-full">
-      <div className="flex-grow">
-        <h2 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-          {project.title || "Untitled Project"}
-        </h2>
+      {/* Image Section */}
+      {project.image && (
+        <div className="h-48 overflow-hidden">
+          <img 
+            src={project.image} 
+            alt={project.title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/api/placeholder/400/320';
+            }}
+          />
+        </div>
+      )}
+
+      <div className="p-6 flex flex-col h-full">
+        <div className="flex-grow">
+          <h2 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+            {project.title || "Untitled Project"}
+          </h2>
+          
+          <div className="space-y-2">
+            <p className="text-gray-600 flex items-start gap-2">
+              <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm">
+                {formatDate(project.start_date)} - {formatDate(project.end_date)}
+              </span>
+            </p>
+            
+            <p className="text-gray-600 flex items-start gap-2">
+              <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm">
+                <span className="font-medium">Lead:</span> {project.project_lead || "N/A"}
+              </span>
+            </p>
+            
+            <p className="text-gray-600 flex items-start gap-2">
+              <Landmark className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm">
+                <span className="font-medium">Funding:</span> {project.funding_source || "N/A"}
+              </span>
+            </p>
+            
+            <p className="text-gray-600 flex items-start gap-2">
+              <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm">
+                <span className="font-medium">Implementing:</span> {project.implementing_agency || "N/A"}
+              </span>
+            </p>
+          </div>
+        </div>
         
-        <div className="space-y-2">
-          <p className="text-gray-600 flex items-start gap-2">
-            <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm">
-              {formatDate(project.start_date)} - {formatDate(project.end_date)}
-            </span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm">
-              <span className="font-medium">Lead:</span> {project.project_lead || "N/A"}
-            </span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <Landmark className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm">
-              <span className="font-medium">Funding:</span> {project.funding_source || "N/A"}
-            </span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm">
-              <span className="font-medium">Implementing:</span> {project.implementing_agency || "N/A"}
-            </span>
-          </p>
+        <div className="flex justify-end mt-4 pt-2 border-t border-gray-100">
+          <span className="inline-flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors duration-300">
+            View Details
+            <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </span>
         </div>
       </div>
-      
-      <div className="flex justify-end mt-4 pt-2 border-t border-gray-100">
-        <span className="inline-flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors duration-300">
-          View Details
-          <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-        </span>
-      </div>
     </div>
-  </div>
-);
+  ), [handleCardClick, formatDate, getStatusBadge]);
 
-  const DetailView = ({ project }) => (
+  const DetailView = useCallback(({ project }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button
         onClick={handleBackClick}
@@ -220,6 +315,7 @@ const ProjectCard = ({ project }) => (
       </button>
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+        {/* Detail view content remains the same */}
         {/* Header Image */}
         {project.image && (
           <div className="h-64 md:h-80 overflow-hidden">
@@ -389,10 +485,10 @@ const ProjectCard = ({ project }) => (
         </div>
       </div>
     </div>
-  );
+  ), [handleBackClick, formatDate, formatCurrency, getStatusBadge]);
 
   // Loading state
-  if (loading && filteredProjects.length === 0) {
+  if (loading && searchData.length === 0) {
     return (
       <div className="flex flex-col min-h-screen bg-white">
         <AutoScroll/>
@@ -440,26 +536,125 @@ const ProjectCard = ({ project }) => (
           </div>
         </div>
       </section>
-      
-      {!selectedProject && (
-        <Search 
-          data={filteredProjects}
-          searchKeys={['title', 'description', 'funding_source', 'implementing_agency', 'project_lead', 'location']}
-          onSearchResults={handleSearchResults}
-          showResultCount={true}
-        />
+
+      {/* Connection Status */}
+      {!serverAvailable && !loading && !error && (
+        <div className="container mx-auto px-4 mt-4">
+          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <WifiOff className="w-5 h-5 text-yellow-600" />
+              <p className="text-sm text-yellow-700">
+                ⚠️ You are viewing offline data. Connect to the server for latest updates.
+              </p>
+            </div>
+            <button
+              onClick={() => refetch()}
+              className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full transition-colors"
+            >
+              Retry Connection
+            </button>
+          </div>
+        </div>
       )}
 
-      <div className="flex-grow container mx-auto px-4">
+      {/* Search Error Display */}
+      {searchError && (
+        <div className="container mx-auto px-4 mt-4">
+          <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <p className="text-sm text-red-700">{searchError}</p>
+          </div>
+        </div>
+      )}
+      
+      {!selectedProject && (
+        <>
+          {/* Search Component with configuration */}
+          <div className="mt-15">
+            <Search 
+              data={searchData}
+              searchFields={searchConfig.searchFields}
+              placeholder={searchConfig.placeholder}
+              onSearchResults={handleSearchResultsWrapper}
+              onSearchStart={handleSearchStartWrapper}
+              onSearchClear={handleSearchClearWrapper}
+            />
+          </div>
+          
+          {/* Status Filter Buttons */}
+          <div className="container mx-auto px-4 mt-8">
+            <div className="flex flex-col items-center">
+              <div className="flex items-center gap-2 mb-4">
+                <Filter className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">Filter by status:</span>
+                {statusFilter !== 'all' && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded-full transition-colors ml-2"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap justify-center gap-3">
+                {['all', 'ongoing', 'completed', 'upcoming'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleStatusFilterClick(status)}
+                    className={getStatusFilterButtonStyle(status)}
+                  >
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Search Stats */}
+          {searchTerm && (
+            <div className="container mx-auto px-4 mt-4">
+              <p className="text-sm text-gray-600">
+                Found {filteredAndSearchedProjects.length} results for "{searchTerm}"
+                {statusFilter !== 'all' && ` in ${statusFilter} status`}
+              </p>
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="flex-grow container mx-auto px-4 mt-8">
         {selectedProject ? (
           <DetailView project={selectedProject} />
         ) : (
           <>
-            <h1 className="text-3xl font-bold text-center mb-8">Research Initiatives</h1>
+            {error && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-6">
+                <p className="text-red-700">Error: {error}</p>
+                {!serverAvailable && (
+                  <p className="text-sm text-gray-600 mt-2">
+                    ⚠️ Using offline data. Some information may not be up to date.
+                  </p>
+                )}
+                <button
+                  onClick={() => refetch()}
+                  className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
             
-            {filteredProjects.length === 0 ? (
+            {filteredAndSearchedProjects.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No research projects found.</p>
+                {(searchTerm || statusFilter !== 'all') && (
+                  <button
+                    onClick={handleClearFilters}
+                    className="mt-4 text-blue-600 hover:text-blue-800 underline"
+                  >
+                    Clear all filters
+                  </button>
+                )}
               </div>
             ) : (
               <>
@@ -479,6 +674,7 @@ const ProjectCard = ({ project }) => (
                           ? 'text-gray-400 cursor-not-allowed'
                           : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                       }`}
+                      aria-label="Previous page"
                     >
                       <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
@@ -493,6 +689,8 @@ const ProjectCard = ({ project }) => (
                               ? 'bg-blue-600 text-white'
                               : 'text-gray-600 hover:bg-gray-100'
                           }`}
+                          aria-label={`Go to page ${page}`}
+                          aria-current={currentPage === page ? 'page' : undefined}
                         >
                           {page}
                         </button>
@@ -507,6 +705,7 @@ const ProjectCard = ({ project }) => (
                           ? 'text-gray-400 cursor-not-allowed'
                           : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                       }`}
+                      aria-label="Next page"
                     >
                       <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>

@@ -273,7 +273,7 @@ function ResearchPaper() {
       </section>
       
       {/* Main Content */}
-      <div className="flex-grow container mx-auto px-4">
+      <div className="flex-grow container mx-auto px-4 mt-15">
 
         {/* Search Section - Only show when no paper is selected */}
         {!selectedPaper && (
@@ -285,7 +285,6 @@ function ResearchPaper() {
               debounceTime={300}
               showResultCount={true}
               variant="default"
-              size="lg"
               theme="light"
             />
           </div>

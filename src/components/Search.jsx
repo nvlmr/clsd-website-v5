@@ -16,9 +16,12 @@ const Search = ({
   theme = 'light',
   autoFocus = false,
   disabled = false,
-  showNoResultsMessage = false, // New prop - default to false
-  noResultsMessage = 'No results found for "{query}"', // Customizable message
-  noResultsComponent // Optional custom component
+  noResultsMessage = 'No results found for "{query}"',
+  onSearchStart,
+  onSearchClear,
+  showSearchIcon = true,
+  showClearButton = true,
+  minChars = 0,
 }) => {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [filteredResults, setFilteredResults] = useState([]);
@@ -27,14 +30,6 @@ const Search = ({
   const inputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const lastExecutedQueryRef = useRef('');
-
-  // Initialize filtered results with data on mount
-  useEffect(() => {
-    setFilteredResults(data);
-    if (onSearchResults) {
-      onSearchResults(data);
-    }
-  }, [data, onSearchResults]);
 
   // Size configurations
   const sizeConfig = {
@@ -72,7 +67,9 @@ const Search = ({
       spinner: 'border-blue-500 border-t-transparent',
       labelActive: 'text-blue-500',
       labelInactive: 'text-gray-500',
-      noResults: 'bg-gray-50/80 text-gray-500 border-gray-200'
+      noResults: 'bg-gray-50/80 text-gray-500 border-gray-200',
+      border: 'border-gray-300',
+      hoverBorder: 'hover:border-blue-300'
     },
     dark: {
       input: 'bg-gray-800 border-gray-600 text-white placeholder-transparent',
@@ -84,11 +81,12 @@ const Search = ({
       spinner: 'border-blue-400 border-t-transparent',
       labelActive: 'text-blue-400',
       labelInactive: 'text-gray-400',
-      noResults: 'bg-gray-800/50 text-gray-400 border-gray-700'
+      noResults: 'bg-gray-800/50 text-gray-400 border-gray-700',
+      border: 'border-gray-600',
+      hoverBorder: 'hover:border-blue-400'
     }
   };
 
-  // Variant configurations
   const variantConfig = {
     default: {
       rounded: 'rounded-xl',
@@ -107,10 +105,28 @@ const Search = ({
       shadow: 'shadow-md hover:shadow-lg',
       border: 'border-2',
       transition: 'transition-all duration-300'
+    },
+    elevated: {
+      rounded: 'rounded-lg',
+      shadow: 'shadow-xl hover:shadow-2xl',
+      border: 'border',
+      transition: 'transition-all duration-300'
+    },
+    underlined: {
+      rounded: 'rounded-none',
+      shadow: '',
+      border: 'border-0 border-b',
+      transition: 'transition-all duration-300'
     }
   };
 
-  // Search function
+  useEffect(() => {
+    setFilteredResults(data);
+    if (onSearchResults) {
+      onSearchResults(data, '');
+    }
+  }, [data, onSearchResults]);
+
   const performSearch = useCallback((query) => {
     if (lastExecutedQueryRef.current === query) {
       setIsSearching(false);
@@ -119,15 +135,15 @@ const Search = ({
 
     if (!data || data.length === 0) {
       setFilteredResults([]);
-      onSearchResults?.([]);
+      onSearchResults?.([], query);
       setIsSearching(false);
       lastExecutedQueryRef.current = query;
       return;
     }
 
-    if (!query.trim()) {
+    if (!query.trim() || query.length < minChars) {
       setFilteredResults(data);
-      onSearchResults?.(data);
+      onSearchResults?.(data, query);
       setIsSearching(false);
       lastExecutedQueryRef.current = query;
       return;
@@ -148,14 +164,13 @@ const Search = ({
     });
 
     setFilteredResults(results);
-    onSearchResults?.(results);
+    onSearchResults?.(results, query);
     setIsSearching(false);
     lastExecutedQueryRef.current = query;
-  }, [data, searchKeys, onSearchResults, customFilter]);
+  }, [data, searchKeys, onSearchResults, customFilter, minChars]);
 
-  // Handle search with debounce
   useEffect(() => {
-    if (!searchQuery.trim()) {
+    if (searchQuery.length < minChars) {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
         searchTimeoutRef.current = null;
@@ -176,6 +191,7 @@ const Search = ({
 
     if (lastExecutedQueryRef.current !== searchQuery) {
       setIsSearching(true);
+      onSearchStart?.(searchQuery);
     }
 
     searchTimeoutRef.current = setTimeout(() => {
@@ -188,13 +204,17 @@ const Search = ({
         searchTimeoutRef.current = null;
       }
     };
-  }, [searchQuery, performSearch, debounceTime]);
+  }, [searchQuery, performSearch, debounceTime, minChars, onSearchStart]);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
       inputRef.current.focus();
     }
   }, [autoFocus]);
+
+  useEffect(() => {
+    setSearchQuery(initialQuery);
+  }, [initialQuery]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -203,6 +223,7 @@ const Search = ({
   const clearSearch = () => {
     setSearchQuery('');
     inputRef.current?.focus();
+    onSearchClear?.();
   };
 
   const handleFocus = () => setIsFocused(true);
@@ -213,12 +234,11 @@ const Search = ({
   const currentVariant = variantConfig[variant];
 
   const isLabelActive = isFocused || searchQuery;
+  const showResultsCount = showResultCount && data.length > 0 && !isSearching;
 
-  // Format no results message with query
-  const formattedNoResultsMessage = noResultsMessage.replace('{query}', searchQuery);
 
   return (
-    <div className={`flex items-start justify-center mt-10 ${className}`}>
+    <div className={`flex items-start justify-center ${className}`}>
       <div className="w-full max-w-4xl px-4">
         <div className={`relative ${currentSize.container} mx-auto`}>
           {/* Search Input Container */}
@@ -259,10 +279,10 @@ const Search = ({
                 ${currentVariant.border}
                 ${currentTheme.focus}
                 ${currentVariant.transition}
+                ${currentTheme.hoverBorder}
                 disabled:opacity-50 disabled:cursor-not-allowed
-                pr-20
+                ${showClearButton || showSearchIcon ? 'pr-20' : 'pr-4'}
                 outline-none
-                hover:border-blue-300
               `}
               aria-label="Search"
             />
@@ -280,33 +300,58 @@ const Search = ({
             )}
             
             {/* Icons Container */}
-            <div className="absolute inset-y-0 right-0 flex items-center space-x-1 pr-3">
-              {/* Loading Indicator */}
-              {isSearching && (
-                <div className={`
-                  ${currentSize.icon} 
-                  ${currentTheme.spinner}
-                  border-2 rounded-full animate-spin
-                  transition-opacity duration-300
-                `} />
-              )}
-              
-              {/* Clear Button */}
-              {searchQuery && !isSearching && !disabled && (
-                <button
-                  onClick={clearSearch}
-                  className={`
-                    ${currentTheme.clearButton}
-                    transition-all duration-300
-                    focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-full
-                    p-1
-                    hover:scale-110
-                    active:scale-95
-                  `}
-                  aria-label="Clear search"
-                >
+            {(showClearButton || showSearchIcon) && (
+              <div className="absolute inset-y-0 right-0 flex items-center space-x-1 pr-3">
+                {/* Loading Indicator */}
+                {isSearching && (
+                  <div className={`
+                    ${currentSize.icon} 
+                    ${currentTheme.spinner}
+                    border-2 rounded-full animate-spin
+                    transition-opacity duration-300
+                  `} />
+                )}
+                
+                {/* Clear Button */}
+                {searchQuery && !isSearching && !disabled && showClearButton && (
+                  <button
+                    onClick={clearSearch}
+                    className={`
+                      ${currentTheme.clearButton}
+                      transition-all duration-300
+                      focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-full
+                      p-1
+                      hover:scale-110
+                      active:scale-95
+                    `}
+                    aria-label="Clear search"
+                  >
+                    <svg 
+                      className={currentSize.icon} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M6 18L18 6M6 6l12 12" 
+                      />
+                    </svg>
+                  </button>
+                )}
+                
+                {/* Search Icon */}
+                {showSearchIcon && (
                   <svg 
-                    className={currentSize.icon} 
+                    className={`
+                      ${currentSize.icon} 
+                      ${currentTheme.icon}
+                      transition-all duration-300
+                      ${isFocused ? `text-blue-500 scale-110 ${isLabelActive ? 'rotate-90' : ''}` : ''}
+                      ${isSearching ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}
+                    `} 
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -315,37 +360,16 @@ const Search = ({
                       strokeLinecap="round" 
                       strokeLinejoin="round" 
                       strokeWidth={2} 
-                      d="M6 18L18 6M6 6l12 12" 
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
                     />
                   </svg>
-                </button>
-              )}
-              
-              {/* Search Icon */}
-              <svg 
-                className={`
-                  ${currentSize.icon} 
-                  ${currentTheme.icon}
-                  transition-all duration-300
-                  ${isFocused ? `text-blue-500 scale-110 ${isLabelActive ? 'rotate-90' : ''}` : ''}
-                  ${isSearching ? 'opacity-0 scale-75' : 'opacity-100 scale-100'}
-                `} 
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth={2} 
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-                />
-              </svg>
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Results Count */}
-          {showResultCount && data.length > 0 && !isSearching && (
+          {showResultsCount && (
             <div className={`
               mt-3 
               ${currentTheme.resultCount}
@@ -364,31 +388,12 @@ const Search = ({
                   </span>
                 </span>
               )}
-            </div>
-          )}
-
-          {/* No Results Message - Now controlled by showNoResultsMessage prop */}
-          {showNoResultsMessage && searchQuery && !isSearching && filteredResults.length === 0 && (
-            <>
-              {noResultsComponent ? (
-                noResultsComponent
-              ) : (
-                <div className={`
-                  mt-4 text-center py-6 px-4 
-                  ${currentTheme.noResults}
-                  rounded-xl border
-                  animate-slideDown
-                  transition-all duration-300
-                  backdrop-blur-sm
-                `}>
-                  <svg className="w-12 h-12 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-14 0 9 9 0 0114 0z" />
-                  </svg>
-                  <p className="text-base font-medium">{formattedNoResultsMessage}</p>
-                  <p className="text-sm mt-2 opacity-60">Try different keywords or check your spelling</p>
-                </div>
+              {!searchQuery && (
+                <span className="text-gray-400">
+                  {data.length} total item{data.length !== 1 ? 's' : ''}
+                </span>
               )}
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -396,7 +401,6 @@ const Search = ({
   );
 };
 
-// Helper function to get nested object values
 const getNestedValue = (obj, path) => {
   return path.split('.').reduce((current, key) => {
     return current && current[key] !== undefined ? current[key] : undefined;
@@ -406,28 +410,50 @@ const getNestedValue = (obj, path) => {
 Search.propTypes = {
   data: PropTypes.array.isRequired,
   searchKeys: PropTypes.array,
-  onSearchResults: PropTypes.func,
+  onSearchResults: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   className: PropTypes.string,
   debounceTime: PropTypes.number,
   showResultCount: PropTypes.bool,
   customFilter: PropTypes.func,
   initialQuery: PropTypes.string,
-  variant: PropTypes.oneOf(['default', 'minimal', 'compact']),
+  variant: PropTypes.oneOf(['default', 'minimal', 'compact', 'elevated', 'underlined']),
   size: PropTypes.oneOf(['sm', 'md', 'lg']),
   theme: PropTypes.oneOf(['light', 'dark']),
   autoFocus: PropTypes.bool,
   disabled: PropTypes.bool,
-  showNoResultsMessage: PropTypes.bool, // New prop
-  noResultsMessage: PropTypes.string, // New prop
-  noResultsComponent: PropTypes.node // New prop
+  showNoResultsMessage: PropTypes.bool,
+  noResultsMessage: PropTypes.string,
+  noResultsComponent: PropTypes.node,
+  onSearchStart: PropTypes.func,
+  onSearchClear: PropTypes.func,
+  showSearchIcon: PropTypes.bool,
+  showClearButton: PropTypes.bool,
+  minChars: PropTypes.number,
+  highlightResults: PropTypes.bool
 };
 
-// Set default props
 Search.defaultProps = {
-  showNoResultsMessage: false, // Default to false
+  searchKeys: ['title', 'description'],
+  placeholder: 'Search...',
+  className: '',
+  debounceTime: 300,
+  showResultCount: true,
+  initialQuery: '',
+  variant: 'default',
+  size: 'md',
+  theme: 'light',
+  autoFocus: false,
+  disabled: false,
+  showNoResultsMessage: false,
   noResultsMessage: 'No results found for "{query}"',
-  noResultsComponent: null
+  noResultsComponent: null,
+  onSearchStart: null,
+  onSearchClear: null,
+  showSearchIcon: true,
+  showClearButton: true,
+  minChars: 0,
+  highlightResults: false
 };
 
 export default Search;

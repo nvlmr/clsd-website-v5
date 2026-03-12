@@ -219,6 +219,7 @@ function PLD() {
       
       {!selectedPublication && (
         <Search 
+          className="mt-15"
           data={PLDData}
           searchKeys={['title', 'authors', 'keywords', 'abstract']}
           onSearchResults={setFilteredProjects}
