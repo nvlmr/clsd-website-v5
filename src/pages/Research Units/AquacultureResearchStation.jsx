@@ -36,8 +36,10 @@ function AquacultureResearchStation() {
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
                   Aquaculture Research
                 </span>
-                <span className="text-gray-900 font-semibold">Station</span>
               </h1>
+              <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl">
+                Advancing sustainable aquaculture through cutting-edge research.
+              </p>
             </div>
           </div>
         </section>

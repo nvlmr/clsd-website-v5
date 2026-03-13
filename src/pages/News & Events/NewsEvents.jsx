@@ -22,8 +22,8 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Maximize2,
-  WifiOff,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Award
 } from "lucide-react";
 
 function NewsEvents() {
@@ -31,7 +31,6 @@ function NewsEvents() {
     data: NewsEventsData, 
     loading, 
     error, 
-    usingMock,
     refresh 
   } = useNewsEvents();
 
@@ -119,11 +118,6 @@ function NewsEvents() {
 
   const handleBackClick = () => {
     setSelectedEvent(null);
-  };
-
-  const handleClearFilters = () => {
-    setActiveFilter('all');
-    resetSearch();
   };
 
   // Gallery modal functions
@@ -228,7 +222,8 @@ function NewsEvents() {
       className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
       onClick={() => handleCardClick(event)}
     >
-      <div className="absolute top-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+      {/* Blue line at the bottom on hover */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
       
       {/* Image Container */}
       <div className="relative h-48 overflow-hidden bg-gray-200">
@@ -248,10 +243,12 @@ function NewsEvents() {
           </div>
         )}
         
-        {/* Featured badge */}
+        {/* Featured indicator - Using blue Award icon */}
         {event.featured && (
-          <div className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded-full">
-            Featured
+          <div className="absolute top-2 right-2">
+            <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
+              <Award className="w-4 h-4 text-white" />
+            </div>
           </div>
         )}
       </div>
@@ -281,217 +278,237 @@ function NewsEvents() {
     </div>
   );
 
-  const DetailView = ({ event }) => (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <button
-        onClick={handleBackClick}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
-      >
-        <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-        <span>Back to News & Events</span>
-      </button>
+const DetailView = ({ event }) => (
+  <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <button
+      onClick={handleBackClick}
+      className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
+    >
+      <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+      <span>Back to News & Events</span>
+    </button>
 
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Hero Image */}
-        {event.featured_image && (
-          <div className="relative h-64 md:h-96 overflow-hidden">
-            <img 
-              src={event.featured_image} 
-              alt={event.title}
-              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => window.open(event.featured_image, '_blank')}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-            
-            {/* Expand button */}
-            <button
-              onClick={() => window.open(event.featured_image, '_blank')}
-              className="absolute top-4 right-4 bg-black bg-opacity-60 text-white p-2 rounded-full hover:bg-opacity-80 transition-all"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
+    <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+      {/* Hero Image */}
+      {event.featured_image && (
+        <div className="relative h-64 md:h-96 overflow-hidden">
+          <img 
+            src={event.featured_image} 
+            alt={event.title}
+            className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={() => window.open(event.featured_image, '_blank')}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          
+          {/* Expand button */}
+          <button
+            onClick={() => window.open(event.featured_image, '_blank')}
+            className="absolute top-4 right-4 bg-black bg-opacity-60 text-white p-2 rounded-full hover:bg-opacity-80 transition-all"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+
+          {/* Featured indicator - Blue Award icon for detail view */}
+          {event.featured && (
+            <div className="absolute top-4 left-4">
+              <div className="bg-blue-500 rounded-full p-2 shadow-lg flex items-center gap-1.5">
+                <Award className="w-5 h-5 text-white" />
+                <span className="text-white text-sm font-medium pr-1">Featured</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* If no hero image, put featured indicator in the colored header */}
+      {!event.featured_image && event.featured && (
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white relative">
+          <div className="absolute top-4 right-4">
+            <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 flex items-center gap-1.5">
+              <Award className="w-5 h-5 text-white" />
+              <span className="text-white text-sm font-medium pr-1">Featured</span>
+            </div>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold mb-4 pr-32">{event.title}</h1>
+        </div>
+      )}
+
+      {/* If there is a hero image, title is in the gradient overlay */}
+      {event.featured_image && (
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
+          <h1 className="text-2xl md:text-3xl font-bold mb-4">{event.title}</h1>
+        </div>
+      )}
+
+      <div className="p-6 md:p-8">
+        {/* Excerpt */}
+        {event.excerpt && (
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600">
+            <p className="text-gray-700 italic">{event.excerpt}</p>
           </div>
         )}
 
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
-          <h1 className="text-2xl md:text-3xl font-bold mb-4">{event.title}</h1>
-          {event.featured && (
-            <span className="inline-block bg-yellow-500 text-white text-sm px-3 py-1 rounded-full">
-              Featured
-            </span>
-          )}
+        {/* Full Content */}
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-bold text-gray-900">Description</h2>
+          </div>
+          <div 
+            className="ml-7 prose prose-blue max-w-none text-gray-700"
+            dangerouslySetInnerHTML={{ 
+              __html: event.content || event.description || 'No description available.' 
+            }}
+          />
         </div>
 
-        <div className="p-6 md:p-8">
-          {/* Excerpt */}
-          {event.excerpt && (
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600">
-              <p className="text-gray-700 italic">{event.excerpt}</p>
+        {/* Event Details */}
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-md font-semibold text-gray-900 mb-4">Event Details</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Tag className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Type</p>
+                <p className="text-base font-medium text-gray-900 capitalize">{event.type}</p>
+              </div>
             </div>
-          )}
+            
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Tag className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Category</p>
+                <p className="text-base font-medium text-gray-900">{event.category || 'General'}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <Calendar className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Date</p>
+                <p className="text-base font-medium text-gray-900">
+                  {formatEventDate(event.event_start_date, event.event_end_date)}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="bg-blue-100 p-2 rounded-lg">
+                <MapPin className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Location</p>
+                <p className="text-base font-medium text-gray-900">{event.event_location || 'TBA'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          {/* Full Content */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-3">
+        {/* Gallery */}
+        {event.gallery && event.gallery.length > 0 && (
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <ImageIcon className="w-5 h-5 text-blue-600" />
+              <h3 className="text-md font-semibold text-gray-900">Gallery</h3>
+              <span className="text-sm text-gray-500 ml-2">({event.gallery.length} images)</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {event.gallery.map((image, index) => (
+                <div
+                  key={index}
+                  className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
+                  style={{ height: '180px' }}
+                  onClick={() => openGalleryModal(event.gallery, index)}
+                >
+                  <div className="w-full h-full flex items-center justify-center p-2">
+                    <img
+                      src={image}
+                      alt={`Gallery ${index + 1}`}
+                      className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                      <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
+                        {index + 1}/{event.gallery.length}
+                      </span>
+                      <div className="bg-blue-600 text-white p-1.5 rounded-full">
+                        <Maximize2 className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Attachments */}
+        {event.attachments && event.attachments.length > 0 && (
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <div className="flex items-center gap-2 mb-4">
               <FileText className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-bold text-gray-900">Description</h2>
+              <h3 className="text-md font-semibold text-gray-900">Attachments</h3>
+              <span className="text-sm text-gray-500 ml-2">({event.attachments.length} files)</span>
             </div>
-            <div 
-              className="ml-7 prose prose-blue max-w-none text-gray-700"
-              dangerouslySetInnerHTML={{ 
-                __html: event.content || event.description || 'No description available.' 
-              }}
-            />
-          </div>
-
-          {/* Event Details */}
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-4">Event Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Tag className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Type</p>
-                  <p className="text-base font-medium text-gray-900 capitalize">{event.type}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Tag className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Category</p>
-                  <p className="text-base font-medium text-gray-900">{event.category || 'General'}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Calendar className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Date</p>
-                  <p className="text-base font-medium text-gray-900">
-                    {formatEventDate(event.event_start_date, event.event_end_date)}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <MapPin className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Location</p>
-                  <p className="text-base font-medium text-gray-900">{event.event_location || 'TBA'}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Gallery */}
-          {event.gallery && event.gallery.length > 0 && (
-            <div className="border-t border-gray-200 pt-6 mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <ImageIcon className="w-5 h-5 text-blue-600" />
-                <h3 className="text-md font-semibold text-gray-900">Gallery</h3>
-                <span className="text-sm text-gray-500 ml-2">({event.gallery.length} images)</span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {event.gallery.map((image, index) => (
-                  <div
-                    key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
-                    style={{ height: '180px' }}
-                    onClick={() => openGalleryModal(event.gallery, index)}
-                  >
-                    <div className="w-full h-full flex items-center justify-center p-2">
-                      <img
-                        src={image}
-                        alt={`Gallery ${index + 1}`}
-                        className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
-                        }}
-                      />
-                    </div>
-                    
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                        <span className="bg-black/60 text-white text-xs px-2 py-1 rounded-full backdrop-blur-sm">
-                          {index + 1}/{event.gallery.length}
-                        </span>
-                        <div className="bg-blue-600 text-white p-1.5 rounded-full">
-                          <Maximize2 className="w-4 h-4" />
-                        </div>
-                      </div>
+            <div className="space-y-3">
+              {event.attachments.map((attachment, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-900 font-medium truncate">{attachment.name}</p>
+                      {attachment.size && (
+                        <p className="text-sm text-gray-500">{formatFileSize(attachment.size)}</p>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Attachments */}
-          {event.attachments && event.attachments.length > 0 && (
-            <div className="border-t border-gray-200 pt-6 mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <h3 className="text-md font-semibold text-gray-900">Attachments</h3>
-                <span className="text-sm text-gray-500 ml-2">({event.attachments.length} files)</span>
-              </div>
-              <div className="space-y-3">
-                {event.attachments.map((attachment, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
-                  >
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <FileText className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-gray-900 font-medium truncate">{attachment.name}</p>
-                        {attachment.size && (
-                          <p className="text-sm text-gray-500">{formatFileSize(attachment.size)}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <button
-                        onClick={() => downloadAttachment(attachment.url, attachment.name)}
-                        className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                        title="Download"
-                      >
-                        <Download className="w-4 h-4" />
-                      </button>
-                    </div>
+                  <div className="flex items-center gap-2 ml-4">
+                    <button
+                      onClick={() => downloadAttachment(attachment.url, attachment.name)}
+                      className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Registration Link */}
-          {event.event_registration_link && (
-            <div className="border-t border-gray-200 pt-6 mt-6">
-              <a
-                href={event.event_registration_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <span>Register for this event</span>
-              </a>
-            </div>
-          )}
-        </div>
+        {/* Registration Link */}
+        {event.event_registration_link && (
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <a
+              href={event.event_registration_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <span>Register for this event</span>
+            </a>
+          </div>
+        )}
       </div>
     </div>
-  );
-
+  </div>
+);
   // Gallery Modal
   const GalleryModal = () => {
     if (!isModalOpen || !selectedImage) return null;
@@ -587,26 +604,6 @@ function NewsEvents() {
         </div>
       </section>
 
-      {/* Connection Status Banner */}
-      {usingMock && !loading && !error && (
-        <div className="container mx-auto px-4 mt-4">
-          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <WifiOff className="w-5 h-5 text-yellow-600" />
-              <p className="text-sm text-yellow-700">
-                ⚠️ You are viewing offline data. Connect to the server for latest updates.
-              </p>
-            </div>
-            <button
-              onClick={() => refresh()}
-              className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full transition-colors"
-            >
-              Retry Connection
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Loading State */}
       {loading && (
         <div className="container mx-auto px-4 mt-8 text-center">
@@ -620,11 +617,6 @@ function NewsEvents() {
         <div className="container mx-auto px-4 mt-8">
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
             <p className="text-red-700">Error: {error}</p>
-            {usingMock && (
-              <p className="text-sm text-gray-600 mt-2">
-                ⚠️ Using offline data. Some information may not be up to date.
-              </p>
-            )}
             <button
               onClick={() => refresh()}
               className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
@@ -653,14 +645,6 @@ function NewsEvents() {
               <div className="flex items-center gap-2 mb-4">
                 <Filter className="w-5 h-5 text-blue-600" />
                 <span className="text-sm font-medium text-gray-700">Filter by type:</span>
-                {activeFilter !== 'all' && (
-                  <button
-                    onClick={handleClearFilters}
-                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded-full transition-colors ml-2"
-                  >
-                    Clear filters
-                  </button>
-                )}
               </div>
               <div className="flex flex-wrap justify-center gap-3">
                 {['all', 'news', 'event'].map((type) => (

@@ -1,6 +1,5 @@
 // src/data/ClsdEquipment.js
 
-// Equipment images imports
 import miniCentrifuge from "../assets/images/Equipments/mini centrifuge.jpg";
 import multiParameter from "../assets/images/Equipments/multi parameter.jpg";
 import photometer from "../assets/images/Equipments/photometer.jpg";

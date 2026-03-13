@@ -15,7 +15,7 @@ const NewsEvents = [
     title: "Training Workshop on Water Quality Monitoring",
     content: "A comprehensive 5-day hands-on training on modern water quality monitoring techniques, including sampling methods, laboratory analysis, and data interpretation for lake ecosystem assessment. Participants will learn proper sampling techniques, use of modern monitoring equipment, laboratory analysis methods, and statistical tools for data interpretation. The workshop combines theoretical sessions with practical field exercises at Laguna de Bay. Experts from CLSD and partner institutions will serve as resource speakers. Participants will receive certificates of completion and training materials.",
     excerpt: "A 5-day hands-on training on modern water quality monitoring techniques for lake ecosystem assessment.",
-    type: "event", // Changed from "Training and workshop" to "event"
+    type: "news", // Changed from "Training and workshop" to "event"
     category: "Training",
     featured_image: image1,
     gallery: [image1, image2, image3],
@@ -39,7 +39,7 @@ const NewsEvents = [
     title: "CLSD Participation: International Lake Conservation Conference",
     content: "The Center for Lake Sustainable Development (CLSD) will present research findings on lake biodiversity conservation at the 3rd International Conference on Lake Conservation. Our researchers will share insights on sustainable lake management practices and climate change adaptation strategies for freshwater ecosystems. The conference brings together scientists, policymakers, and practitioners from across the globe to discuss pressing issues in lake conservation. CLSD will present three papers on the status of Philippine lakes and community-based conservation approaches.",
     excerpt: "CLSD researchers present findings on lake biodiversity conservation at international conference.",
-    type: "event", // Changed from "CLSD participation on R&D" to "event"
+    type: "news", // Changed from "CLSD participation on R&D" to "event"
     category: "Conference Participation",
     featured_image: image2,
     gallery: [image2, image4, image6],

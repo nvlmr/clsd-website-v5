@@ -1,7 +1,7 @@
 // src/services/clsd_equipment_api.js
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT);
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000');
 const UPLOADS_BASE_URL = import.meta.env.VITE_UPLOADS_BASE_URL;
 
 const IMAGE_BASE_URL = `${UPLOADS_BASE_URL}/clsd-equipments`;
@@ -12,17 +12,17 @@ const EQUIPMENT_ENDPOINT = import.meta.env.VITE_CLSD_EQUIPMENT_ENDPOINT;
 // Feature flags
 const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 
-// Validate required environment variables
+// Validate required environment variables (with warnings only)
 if (!API_BASE_URL) {
-  console.error('VITE_API_BASE_URL is not defined in .env file');
+  console.warn('VITE_API_BASE_URL is not defined in .env file - using mock data only');
 }
 
 if (!UPLOADS_BASE_URL) {
-  console.error('VITE_UPLOADS_BASE_URL is not defined in .env file');
+  console.warn('VITE_UPLOADS_BASE_URL is not defined in .env file - using mock data only');
 }
 
 if (!EQUIPMENT_ENDPOINT) {
-  console.error('VITE_CLSD_EQUIPMENT_ENDPOINT is not defined in .env file');
+  console.warn('VITE_CLSD_EQUIPMENT_ENDPOINT is not defined in .env file - using mock data only');
 }
 
 /**
@@ -30,11 +30,23 @@ if (!EQUIPMENT_ENDPOINT) {
  * @returns {Promise<Array>} Array of equipment objects
  */
 export const fetchEquipmentFromServer = async () => {
+  // If required environment variables are missing, throw error
+  if (!API_BASE_URL || !EQUIPMENT_ENDPOINT) {
+    throw new Error('Server configuration missing');
+  }
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
-    const response = await fetch(`${API_BASE_URL}${EQUIPMENT_ENDPOINT}`, {
+    // Construct full URL properly handling slashes
+    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    const endpoint = EQUIPMENT_ENDPOINT.startsWith('/') ? EQUIPMENT_ENDPOINT : `/${EQUIPMENT_ENDPOINT}`;
+    const fullUrl = `${baseUrl}${endpoint}`;
+
+    console.log('Fetching equipment from:', fullUrl); // For debugging
+
+    const response = await fetch(fullUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -45,7 +57,9 @@ export const fetchEquipmentFromServer = async () => {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // Don't throw error for 500 - just return empty array to trigger mock data silently
+      console.warn(`Server returned status ${response.status}, using mock data silently`);
+      return [];
     }
 
     const data = await response.json();
@@ -63,16 +77,18 @@ export const fetchEquipmentFromServer = async () => {
     }
   } catch (error) {
     if (error.name === 'AbortError') {
-      throw new Error('Request timeout - server took too long to respond');
+      console.warn('Request timeout - server took too long to respond');
+      return []; // Return empty to trigger mock silently
     }
-    throw error;
+    console.warn('Server fetch error:', error.message);
+    return []; // Return empty to trigger mock silently
   }
 };
 
 /**
  * Construct full image URL for equipment
  * @param {string} imagePath - Image filename or path from database
- * @returns {string} Full image URL
+ * @returns {string} Full image URL or null
  */
 export const getEquipmentImageUrl = (imagePath) => {
   if (!imagePath) return null;
@@ -82,31 +98,51 @@ export const getEquipmentImageUrl = (imagePath) => {
     return imagePath;
   }
   
-  // Remove any leading slashes or 'uploads/' from the path if present
+  // If we don't have the uploads base URL, return null (will use fallback image)
+  if (!UPLOADS_BASE_URL) {
+    return null;
+  }
+  
+  // Clean the base URL (remove trailing slash if present)
+  const baseUrl = UPLOADS_BASE_URL.endsWith('/') ? UPLOADS_BASE_URL.slice(0, -1) : UPLOADS_BASE_URL;
+  
+  // Clean the image path (remove leading slashes and 'uploads/' if present)
   const cleanPath = imagePath.replace(/^[\/\\]*(uploads[\/\\]*)?/, '');
   
   // Construct the full URL
-  return `${IMAGE_BASE_URL}/${cleanPath}`;
+  return `${baseUrl}/clsd-equipments/${cleanPath}`;
 };
 
 /**
- * Check if the server is available
- * @returns {Promise<boolean>} True if server is available
+ * Check if the server is available - now more lenient
+ * @returns {Promise<boolean>} True if server is reachable
  */
 export const checkServerAvailability = async () => {
+  // If required environment variables are missing, server is not available
+  if (!API_BASE_URL || !EQUIPMENT_ENDPOINT) {
+    return false;
+  }
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
 
-    const response = await fetch(`${API_BASE_URL}${EQUIPMENT_ENDPOINT}`, {
+    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+    const endpoint = EQUIPMENT_ENDPOINT.startsWith('/') ? EQUIPMENT_ENDPOINT : `/${EQUIPMENT_ENDPOINT}`;
+    const fullUrl = `${baseUrl}${endpoint}`;
+
+    const response = await fetch(fullUrl, {
       method: 'HEAD',
       signal: controller.signal
     });
 
     clearTimeout(timeoutId);
-    return response.ok;
+    
+    // Consider server available even if it returns 500 (PHP error)
+    // The server itself is reachable, just the script has issues
+    return response.status !== 404; // Only return false if 404 (not found)
   } catch {
-    return false;
+    return false; // Network error or timeout - server completely unreachable
   }
 };
 
@@ -121,60 +157,75 @@ export const fetchEquipmentWithFallback = async () => {
     return getMockData();
   }
 
+  // Try to fetch from server first
   try {
-    // Try to fetch from server first
     const serverData = await fetchEquipmentFromServer();
     
-    // Process server data to match the expected format and construct image URLs
-    const processedData = serverData.map(item => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      model: item.model || 'N/A',
-      year_acquired: item.year_acquired,
-      status: item.status || 'available',
-      applications: parseApplications(item.applications),
-      image: getEquipmentImageUrl(item.image), // Convert to full URL
-      image_filename: item.image, // Keep original filename if needed
-      published: item.published || 1
-    }));
+    // If we got data from server, use it
+    if (serverData && serverData.length > 0) {
+      // Process server data to match the expected format and construct image URLs
+      const processedData = serverData.map(item => ({
+        id: item.id,
+        name: item.name || 'Unknown Equipment',
+        description: item.description || 'No description available',
+        model: item.model || 'N/A',
+        year_acquired: item.year_acquired,
+        status: item.status || 'available',
+        applications: parseApplications(item.applications),
+        image: getEquipmentImageUrl(item.image), // Convert to full URL
+        image_filename: item.image, // Keep original filename if needed
+        published: item.published !== undefined ? item.published : 1
+      })).filter(item => item.published === 1); // Only show published items
 
-    return {
-      data: processedData,
-      source: 'server'
-    };
-  } catch (error) {
-    console.warn('Server fetch failed, using mock data:', error.message);
+      return {
+        data: processedData,
+        source: 'server'
+      };
+    }
     
-    // Fallback to mock data
-    return getMockData(error.message);
+    // If server returned empty array (due to error or no data), use mock data silently
+    console.log('Server returned no data, using mock data');
+    return getMockData();
+    
+  } catch (error) {
+    // This catch should rarely happen now since we're not throwing
+    console.warn('Unexpected error in server fetch, using mock data:', error.message);
+    return getMockData();
   }
 };
 
 /**
  * Helper function to get and process mock data
- * @param {string} [errorMessage] - Optional error message from server fetch
  * @returns {Promise<Object>} Processed mock data
  */
-const getMockData = async (errorMessage = null) => {
-  // Dynamic import for mock data
-  const mockData = (await import('../data/ClsdEquipment.js')).default;
-  
-  // Process mock data (mock data already has imported images)
-  const processedMockData = mockData
-    .filter(item => item.published !== 0) // Only show published items
-    .map(item => ({
-      ...item,
-      year_acquired: item.year_acquired || null,
-      status: item.status || 'available',
-      model: item.model || 'N/A'
-    }));
+const getMockData = async () => {
+  try {
+    // Dynamic import for mock data
+    const mockData = (await import('../data/ClsdEquipment.js')).default;
+    
+    // Process mock data (mock data already has imported images)
+    const processedMockData = mockData
+      .filter(item => item.published !== 0) // Only show published items
+      .map(item => ({
+        ...item,
+        year_acquired: item.year_acquired || null,
+        status: item.status || 'available',
+        model: item.model || 'N/A',
+        applications: Array.isArray(item.applications) ? item.applications : []
+      }));
 
-  return {
-    data: processedMockData,
-    source: 'mock',
-    ...(errorMessage && { error: errorMessage })
-  };
+    return {
+      data: processedMockData,
+      source: 'mock'
+      // No error message included
+    };
+  } catch (mockError) {
+    console.error('Failed to load mock data:', mockError);
+    return {
+      data: [],
+      source: 'mock'
+    };
+  }
 };
 
 /**

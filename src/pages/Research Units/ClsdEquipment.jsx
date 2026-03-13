@@ -1,21 +1,34 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\pages\Research Units\ClsdEquipment.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import Search from "../../components/Search.jsx";
-import { usePaginatedEquipment } from "../../hooks/ClsdEquipment.js";
 import { useSearch } from "../../hooks/useSearch.js";
 import { searchConfigs } from "../../config/searchConfigs.js";
+import { usePaginatedEquipment } from "../../hooks/ClsdEquipment.js";
+import { 
+  ArrowLeft,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Tag,
+  Info,
+  Award,
+  CheckCircle,
+  AlertTriangle
+} from "lucide-react";
 
 function ClsdEquipment() {
   const [selectedEquipment, setSelectedEquipment] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(8);
-  const [isChangingPage, setIsChangingPage] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [imageErrors, setImageErrors] = useState({});
   
   // Get equipment data from hook
   const {
-    currentItems,
+    currentItems: paginatedItems,
     loading,
     error,
     dataSource,
@@ -28,10 +41,11 @@ function ClsdEquipment() {
     nextPage,
     prevPage,
     hasNextPage,
-    hasPrevPage
+    hasPrevPage,
+    equipment: allEquipment
   } = usePaginatedEquipment(itemsPerPage);
 
-  // Initialize search hook with equipment data
+  // Use the custom search hook
   const {
     filteredData,
     searchTerm,
@@ -41,7 +55,35 @@ function ClsdEquipment() {
     handleSearchStart,
     handleSearchClear,
     resetSearch
-  } = useSearch(currentItems, searchConfigs.equipment);
+  } = useSearch(allEquipment, {
+    searchKeys: [
+      'name',
+      'description',
+      'model',
+      'applications',
+      'status'
+    ]
+  });
+
+  // Apply filter to searched results
+  const filteredAndSearchedEquipment = useMemo(() => {
+    let result = [...filteredData];
+
+    // Apply Status Filter
+    if (activeFilter !== 'all') {
+      result = result.filter(equipment => 
+        equipment.status?.toLowerCase() === activeFilter.toLowerCase()
+      );
+    }
+
+    return result;
+  }, [filteredData, activeFilter]);
+
+  // Pagination calculation for filtered results
+  const totalFilteredPages = Math.ceil(filteredAndSearchedEquipment.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentEquipment = filteredAndSearchedEquipment.slice(startIndex, endIndex);
 
   // Handle window resize
   useEffect(() => {
@@ -49,385 +91,397 @@ function ClsdEquipment() {
       setItemsPerPage(window.innerWidth < 640 ? 6 : 8);
     };
     
-    handleResize(); // Set initial value
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Reset to page 1 when filter changes or search results change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      goToPage(1);
+    }
+  }, [activeFilter, filteredData.length, goToPage, currentPage]);
+
   // Scroll to top when page changes
   useEffect(() => {
-    if (!isChangingPage) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, [currentPage, isChangingPage]);
-
-  // Alternative approach: use a ref to track if we should scroll
-  useEffect(() => {
-    // This will run after every render when currentPage changes
     const timer = setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50); // Small delay to ensure DOM has updated
+    }, 50);
     
     return () => clearTimeout(timer);
-  }, [currentPage]); // Only depend on currentPage
+  }, [currentPage, selectedEquipment]);
 
   const handleEquipmentClick = (equipment) => {
     setSelectedEquipment(equipment);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBackClick = () => {
     setSelectedEquipment(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Custom pagination handlers with scroll to top
-  const handleNextPage = () => {
-    setIsChangingPage(true);
-    nextPage();
-    // Small delay to ensure the page change has started
-    setTimeout(() => {
-      setIsChangingPage(false);
-    }, 100);
+  const handleFilterClick = (type) => {
+    setActiveFilter(type);
   };
 
-  const handlePrevPage = () => {
-    setIsChangingPage(true);
-    prevPage();
-    setTimeout(() => {
-      setIsChangingPage(false);
-    }, 100);
+  const handleClearFilters = () => {
+    setActiveFilter('all');
+    resetSearch();
+  };
+
+  const handlePageChange = (direction) => {
+    if (direction === 'prev' && currentPage > 1) {
+      prevPage();
+    } else if (direction === 'next' && currentPage < totalFilteredPages) {
+      nextPage();
+    }
   };
 
   const handleGoToPage = (page) => {
-    setIsChangingPage(true);
     goToPage(page);
-    setTimeout(() => {
-      setIsChangingPage(false);
-    }, 100);
   };
 
-  // Status badge component
-  const StatusBadge = ({ status }) => {
-    const statusConfig = {
-      available: { bg: 'bg-green-100', text: 'text-green-800', label: 'Available' },
-      maintenance: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Under Maintenance' }
-    };
-    
-    const config = statusConfig[status] || statusConfig.available;
-    
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        {config.label}
-      </span>
-    );
+  const handleImageError = (equipmentId) => {
+    setImageErrors(prev => ({ ...prev, [equipmentId]: true }));
   };
 
-  // Determine which items to display based on search
-  const displayItems = searchTerm ? filteredData : currentItems;
-  const hasSearchResults = displayItems.length > 0;
+  // Status icon component - blue icons only, no text
+  const StatusIcon = ({ status }) => {
+    if (status === 'available') {
+      return <CheckCircle className="w-5 h-5 text-blue-500" />;
+    } else if (status === 'maintenance') {
+      return <AlertTriangle className="w-5 h-5 text-blue-500" />;
+    }
+    return null;
+  };
+
+  // Filter button styling - updated to match NewsEvents with equal width
+  const getFilterButtonStyle = (type) => {
+    const isActive = activeFilter === type;
+    const baseClasses = "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 w-45 text-center";
+    
+    return `${baseClasses} ${
+      isActive 
+        ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 ring-2 ring-blue-300 ring-offset-2'
+        : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
+    }`;
+  };
+
+  // Updated EquipmentCard with NewsEvents styling and icon at upper right corner
+  const EquipmentCard = ({ equipment }) => (
+    <div 
+      className="group relative bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+      onClick={() => handleEquipmentClick(equipment)}
+    >
+      {/* Blue line at the bottom on hover - matching NewsEvents */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
+      
+      {/* Image Container - matching NewsEvents styling */}
+      <div className="relative pt-[100%] bg-gray-200 overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center p-4">
+          {equipment.image && !imageErrors[equipment.id] ? (
+            <img
+              src={equipment.image}
+              alt={equipment.name}
+              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+              onError={() => handleImageError(equipment.id)}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+              <svg className="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          )}
+        </div>
+        
+        {/* Status Icon at upper right corner */}
+        <div className="absolute top-2 right-2">
+          <StatusIcon status={equipment.status} />
+        </div>
+      </div>
+
+      {/* Text Container - matching NewsEvents card text styling */}
+      <div className="p-4 flex flex-col flex-grow">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-800 text-center line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+          {equipment.name}
+        </h3>
+        {equipment.model && equipment.model !== 'N/A' && (
+          <p className="text-xs text-gray-500 text-center mt-1">
+            Model: {equipment.model}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+
+  // Updated DetailView with NewsEvents styling - removed status icon beside name
+  const DetailView = ({ equipment }) => (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 animate-fadeIn">
+      <button
+        onClick={handleBackClick}
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+        <span>Back to Equipment List</span>
+      </button>
+
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+        {/* Hero Image Section - matching NewsEvents styling */}
+        <div className="relative bg-gray-100">
+          <div className="h-64 md:h-96 overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center p-8">
+              {equipment.image && !imageErrors[equipment.id] ? (
+                <img
+                  src={equipment.image}
+                  alt={equipment.name}
+                  className="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => window.open(equipment.image, '_blank')}
+                  onError={() => handleImageError(equipment.id)}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                  <svg className="w-24 h-24 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+        </div>
+
+        {/* Title in blue gradient header - matching NewsEvents - removed status icon */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
+          <h1 className="text-2xl md:text-3xl font-bold mb-2">{equipment.name}</h1>
+          {equipment.model && equipment.model !== 'N/A' && (
+            <p className="text-blue-100">Model: {equipment.model}</p>
+          )}
+        </div>
+
+        <div className="p-6 md:p-8 space-y-6">
+          {/* Description - matching NewsEvents styling */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Info className="w-5 h-5 text-blue-600" />
+              <h2 className="text-lg font-bold text-gray-900">Description</h2>
+            </div>
+            <div className="ml-7 prose prose-blue max-w-none text-gray-700">
+              <p className="leading-relaxed">{equipment.description}</p>
+            </div>
+          </div>
+
+          {/* Equipment Details Grid - matching NewsEvents styling */}
+          <div className="border-t border-gray-200 pt-6">
+            <h3 className="text-md font-semibold text-gray-900 mb-4">Equipment Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {equipment.year_acquired && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Calendar className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Year Acquired</p>
+                    <p className="text-base font-medium text-gray-900">{equipment.year_acquired}</p>
+                  </div>
+                </div>
+              )}
+
+              {equipment.status && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Tag className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Status</p>
+                    <p className="text-base font-medium text-gray-900 capitalize">{equipment.status === 'maintenance' ? 'Under Maintenance' : equipment.status}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Applications Section - matching NewsEvents styling */}
+          {equipment.applications && equipment.applications.length > 0 && (
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Award className="w-5 h-5 text-blue-600" />
+                <h3 className="text-md font-semibold text-gray-900">Applications</h3>
+              </div>
+              <ul className="ml-7 space-y-2">
+                {equipment.applications.map((app, index) => (
+                  <li key={index} className="text-gray-700 flex items-start gap-2">
+                    <span className="text-blue-600 font-bold">•</span>
+                    {app}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <AutoScroll />
       <NavBar />
-      <main className="flex-grow pt-16 sm:pt-20 lg:pt-24">
-        <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-          
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-10">
+      
+      <main className="flex-grow">
+        <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 mt-25">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
             <div className="max-w-4xl">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-6xl tracking-tight">
-                <span className="text-gray-900 font-semibold">Available </span>
-                <span className="text-blue-500 font-semibold">Equipment</span>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
+                  Available Equipment
+                </span>
               </h1>
-            </div>
-          </div>
-        </section>
-
-        {/* Main Content Section */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Search Bar */}
-          <div className="mb-8 flex justify-center">
-            <Search
-              data={currentItems}
-              {...searchConfigs.equipment}
-              onSearchResults={handleSearchResults}
-              onSearchStart={handleSearchStart}
-              onSearchClear={handleSearchClear}
-              className="w-full max-w-2xl"
-              initialQuery={searchTerm}
-            />
-          </div>
-
-          {/* Search Results Info */}
-          {searchTerm && !loading && (
-            <div className="mb-6 text-center">
-              <p className="text-sm text-gray-600">
-                Found <span className="font-semibold text-blue-600">{searchResults.filtered}</span> result{searchResults.filtered !== 1 ? 's' : ''} 
-                {searchResults.filtered > 0 && ` out of ${searchResults.total} total items`}
-                {searchResults.filtered === 0 && ' matching your search'}
+              <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl">
+                Browse our available laboratory equipment and instruments for research and testing purposes.
               </p>
             </div>
-          )}
+          </div>
+        </section>
 
-          {loading ? (
-            /* Loading Skeleton */
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-              {[...Array(itemsPerPage)].map((_, index) => (
-                <div key={index} className="bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
-                  <div className="w-full pt-[100%] bg-gray-200"></div>
-                  <div className="p-3 sm:p-4">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
-                  </div>
-                </div>
-              ))}
+        {/* Loading State - Only spinner and text, no grid */}
+        {loading && (
+          <div className="container mx-auto px-4 mt-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Loading CLSD Equipments...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="container mx-auto px-4 mt-8">
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+              <p className="text-red-700">Error: {error}</p>
+              <button
+                onClick={() => refreshData()}
+                className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
             </div>
-          ) : !selectedEquipment ? (
-            /* Equipment Grid View */
-            <div className="w-full">
-              {displayItems.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100 mb-4">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+          </div>
+        )}
+
+        {/* Main Content Section - Only show when not loading and no error */}
+        {!loading && !error && (
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            {!selectedEquipment ? (
+              /* Equipment Grid View */
+              <div className="w-full">
+                {/* Search Component */}
+                <Search 
+                  className="mb-8"
+                  data={allEquipment}
+                  {...searchConfigs.clsdEquipment}
+                  onSearchResults={handleSearchResults}
+                  onSearchStart={handleSearchStart}
+                  onSearchClear={handleSearchClear}
+                />
+                
+                {/* Filter Buttons - matching NewsEvents styling */}
+                <div className="flex flex-col items-center mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Filter className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">Filter by status:</span>
                   </div>
-                  <p className="text-gray-500 text-lg mb-2">No equipment found</p>
-                  <p className="text-sm text-gray-400">
-                    {searchTerm 
-                      ? `No results matching "${searchTerm}"` 
-                      : "There's no equipment available at the moment."}
-                  </p>
-                  {searchTerm && (
-                    <button
-                      onClick={handleSearchClear}
-                      className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      Clear search
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                    {displayItems.map((equipment) => (
-                      <div
-                        key={equipment.id}
-                        onClick={() => handleEquipmentClick(equipment)}
-                        className="group relative bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden cursor-pointer flex flex-col"
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {['all', 'available', 'maintenance'].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => handleFilterClick(type)}
+                        className={getFilterButtonStyle(type)}
                       >
-                        {/* Status Badge */}
-                        <div className="absolute top-2 right-2 z-10">
-                          <StatusBadge status={equipment.status} />
-                        </div>
-                        
-                        {/* Fixed size image container with exact dimensions */}
-                        <div className="w-full pt-[100%] relative bg-gray-100">
-                          <div className="absolute inset-0 flex items-center justify-center p-4">
-                            {equipment.image ? (
-                              <img
-                                src={equipment.image}
-                                alt={equipment.name}
-                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        {/* Fixed height text container */}
-                        <div className="p-3 sm:p-4 border-t border-gray-100">
-                          <h3 className="text-xs sm:text-sm font-semibold text-gray-800 text-center line-clamp-2 group-hover:text-blue-600 transition-colors">
-                            {equipment.name}
-                          </h3>
-                          {equipment.model && equipment.model !== 'N/A' && (
-                            <p className="text-xs text-gray-500 text-center mt-1">
-                              Model: {equipment.model}
-                            </p>
-                          )}
-                        </div>
-                      </div>
+                        {type === 'maintenance' ? 'Under Maintenance' : type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
                     ))}
                   </div>
-
-                  {/* Pagination - only show if not searching or if search has results and no search term */}
-                  {!searchTerm && totalPages > 1 && (
-                    <div className="flex justify-center items-center space-x-4 mt-8">
-                      <button
-                        onClick={handlePrevPage}
-                        disabled={!hasPrevPage}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                          !hasPrevPage
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                        }`}
-                      >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </button>
-
-                      {/* Page numbers */}
-                      <div className="flex items-center space-x-1 sm:space-x-2">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                          <button
-                            key={page}
-                            onClick={() => handleGoToPage(page)}
-                            className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                              currentPage === page
-                                ? 'bg-blue-600 text-white'
-                                : 'text-gray-600 hover:bg-gray-100'
-                            }`}
-                          >
-                            {page}
-                          </button>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={handleNextPage}
-                        disabled={!hasNextPage}
-                        className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                          !hasNextPage
-                            ? 'text-gray-400 cursor-not-allowed'
-                            : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                        }`}
-                      >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          ) : (
-            /* Equipment Detail View */
-            <div className="w-full max-w-4xl mx-auto animate-fadeIn">
-              {/* Back Button */}
-              <button
-                onClick={handleBackClick}
-                className="mb-6 inline-flex items-center text-blue-600 hover:text-blue-800 transition-colors group"
-              >
-                <svg 
-                  className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to Equipment List
-              </button>
-
-              {/* Equipment Detail Card */}
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="flex flex-col lg:flex-row">
-                  {/* Image Section */}
-                  <div className="lg:w-1/2 bg-gray-100">
-                    <div className="w-full pt-[75%] lg:pt-[100%] relative">
-                      <div className="absolute inset-0 flex items-center justify-center p-6 sm:p-8">
-                        {selectedEquipment.image ? (
-                          <img
-                            src={selectedEquipment.image}
-                            alt={selectedEquipment.name}
-                            className="w-full h-full object-contain"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                            <svg className="w-24 h-24 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Details Section */}
-                  <div className="lg:w-1/2 p-6 sm:p-8">
-                    <div className="flex justify-between items-start mb-4">
-                      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
-                        {selectedEquipment.name}
-                      </h2>
-                      <StatusBadge status={selectedEquipment.status} />
-                    </div>
-                    
-                    <div className="space-y-6">
-                      {/* Model and Year */}
-                      {(selectedEquipment.model || selectedEquipment.year_acquired) && (
-                        <div className="grid grid-cols-2 gap-4">
-                          {selectedEquipment.model && selectedEquipment.model !== 'N/A' && (
-                            <div>
-                              <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
-                                Model
-                              </h3>
-                              <p className="text-sm text-gray-600">{selectedEquipment.model}</p>
-                            </div>
-                          )}
-                          {selectedEquipment.year_acquired && (
-                            <div>
-                              <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
-                                Year Acquired
-                              </h3>
-                              <p className="text-sm text-gray-600">{selectedEquipment.year_acquired}</p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      {/* Description */}
-                      <div>
-                        <h3 className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-2">
-                          Description
-                        </h3>
-                        <p className="text-sm text-gray-600 leading-relaxed">
-                          {selectedEquipment.description}
-                        </p>
-                      </div>
-                      
-                      {/* Applications */}
-                      {selectedEquipment.applications && selectedEquipment.applications.length > 0 && (
-                        <div className="bg-blue-50 rounded-lg p-4 sm:p-6">
-                          <h3 className="text-xs font-semibold text-blue-800 mb-3">
-                            Applications
-                          </h3>
-                          <ul className="text-xs sm:text-sm text-gray-600 space-y-2">
-                            {selectedEquipment.applications.map((app, index) => (
-                              <li key={index} className="flex items-start">
-                                <svg className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                {app}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {/* Additional Info */}
-                      <div className="border-t border-gray-200 pt-4">
-                        <p className="text-xs sm:text-sm text-gray-500">
-                          For more information about this equipment or to schedule its use, 
-                          please contact our laboratory staff.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
+
+                {/* Search Stats - matching NewsEvents styling */}
+                {searchTerm && (
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600">
+                      Found {filteredAndSearchedEquipment.length} result{filteredAndSearchedEquipment.length !== 1 ? 's' : ''} for "{searchTerm}"
+                      {activeFilter !== 'all' && ` with ${activeFilter === 'maintenance' ? 'under maintenance' : activeFilter} status`}
+                    </p>
+                  </div>
+                )}
+
+                {currentEquipment.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">No equipment found.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                      {currentEquipment.map((equipment) => (
+                        <EquipmentCard key={equipment.id} equipment={equipment} />
+                      ))}
+                    </div>
+
+                    {/* Pagination - matching NewsEvents styling */}
+                    {totalFilteredPages > 1 && (
+                      <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+                        <button
+                          onClick={() => handlePageChange('prev')}
+                          disabled={currentPage === 1}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                            currentPage === 1
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                          }`}
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          {Array.from({ length: totalFilteredPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => handleGoToPage(page)}
+                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                                currentPage === page
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-gray-600 hover:bg-gray-100'
+                              }`}
+                              aria-label={`Go to page ${page}`}
+                              aria-current={currentPage === page ? 'page' : undefined}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => handlePageChange('next')}
+                          disabled={currentPage === totalFilteredPages}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                            currentPage === totalFilteredPages
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                          }`}
+                          aria-label="Next page"
+                        >
+                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-            </div>
-          )}
-        </section>
+            ) : (
+              /* Equipment Detail View */
+              <DetailView equipment={selectedEquipment} />
+            )}
+          </section>
+        )}
       </main>
       <Footer />
     </div>

@@ -1,8 +1,4 @@
-// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\config\searchConfigs.js
-
-// Search configurations for different pages
 export const searchConfigs = {
-  // News & Events page
   newsEvents: {
     searchKeys: [
       'title', 
@@ -46,25 +42,30 @@ export const searchConfigs = {
     minChars: 2
   },
 
-  // Equipment page
-  equipment: {
+  // CLSD Equipment page
+  clsdEquipment: {
     searchKeys: [
       'name',
       'description',
       'model',
-      'year_acquired',
-      'applications'
+      'applications',
+      'status'
     ],
     placeholder: 'Search equipment...',
-    variant: 'default',
+    variant: 'elevated',
     size: 'md',
     theme: 'light',
     showResultCount: true,
     debounceTime: 300,
     showNoResultsMessage: true,
     noResultsMessage: 'No equipment found for "{query}"',
-    minChars: 1,
-    showSearchIcon: true,
-    showClearButton: true
+    minChars: 2,
+    // Additional equipment-specific configurations
+    filterOptions: [
+      { value: 'all', label: 'All Equipment' },
+      { value: 'available', label: 'Available' },
+      { value: 'maintenance', label: 'Under Maintenance' }
+    ],
+    resultCountMessage: 'Found {count} result{plural} for "{query}"'
   }
 };

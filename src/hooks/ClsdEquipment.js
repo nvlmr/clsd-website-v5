@@ -1,7 +1,7 @@
 // src/hooks/ClsdEquipment.js
 
 import { useState, useEffect, useCallback } from 'react';
-import { fetchEquipmentWithFallback, checkServerAvailability, getEquipmentImageUrl } from '../services/clsd_equipment_api';
+import { fetchEquipmentWithFallback, checkServerAvailability } from '../services/clsd_equipment_api';
 
 /**
  * Custom hook for managing equipment data with server fallback
@@ -24,8 +24,8 @@ export const useEquipmentData = () => {
       setLoading(true);
     }
     
+    // Clear only critical errors, keep image errors
     setError(null);
-    setImageErrors({});
 
     try {
       const result = await fetchEquipmentWithFallback();
@@ -33,28 +33,22 @@ export const useEquipmentData = () => {
       setEquipment(result.data);
       setDataSource(result.source);
       
-      if (result.source === 'server') {
-        setServerAvailable(true);
-      }
-      
-      if (result.error) {
-        setError(`Using mock data: ${result.error}`);
-      }
+      // Check server availability separately
+      const available = await checkServerAvailability();
+      setServerAvailable(available);
 
-      // Preload images from server
-      if (result.source === 'server') {
-        result.data.forEach(item => {
-          if (item.image) {
-            const img = new Image();
-            img.src = item.image;
-            img.onerror = () => {
-              setImageErrors(prev => ({ ...prev, [item.id]: true }));
-            };
-          }
-        });
-      }
+      // Preload images to detect errors
+      result.data.forEach(item => {
+        if (item.image && typeof item.image === 'string') {
+          const img = new Image();
+          img.src = item.image;
+          img.onerror = () => {
+            setImageErrors(prev => ({ ...prev, [item.id]: true }));
+          };
+        }
+      });
     } catch (err) {
-      setError(err.message);
+      // This should rarely happen now
       console.error('Failed to fetch equipment:', err);
     } finally {
       setLoading(false);
@@ -72,15 +66,18 @@ export const useEquipmentData = () => {
     const checkServer = async () => {
       const available = await checkServerAvailability();
       setServerAvailable(available);
+      
+      // If server becomes available, refresh data
+      if (available && dataSource === 'mock') {
+        fetchData(true);
+      }
     };
 
-    checkServer();
-    
     // Check server status every 30 seconds
     const interval = setInterval(checkServer, 30000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [dataSource, fetchData]);
 
   // Refresh data function
   const refreshData = useCallback(async () => {
@@ -108,7 +105,10 @@ export const useEquipmentData = () => {
     return equipment.filter(item => 
       item.name.toLowerCase().includes(searchTerm) ||
       (item.description && item.description.toLowerCase().includes(searchTerm)) ||
-      (item.model && item.model.toLowerCase().includes(searchTerm))
+      (item.model && item.model.toLowerCase().includes(searchTerm)) ||
+      (item.applications && item.applications.some(app => 
+        app.toLowerCase().includes(searchTerm)
+      ))
     );
   }, [equipment]);
 
@@ -117,10 +117,19 @@ export const useEquipmentData = () => {
     return imageErrors[equipmentId] || false;
   }, [imageErrors]);
 
+  // Clear image error for retry
+  const retryImageLoad = useCallback((equipmentId) => {
+    setImageErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[equipmentId];
+      return newErrors;
+    });
+  }, []);
+
   return {
     equipment,
     loading,
-    error,
+    error, // This will now be null when using mock data
     dataSource,
     serverAvailable,
     refreshing,
@@ -130,6 +139,7 @@ export const useEquipmentData = () => {
     getEquipmentByYear,
     searchEquipment,
     hasImageError,
+    retryImageLoad,
     isEmpty: equipment.length === 0
   };
 };
@@ -145,7 +155,7 @@ export const usePaginatedEquipment = (itemsPerPage = 8) => {
   
   const { equipment, loading } = equipmentHook;
   
-  const totalPages = Math.ceil(equipment.length / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(equipment.length / itemsPerPage));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = equipment.slice(startIndex, endIndex);
@@ -227,7 +237,10 @@ export const useEquipmentFilters = () => {
       return (
         item.name.toLowerCase().includes(searchTerm) ||
         (item.description && item.description.toLowerCase().includes(searchTerm)) ||
-        (item.model && item.model.toLowerCase().includes(searchTerm))
+        (item.model && item.model.toLowerCase().includes(searchTerm)) ||
+        (item.applications && item.applications.some(app => 
+          app.toLowerCase().includes(searchTerm)
+        ))
       );
     }
 

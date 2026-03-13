@@ -35,8 +35,10 @@ function AnalyticalIntrumentation() {
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
                   Analytical Services
                 </span>
-                <span className="text-gray-900 font-semibold">Laboratory</span>
               </h1>
+              <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl">
+                Advancing the science and stewardship of healthy lake ecosystems.
+              </p>
             </div>
           </div>
         </section>

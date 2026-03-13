@@ -1,3 +1,5 @@
+import image1 from "../assets/images/News and Events/event1.jpg";
+
 const researchInitiatives = [
   {
     id: 1,
@@ -14,7 +16,7 @@ const researchInitiatives = [
     location: "National Capital Region and Region IV-A",
     implementing_agency: "National Institute of Public Health",
     cooperating_agency: "Department of Health, World Health Organization",
-    image: "/images/research/nutrition-study.jpg",
+    image: image1,
     published: 1,
     featured: 1
   },
@@ -33,7 +35,7 @@ const researchInitiatives = [
     location: "Central Luzon and Cagayan Valley",
     implementing_agency: "Ministry of Agriculture",
     cooperating_agency: "University of the Philippines Los Baños, Department of Science and Technology",
-    image: "/images/research/smart-agriculture.jpg",
+    image: image1,
     published: 1,
     featured: 1
   },
@@ -52,7 +54,7 @@ const researchInitiatives = [
     location: "Coastal regions and typhoon-prone areas",
     implementing_agency: "Department of Infrastructure",
     cooperating_agency: "Department of Environment and Natural Resources, Philippine Atmospheric, Geophysical and Astronomical Services Administration (PAGASA)",
-    image: "/images/research/climate-infrastructure.jpg",
+    image: image1,
     published: 1,
     featured: 1
   },
@@ -71,7 +73,7 @@ const researchInitiatives = [
     location: "Metro Manila",
     implementing_agency: "Ministry of Information Technology",
     cooperating_agency: "Department of Interior and Local Government, Development Academy of the Philippines",
-    image: "/images/research/ai-public-service.jpg",
+    image: image1,
     published: 1,
     featured: 0
   },
@@ -90,7 +92,7 @@ const researchInitiatives = [
     location: "Eastern Visayas and Mindanao",
     implementing_agency: "Department of Water Resources",
     cooperating_agency: "Department of Health, Local Government Units",
-    image: "/images/research/wash-program.jpg",
+    image: image1,
     published: 1,
     featured: 0
   },
@@ -109,7 +111,7 @@ const researchInitiatives = [
     location: "Nationwide",
     implementing_agency: "Ministry of Youth Affairs",
     cooperating_agency: "Department of Trade and Industry, Commission on Higher Education",
-    image: "/images/research/youth-entrepreneurship.jpg",
+    image: image1,
     published: 1,
     featured: 1
   },
@@ -128,7 +130,7 @@ const researchInitiatives = [
     location: "Metro Manila, Cebu, Davao",
     implementing_agency: "National Environmental Authority",
     cooperating_agency: "Department of Environment and Natural Resources, Local Government Units",
-    image: "/images/research/air-quality.jpg",
+    image: image1,
     published: 1,
     featured: 0
   },
@@ -147,7 +149,7 @@ const researchInitiatives = [
     location: "National government agencies",
     implementing_agency: "Office of the Prime Minister",
     cooperating_agency: "Department of Information and Communications Technology, Civil Service Commission",
-    image: "/images/research/egovernance.jpg",
+    image: image1,
     published: 1,
     featured: 0
   },
@@ -166,7 +168,7 @@ const researchInitiatives = [
     location: "Palawan and Visayan Sea",
     implementing_agency: "Department of Fisheries",
     cooperating_agency: "Bureau of Fisheries and Aquatic Resources, Local Government Units",
-    image: "/images/research/fisheries.jpg",
+    image: image1,
     published: 1,
     featured: 0
   },
@@ -185,7 +187,7 @@ const researchInitiatives = [
     location: "Off-grid islands and remote areas",
     implementing_agency: "National Energy Authority",
     cooperating_agency: "Department of Energy, Electric Cooperatives",
-    image: "/images/research/microgrid.jpg",
+    image: image1,
     published: 1,
     featured: 1
   }

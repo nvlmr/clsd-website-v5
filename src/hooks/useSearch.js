@@ -1,3 +1,4 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\hooks\useSearch.js
 import { useState, useEffect, useCallback } from 'react';
 
 export const useSearch = (initialData = [], searchConfig = {}) => {

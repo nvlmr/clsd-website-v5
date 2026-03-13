@@ -21,7 +21,6 @@ import {
   Award,
   UserCircle,
   Filter,
-  WifiOff,
   AlertCircle
 } from "lucide-react";
 
@@ -71,7 +70,7 @@ function ResearchInitiatives() {
   const itemsPerPage = 9;
   const topRef = useRef(null);
 
-  // Apply status filter to searched results
+  // Apply status filter to searched results and sort by featured
   const filteredAndSearchedProjects = useMemo(() => {
     try {
       if (!filteredData || !Array.isArray(filteredData)) {
@@ -86,6 +85,20 @@ function ResearchInitiatives() {
           project?.status?.toLowerCase() === statusFilter.toLowerCase()
         );
       }
+
+      // Sort by featured (featured = 1 first, then by date or other criteria)
+      result.sort((a, b) => {
+        // Featured items come first
+        if (a.featured === 1 && b.featured !== 1) return -1;
+        if (a.featured !== 1 && b.featured === 1) return 1;
+        
+        // If both have same featured status, sort by date (newest first) if available
+        if (a.start_date && b.start_date) {
+          return new Date(b.start_date) - new Date(a.start_date);
+        }
+        
+        return 0;
+      });
 
       return result;
     } catch (err) {
@@ -141,11 +154,6 @@ function ResearchInitiatives() {
     setStatusFilter(status);
   }, []);
 
-  const handleClearFilters = useCallback(() => {
-    setStatusFilter('all');
-    resetSearch();
-  }, [resetSearch]);
-
   // Wrapper for search handlers with error handling
   const handleSearchResultsWrapper = useCallback((results) => {
     try {
@@ -197,24 +205,17 @@ function ResearchInitiatives() {
     }
   }, []);
 
-  const getStatusBadge = useCallback((status) => {
-    const statusColors = {
-      ongoing: "bg-green-100 text-green-800",
-      completed: "bg-blue-100 text-blue-800",
-      upcoming: "bg-yellow-100 text-yellow-800"
-    };
-    const colorClass = statusColors[status?.toLowerCase()] || "bg-gray-100 text-gray-800";
-    
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${colorClass}`}>
-        {status || "N/A"}
-      </span>
-    );
+  // Format status for display
+  const formatStatus = useCallback((status) => {
+    if (!status) return "N/A";
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   }, []);
 
+  // Updated filter button style with proper centering
   const getStatusFilterButtonStyle = useCallback((status) => {
     const isActive = statusFilter === status;
-    const baseClasses = "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 min-w-[100px] text-center";
+    // Remove fixed width and use padding with min-width for consistency
+    const baseClasses = "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 text-center inline-flex items-center justify-center min-w-[100px]";
     
     return `${baseClasses} ${
       isActive 
@@ -223,87 +224,82 @@ function ResearchInitiatives() {
     }`;
   }, [statusFilter]);
 
+  // Updated ProjectCard with blue featured icon
   const ProjectCard = useCallback(({ project }) => (
     <div 
       className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
       onClick={() => handleCardClick(project)}
     >
-      {/* Card content remains the same */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+      {/* Blue line at the bottom on hover - matching NewsEvents */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
       
-      {/* Status Badge and Featured Label */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
-        {project.featured === 1 && (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-400 text-yellow-900 shadow-md">
-            <Award className="w-3 h-3 mr-1" />
-            Featured
-          </span>
-        )}
-        {getStatusBadge(project.status)}
-      </div>
-
-      {/* Image Section */}
-      {project.image && (
-        <div className="h-48 overflow-hidden">
+      {/* Image Container - matching NewsEvents styling */}
+      <div className="relative h-48 overflow-hidden bg-gray-200">
+        {project.image ? (
           <img 
             src={project.image} 
             alt={project.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = '/api/placeholder/400/320';
+              e.target.src = "https://via.placeholder.com/400x200?text=Research+Initiative";
             }}
           />
-        </div>
-      )}
-
-      <div className="p-6 flex flex-col h-full">
-        <div className="flex-grow">
-          <h2 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-            {project.title || "Untitled Project"}
-          </h2>
-          
-          <div className="space-y-2">
-            <p className="text-gray-600 flex items-start gap-2">
-              <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm">
-                {formatDate(project.start_date)} - {formatDate(project.end_date)}
-              </span>
-            </p>
-            
-            <p className="text-gray-600 flex items-start gap-2">
-              <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm">
-                <span className="font-medium">Lead:</span> {project.project_lead || "N/A"}
-              </span>
-            </p>
-            
-            <p className="text-gray-600 flex items-start gap-2">
-              <Landmark className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm">
-                <span className="font-medium">Funding:</span> {project.funding_source || "N/A"}
-              </span>
-            </p>
-            
-            <p className="text-gray-600 flex items-start gap-2">
-              <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm">
-                <span className="font-medium">Implementing:</span> {project.implementing_agency || "N/A"}
-              </span>
-            </p>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+            <Building2 className="w-12 h-12 text-blue-400" />
           </div>
-        </div>
+        )}
         
-        <div className="flex justify-end mt-4 pt-2 border-t border-gray-100">
-          <span className="inline-flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:text-blue-700 transition-colors duration-300">
-            View Details
-            <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </span>
+        {/* Featured indicator - Blue like NewsEvents */}
+        {project.featured === 1 && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
+              <Award className="w-4 h-4 text-white" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6 flex flex-col flex-grow">
+        <h3 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+          {project.title || "Untitled Project"}
+        </h3>
+        
+        <div className="space-y-2">
+          <p className="text-gray-600 flex items-start gap-2">
+            <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm">
+              {formatDate(project.start_date)} - {formatDate(project.end_date)}
+            </span>
+          </p>
+          
+          <p className="text-gray-600 flex items-start gap-2">
+            <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm line-clamp-1">
+              <span className="font-medium">Lead:</span> {project.project_lead || "N/A"}
+            </span>
+          </p>
+          
+          <p className="text-gray-600 flex items-start gap-2">
+            <Landmark className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm line-clamp-1">
+              <span className="font-medium">Funding:</span> {project.funding_source || "N/A"}
+            </span>
+          </p>
+          
+          <p className="text-gray-600 flex items-start gap-2">
+            <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm line-clamp-1">
+              <span className="font-medium">Implementing:</span> {project.implementing_agency || "N/A"}
+            </span>
+          </p>
         </div>
       </div>
     </div>
-  ), [handleCardClick, formatDate, getStatusBadge]);
+  ), [handleCardClick, formatDate]);
 
+  // Updated DetailView with properly formatted status
   const DetailView = useCallback(({ project }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button
@@ -315,58 +311,69 @@ function ResearchInitiatives() {
       </button>
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Detail view content remains the same */}
-        {/* Header Image */}
+        {/* Hero Image - matching NewsEvents styling */}
         {project.image && (
-          <div className="h-64 md:h-80 overflow-hidden">
+          <div className="relative h-64 md:h-96 overflow-hidden">
             <img 
               src={project.image} 
               alt={project.title}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/api/placeholder/800/400';
-              }}
+              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+              onClick={() => window.open(project.image, '_blank')}
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            
+            {/* Featured indicator - Blue like NewsEvents */}
+            {project.featured === 1 && (
+              <div className="absolute top-4 left-4">
+                <div className="bg-blue-500 rounded-full p-2 shadow-lg flex items-center gap-1.5">
+                  <Award className="w-5 h-5 text-white" />
+                  <span className="text-white text-sm font-medium pr-1">Featured</span>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
-          <div className="flex flex-wrap items-center gap-3 mb-3">
-            {getStatusBadge(project.status)}
-            {project.featured === 1 && (
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-400 text-yellow-900">
-                Featured
-              </span>
-            )}
+        {/* If no hero image, put featured indicator in the colored header */}
+        {!project.image && project.featured === 1 && (
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white relative">
+            <div className="absolute top-4 left-4">
+              <div className="bg-blue-500 rounded-full p-2 shadow-lg flex items-center gap-1.5">
+                <Award className="w-5 h-5 text-white" />
+                <span className="text-white text-sm font-medium pr-1">Featured</span>
+              </div>
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-4 pl-32">{project.title || "Untitled Project"}</h1>
           </div>
-          
-          <h1 className="text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
-          
-          <div className="flex flex-wrap gap-4">
-            <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500 bg-opacity-50 text-white text-sm font-semibold rounded-full">
-              <Calendar className="w-4 h-4" />
-              {formatDate(project.start_date)} - {formatDate(project.end_date)}
-            </span>
-            
-            {project.location && (
-              <span className="inline-flex items-center gap-2 px-3 py-1 bg-blue-500 bg-opacity-50 text-white text-sm font-semibold rounded-full">
-                <MapPin className="w-4 h-4" />
-                {project.location}
-              </span>
-            )}
+        )}
+
+        {/* If there is a hero image, title is in the gradient overlay */}
+        {project.image && (
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
+            <h1 className="text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
           </div>
-        </div>
+        )}
+
+        {/* If no hero image and not featured, just show title in blue header */}
+        {!project.image && project.featured !== 1 && (
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
+            <h1 className="text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
+          </div>
+        )}
 
         <div className="p-6 md:p-8 space-y-6">
-          {/* Description */}
+          {/* Description - matching NewsEvents styling */}
           {project.description && (
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-5 h-5 text-blue-600" />
                 <h2 className="text-lg font-bold text-gray-900">Project Description</h2>
               </div>
-              <p className="text-gray-700 ml-7 leading-relaxed">{project.description}</p>
+              <div 
+                className="ml-7 prose prose-blue max-w-none text-gray-700"
+              >
+                <p className="leading-relaxed">{project.description}</p>
+              </div>
             </div>
           )}
 
@@ -377,38 +384,111 @@ function ResearchInitiatives() {
                 <Award className="w-5 h-5 text-blue-600" />
                 <h2 className="text-lg font-bold text-gray-900">Objectives</h2>
               </div>
-              {project.objectives.includes(';') ? (
-                <ul className="list-disc list-inside ml-7 space-y-2">
-                  {project.objectives.split(';').map((objective, index) => (
-                    <li key={index} className="text-gray-700">{objective.trim()}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-700 ml-7">{project.objectives}</p>
-              )}
+              <div className="ml-7">
+                {project.objectives.includes(';') ? (
+                  <ul className="list-disc list-inside space-y-2">
+                    {project.objectives.split(';').map((objective, index) => (
+                      <li key={index} className="text-gray-700">{objective.trim()}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-700">{project.objectives}</p>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Project Lead */}
-          {project.project_lead && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <UserCircle className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">Project Lead</h2>
+          {/* Project Details Grid - matching NewsEvents styling */}
+          <div className="border-t border-gray-200 pt-6">
+            <h3 className="text-md font-semibold text-gray-900 mb-4">Project Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Status - properly formatted, same color as other details */}
+              <div className="flex items-start gap-3">
+                <div className="bg-blue-100 p-2 rounded-lg">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Status</p>
+                  <p className="text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
+                </div>
               </div>
-              <p className="text-gray-700 ml-7">{project.project_lead}</p>
+
+              {/* Project Lead */}
+              {project.project_lead && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <UserCircle className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Project Lead</p>
+                    <p className="text-base font-medium text-gray-900">{project.project_lead}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Funding Source */}
+              {project.funding_source && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Landmark className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Funding Source</p>
+                    <p className="text-base font-medium text-gray-900">{project.funding_source}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Budget */}
+              {project.budget && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <DollarSign className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Budget</p>
+                    <p className="text-base font-medium text-gray-900">{formatCurrency(project.budget)}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Location */}
+              {project.location && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <MapPin className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Location</p>
+                    <p className="text-base font-medium text-gray-900">{project.location}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Implementing Agency */}
+              {project.implementing_agency && (
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <Building2 className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Implementing Agency</p>
+                    <p className="text-base font-medium text-gray-900">{project.implementing_agency}</p>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Team Members */}
           {project.team_members && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
                 <Users className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">Team Members</h2>
+                <h3 className="text-md font-semibold text-gray-900">Team Members</h3>
               </div>
               {project.team_members.includes(',') ? (
-                <div className="ml-7 flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 ml-7">
                   {project.team_members.split(',').map((member, index) => (
                     <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
                       {member.trim()}
@@ -421,44 +501,12 @@ function ResearchInitiatives() {
             </div>
           )}
 
-          {/* Funding Information */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Landmark className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">Funding Source</h2>
-              </div>
-              <p className="text-gray-700 ml-7">{project.funding_source || "N/A"}</p>
-            </div>
-
-            {project.budget && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <DollarSign className="w-5 h-5 text-blue-600" />
-                  <h2 className="text-lg font-bold text-gray-900">Budget</h2>
-                </div>
-                <p className="text-gray-700 ml-7 font-semibold text-lg">
-                  {formatCurrency(project.budget)}
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Implementing Agency */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <Building2 className="w-5 h-5 text-blue-600" />
-              <h2 className="text-lg font-bold text-gray-900">Implementing Agency</h2>
-            </div>
-            <p className="text-gray-700 ml-7">{project.implementing_agency || "N/A"}</p>
-          </div>
-
           {/* Cooperating Agency */}
           {project.cooperating_agency && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
                 <Building2 className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">Cooperating Agency</h2>
+                <h3 className="text-md font-semibold text-gray-900">Cooperating Agency</h3>
               </div>
               {project.cooperating_agency.includes(',') ? (
                 <div className="ml-7 space-y-1">
@@ -471,49 +519,10 @@ function ResearchInitiatives() {
               )}
             </div>
           )}
-
-          {/* Location */}
-          {project.location && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">Location</h2>
-              </div>
-              <p className="text-gray-700 ml-7">{project.location}</p>
-            </div>
-          )}
         </div>
       </div>
     </div>
-  ), [handleBackClick, formatDate, formatCurrency, getStatusBadge]);
-
-  // Loading state
-  if (loading && searchData.length === 0) {
-    return (
-      <div className="flex flex-col min-h-screen bg-white">
-        <AutoScroll/>
-        <NavBar />
-        <div ref={topRef} />
-        <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 mt-25">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-            <div className="max-w-4xl">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
-                  Research Initiatives
-                </span>
-              </h1>
-            </div>
-          </div>
-        </section>
-        <div className="flex-grow container mx-auto px-4 py-12">
-          <div className="flex justify-center items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
-        <Footer/>
-      </div>
-    );
-  }
+  ), [handleBackClick, formatDate, formatCurrency, formatStatus]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -537,28 +546,16 @@ function ResearchInitiatives() {
         </div>
       </section>
 
-      {/* Connection Status */}
-      {!serverAvailable && !loading && !error && (
-        <div className="container mx-auto px-4 mt-4">
-          <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <WifiOff className="w-5 h-5 text-yellow-600" />
-              <p className="text-sm text-yellow-700">
-                ⚠️ You are viewing offline data. Connect to the server for latest updates.
-              </p>
-            </div>
-            <button
-              onClick={() => refetch()}
-              className="text-xs bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-1 rounded-full transition-colors"
-            >
-              Retry Connection
-            </button>
-          </div>
+      {/* Loading State - Matching NewsEvents style */}
+      {loading && (
+        <div className="container mx-auto px-4 mt-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-gray-600">Loading Research Initiatives...</p>
         </div>
       )}
 
       {/* Search Error Display */}
-      {searchError && (
+      {searchError && !loading && (
         <div className="container mx-auto px-4 mt-4">
           <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-red-600" />
@@ -567,155 +564,140 @@ function ResearchInitiatives() {
         </div>
       )}
       
-      {!selectedProject && (
+      {/* Main Content - Only show when not loading */}
+      {!loading && (
         <>
-          {/* Search Component with configuration */}
-          <div className="mt-15">
-            <Search 
-              data={searchData}
-              searchFields={searchConfig.searchFields}
-              placeholder={searchConfig.placeholder}
-              onSearchResults={handleSearchResultsWrapper}
-              onSearchStart={handleSearchStartWrapper}
-              onSearchClear={handleSearchClearWrapper}
-            />
-          </div>
-          
-          {/* Status Filter Buttons */}
-          <div className="container mx-auto px-4 mt-8">
-            <div className="flex flex-col items-center">
-              <div className="flex items-center gap-2 mb-4">
-                <Filter className="w-5 h-5 text-blue-600" />
-                <span className="text-sm font-medium text-gray-700">Filter by status:</span>
-                {statusFilter !== 'all' && (
-                  <button
-                    onClick={handleClearFilters}
-                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded-full transition-colors ml-2"
-                  >
-                    Clear filters
-                  </button>
-                )}
+          {!selectedProject && (
+            <>
+              {/* Search Component with configuration */}
+              <div className="mt-15">
+                <Search 
+                  data={searchData}
+                  searchFields={searchConfig.searchFields}
+                  placeholder={searchConfig.placeholder}
+                  onSearchResults={handleSearchResultsWrapper}
+                  onSearchStart={handleSearchStartWrapper}
+                  onSearchClear={handleSearchClearWrapper}
+                />
               </div>
-              <div className="flex flex-wrap justify-center gap-3">
-                {['all', 'ongoing', 'completed', 'upcoming'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => handleStatusFilterClick(status)}
-                    className={getStatusFilterButtonStyle(status)}
-                  >
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </button>
-                ))}
+              
+              {/* Status Filter Buttons - equal width, no clear filter */}
+              <div className="container mx-auto px-4 mt-8">
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Filter className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-700">Filter by status:</span>
+                  </div>
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {['all', 'ongoing', 'completed', 'upcoming'].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => handleStatusFilterClick(status)}
+                        className={getStatusFilterButtonStyle(status)}
+                      >
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Search Stats */}
-          {searchTerm && (
-            <div className="container mx-auto px-4 mt-4">
-              <p className="text-sm text-gray-600">
-                Found {filteredAndSearchedProjects.length} results for "{searchTerm}"
-                {statusFilter !== 'all' && ` in ${statusFilter} status`}
-              </p>
-            </div>
-          )}
-        </>
-      )}
-
-      <div className="flex-grow container mx-auto px-4 mt-8">
-        {selectedProject ? (
-          <DetailView project={selectedProject} />
-        ) : (
-          <>
-            {error && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-6">
-                <p className="text-red-700">Error: {error}</p>
-                {!serverAvailable && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    ⚠️ Using offline data. Some information may not be up to date.
+              {/* Search Stats - matching NewsEvents styling */}
+              {searchTerm && (
+                <div className="container mx-auto px-4 mt-4">
+                  <p className="text-sm text-gray-600">
+                    Found {filteredAndSearchedProjects.length} results for "{searchTerm}"
+                    {statusFilter !== 'all' && ` in ${statusFilter} status`}
                   </p>
-                )}
-                <button
-                  onClick={() => refetch()}
-                  className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
-            
-            {filteredAndSearchedProjects.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-lg">No research projects found.</p>
-                {(searchTerm || statusFilter !== 'all') && (
-                  <button
-                    onClick={handleClearFilters}
-                    className="mt-4 text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Clear all filters
-                  </button>
-                )}
-              </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <div className="flex-grow container mx-auto px-4 mt-8">
+            {selectedProject ? (
+              <DetailView project={selectedProject} />
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
-                  {currentProjects.map((project) => (
-                    <ProjectCard key={project.id} project={project} />
-                  ))}
-                </div>
-
-                {totalPages > 1 && (
-                  <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+                {/* Only show error if it's not the server unavailable message */}
+                {error && !error.includes('Server not available') && !loading && (
+                  <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-6">
+                    <p className="text-red-700">{error}</p>
                     <button
-                      onClick={() => handlePageChange('prev')}
-                      disabled={currentPage === 1}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        currentPage === 1
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                      }`}
-                      aria-label="Previous page"
+                      onClick={() => refetch()}
+                      className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
                     >
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => goToPage(page)}
-                          className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                            currentPage === page
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
-                          }`}
-                          aria-label={`Go to page ${page}`}
-                          aria-current={currentPage === page ? 'page' : undefined}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => handlePageChange('next')}
-                      disabled={currentPage === totalPages}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        currentPage === totalPages
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                      }`}
-                      aria-label="Next page"
-                    >
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                      Try Again
                     </button>
                   </div>
                 )}
+                
+                {filteredAndSearchedProjects.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-500 text-lg">No research projects found.</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                      {currentProjects.map((project) => (
+                        <ProjectCard key={project.id} project={project} />
+                      ))}
+                    </div>
+
+                    {totalPages > 1 && (
+                      <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+                        <button
+                          onClick={() => handlePageChange('prev')}
+                          disabled={currentPage === 1}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                            currentPage === 1
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                          }`}
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+
+                        <div className="flex items-center space-x-1 sm:space-x-2">
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => goToPage(page)}
+                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                                currentPage === page
+                                  ? 'bg-blue-600 text-white'
+                                  : 'text-gray-600 hover:bg-gray-100'
+                              }`}
+                              aria-label={`Go to page ${page}`}
+                              aria-current={currentPage === page ? 'page' : undefined}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+
+                        <button
+                          onClick={() => handlePageChange('next')}
+                          disabled={currentPage === totalPages}
+                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                            currentPage === totalPages
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                          }`}
+                          aria-label="Next page"
+                        >
+                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      )}
       <Footer/>
     </div>
   );
