@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom"; // Add this import
 import NavBar from "../navigation/NavBar.jsx";
 import Footer from "../navigation/Footer.jsx";
 import AboutCLSD from "./AboutCLSD.jsx";
@@ -8,6 +9,7 @@ import { ArrowRight } from 'lucide-react';
 import ResearchUnits from "./ResearchUnits.jsx";
 
 function Home() {
+  const navigate = useNavigate(); // Add this hook
   // Extract YouTube video ID from URL
   const videoId = 'vErBTHQQM1Y';
 
@@ -20,6 +22,11 @@ function Home() {
         block: 'start'
       });
     }
+  };
+
+  // Function to handle navigation to Research Initiatives
+  const handleExploreResearch = () => {
+    navigate('/ResearchInitiatives');
   };
 
   return (
@@ -45,7 +52,9 @@ function Home() {
             and conservation through cutting-edge science and collaborative partnerships.
           </p>
           <div className="group flex flex-row justify-center gap-2 sm:gap-4 w-full max-w-md mx-auto">
-            <button className="group/btn-primary flex-1 flex items-center justify-center gap-2 px-4 sm:px-10 py-3 rounded-md font-normal transition-all duration-300 shadow-xl border-2 
+            <button 
+              onClick={handleExploreResearch} // Add onClick handler here
+              className="group/btn-primary flex-1 flex items-center justify-center gap-2 px-4 sm:px-10 py-3 rounded-md font-normal transition-all duration-300 shadow-xl border-2 
               bg-blue-600 text-white border-blue-600
               group-hover:bg-transparent group-hover:text-white group-hover:border-white
               hover:!bg-blue-600 hover:!text-white hover:!border-blue-600 text-sm sm:text-base whitespace-nowrap">
@@ -66,6 +75,7 @@ function Home() {
         </div>
       </main>
 
+      {/* Rest of your component remains exactly the same */}
       {/* Second Section - Niche Center Content */}
       <div id="niche-section" className="relative min-h-[60vh] bg-white lg:scroll-mt-30 sm:scroll-mt-30">
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">

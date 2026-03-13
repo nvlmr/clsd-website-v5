@@ -25,6 +25,8 @@ function ClsdEquipment() {
   const [itemsPerPage, setItemsPerPage] = useState(8);
   const [activeFilter, setActiveFilter] = useState('all');
   const [imageErrors, setImageErrors] = useState({});
+  // Add local pagination state for filtered results
+  const [filteredCurrentPage, setFilteredCurrentPage] = useState(1);
   
   // Get equipment data from hook
   const {
@@ -35,13 +37,13 @@ function ClsdEquipment() {
     serverAvailable,
     refreshing,
     refreshData,
-    currentPage,
-    totalPages,
-    goToPage,
-    nextPage,
-    prevPage,
-    hasNextPage,
-    hasPrevPage,
+    currentPage: originalCurrentPage,
+    totalPages: originalTotalPages,
+    goToPage: originalGoToPage,
+    nextPage: originalNextPage,
+    prevPage: originalPrevPage,
+    hasNextPage: originalHasNextPage,
+    hasPrevPage: originalHasPrevPage,
     equipment: allEquipment
   } = usePaginatedEquipment(itemsPerPage);
 
@@ -81,7 +83,7 @@ function ClsdEquipment() {
 
   // Pagination calculation for filtered results
   const totalFilteredPages = Math.ceil(filteredAndSearchedEquipment.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const startIndex = (filteredCurrentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentEquipment = filteredAndSearchedEquipment.slice(startIndex, endIndex);
 
@@ -98,19 +100,17 @@ function ClsdEquipment() {
 
   // Reset to page 1 when filter changes or search results change
   useEffect(() => {
-    if (currentPage !== 1) {
-      goToPage(1);
-    }
-  }, [activeFilter, filteredData.length, goToPage, currentPage]);
+    setFilteredCurrentPage(1);
+  }, [activeFilter, filteredData.length, searchTerm]);
 
-  // Scroll to top when page changes
+  // Scroll to top when page changes or selected equipment changes
   useEffect(() => {
     const timer = setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 50);
     
     return () => clearTimeout(timer);
-  }, [currentPage, selectedEquipment]);
+  }, [filteredCurrentPage, selectedEquipment]);
 
   const handleEquipmentClick = (equipment) => {
     setSelectedEquipment(equipment);
@@ -127,18 +127,19 @@ function ClsdEquipment() {
   const handleClearFilters = () => {
     setActiveFilter('all');
     resetSearch();
+    setFilteredCurrentPage(1);
   };
 
   const handlePageChange = (direction) => {
-    if (direction === 'prev' && currentPage > 1) {
-      prevPage();
-    } else if (direction === 'next' && currentPage < totalFilteredPages) {
-      nextPage();
+    if (direction === 'prev' && filteredCurrentPage > 1) {
+      setFilteredCurrentPage(prev => prev - 1);
+    } else if (direction === 'next' && filteredCurrentPage < totalFilteredPages) {
+      setFilteredCurrentPage(prev => prev + 1);
     }
   };
 
   const handleGoToPage = (page) => {
-    goToPage(page);
+    setFilteredCurrentPage(page);
   };
 
   const handleImageError = (equipmentId) => {
@@ -430,9 +431,9 @@ function ClsdEquipment() {
                       <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
                         <button
                           onClick={() => handlePageChange('prev')}
-                          disabled={currentPage === 1}
+                          disabled={filteredCurrentPage === 1}
                           className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                            currentPage === 1
+                            filteredCurrentPage === 1
                               ? 'text-gray-400 cursor-not-allowed'
                               : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                           }`}
@@ -447,12 +448,12 @@ function ClsdEquipment() {
                               key={page}
                               onClick={() => handleGoToPage(page)}
                               className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                                currentPage === page
+                                filteredCurrentPage === page
                                   ? 'bg-blue-600 text-white'
                                   : 'text-gray-600 hover:bg-gray-100'
                               }`}
                               aria-label={`Go to page ${page}`}
-                              aria-current={currentPage === page ? 'page' : undefined}
+                              aria-current={filteredCurrentPage === page ? 'page' : undefined}
                             >
                               {page}
                             </button>
@@ -461,9 +462,9 @@ function ClsdEquipment() {
 
                         <button
                           onClick={() => handlePageChange('next')}
-                          disabled={currentPage === totalFilteredPages}
+                          disabled={filteredCurrentPage === totalFilteredPages}
                           className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                            currentPage === totalFilteredPages
+                            filteredCurrentPage === totalFilteredPages
                               ? 'text-gray-400 cursor-not-allowed'
                               : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                           }`}

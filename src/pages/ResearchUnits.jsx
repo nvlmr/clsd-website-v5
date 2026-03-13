@@ -18,22 +18,22 @@ function ResearchUnits() {
 
   const researchFacilities = [
     {
-      name: "Molecular Laboratory",
+      name: "Molecular Biology & Microbiology",
       description: "State-of-the-art facility for DNA analysis, PCR, and molecular research applications.",
       image: MolecularLab,
       path: "/MBML"
     },
     {
-      name: "Analytical Laboratory",
+      name: "Analytical Instrumentation",
       description: "Equipped with advanced instruments for chemical analysis and material testing.",
       image: AnalyticalLab,
-      path: "/AnalyticalServicesLab"
+      path: "/AnalyticalIntrumentation"
     },
     {
-      name: "Food Innovation Laboratory",
+      name: "Food Innovation",
       description: "Dedicated space for food product development, testing, and quality analysis.",
       image: FoodInnovation,
-      path: "/FoodInnovationLab"
+      path: "/FoodInnovation"
     },
     {
       name: "Aquaculture Station",
@@ -50,13 +50,21 @@ function ResearchUnits() {
   ];
 
   const handleCardClick = (path) => {
+    // Scroll to top immediately
+    window.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: 'smooth' // Use 'smooth' if you want animated scrolling
+    });
+    
+    // Then navigate
     navigate(path);
   };
 
   const handleKeyDown = (e, path) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      navigate(path);
+      handleCardClick(path);
     }
   };
 
