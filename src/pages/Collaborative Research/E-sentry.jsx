@@ -20,7 +20,7 @@ function Esentry() {
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-10">
             <div className="max-w-4xl">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight">
+              <h1 className="text-5xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
                   E-Sentry
                 </span>

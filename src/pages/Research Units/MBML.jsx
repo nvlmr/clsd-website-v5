@@ -52,7 +52,7 @@ function MBML() {
             <div className="flex flex-col justify-center">
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-3xl sm:text-4xl font-bold text-gray-600 mb-4">
+                  <h2 className="text-2xl sm:text-4xl font-semibold text-gray-600 mb-4">
                     About the Laboratory
                   </h2>
                   <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"></div>

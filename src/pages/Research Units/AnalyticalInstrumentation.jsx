@@ -33,7 +33,7 @@ function AnalyticalIntrumentation() {
             <div className="max-w-4xl">
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl tracking-tight">
                 <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
-                  Analytical Services
+                  Analytical Instrumentation
                 </span>
               </h1>
               <p className="mt-2 text-sm sm:text-base md:text-lg lg:text-xl text-gray-600 max-w-2xl">
@@ -51,7 +51,7 @@ function AnalyticalIntrumentation() {
             {/* About Text */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-600 mb-6">
+                <h2 className="text-2xl sm:text-4xl font-semibold text-gray-600 mb-6">
                   About the Laboratory
                 </h2>
                 <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"></div>

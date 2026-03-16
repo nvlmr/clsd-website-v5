@@ -66,7 +66,7 @@ function AboutCenterForLakes() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="max-w-4xl">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
+            <h1 className="text-3xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
                 Center for Lakes Sustainable Development
               </span>

@@ -145,11 +145,11 @@ function ResearchUnits() {
   const handleTouchCancel = () => setIsTouching(false);
 
   return (
-    <div className="bg-gradient-to-b from-gray-50 to-white pt-12 pb-7">
+    <div className="bg-gradient-to-b from-gray-50 to-white pt-1 pb-7 sm:pt-12">
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 lg:pt-2 pb-0">
         <section className="mb-0">
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-light text-gray-900 mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold text-gray-700 mb-4">
               Research Facilities
             </h2>
             <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base">

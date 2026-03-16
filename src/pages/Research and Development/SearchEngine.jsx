@@ -117,10 +117,10 @@ function SearchEngine() {
             </div>
 
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-4xl relative z-10">
-              <div className="text-center space-y-8 mb-12">
-                <h1 className="text-5xl sm:text-7xl font-extrabold">
+              <div className="text-center space-y-6 mb-12">
+                <h1 className="text-4xl sm:text-7xl font-bold">
                   <span className="bg-gradient-to-r from-blue-900 via-blue-700 to-blue-500 bg-clip-text text-transparent">
-                    Philippine Lakes
+                    Scientific Research
                   </span>
                 </h1>
                 <p className="text-gray-500 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed">

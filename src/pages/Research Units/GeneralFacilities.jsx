@@ -53,7 +53,7 @@ function GeneralFacilities() {
             {/* About Text */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-gray-600 mb-3">
+                <h2 className="text-2xl sm:text-4xl font-semibold text-gray-600 mb-3">
                   About the Laboratory
                 </h2>
                 <div className="w-24 h-1.5 bg-gradient-to-r from-blue-600 to-blue-400 rounded-full"></div>
@@ -73,11 +73,11 @@ function GeneralFacilities() {
             
             {/* Laboratory Image - Fixed for responsiveness */}
             <div className="flex items-stretch">
-              <div className="relative w-full overflow-hidden rounded-2xl shadow-xl bg-gray-100">
+              <div className="relative w-full overflow-hidden rounded-2xl shadow-xl bg-white-100">
                 <img 
                   src={GeneralFacilityImg} 
                   alt="Analytical Services Laboratory" 
-                  className="w-full h-full object-contain lg:object-cover"
+                  className="w-full h-full object-contain"
                   style={{ maxHeight: '500px' }}
                 />
               </div>

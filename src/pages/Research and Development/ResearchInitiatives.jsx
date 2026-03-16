@@ -66,9 +66,24 @@ function ResearchInitiatives() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchError, setSearchError] = useState(null);
+  const [itemsPerPage, setItemsPerPage] = useState(9);
   
-  const itemsPerPage = 9;
   const topRef = useRef(null);
+
+  // Handle window resize for responsive items per page
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setItemsPerPage(6); // Mobile: 6 items
+      } else {
+        setItemsPerPage(9); // Desktop: 9 items
+      }
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Apply status filter to searched results and sort by featured
   const filteredAndSearchedProjects = useMemo(() => {
@@ -214,7 +229,6 @@ function ResearchInitiatives() {
   // Updated filter button style with proper centering
   const getStatusFilterButtonStyle = useCallback((status) => {
     const isActive = statusFilter === status;
-    // Remove fixed width and use padding with min-width for consistency
     const baseClasses = "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 text-center inline-flex items-center justify-center min-w-[100px]";
     
     return `${baseClasses} ${
@@ -223,18 +237,18 @@ function ResearchInitiatives() {
         : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
     }`;
   }, [statusFilter]);
-
-  // Updated ProjectCard with blue featured icon
-  const ProjectCard = useCallback(({ project }) => (
-    <div 
-      className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
-      onClick={() => handleCardClick(project)}
-    >
-      {/* Blue line at the bottom on hover - matching NewsEvents */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
-      
-      {/* Image Container - matching NewsEvents styling */}
-      <div className="relative h-48 overflow-hidden bg-gray-200">
+// Updated ProjectCard with fixed height title area and underline
+const ProjectCard = useCallback(({ project }) => (
+  <div 
+    className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+    onClick={() => handleCardClick(project)}
+  >
+    {/* Blue line at the bottom on hover - matching NewsEvents */}
+    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
+    
+    {/* Image Container - matching NewsEvents styling */}
+    <div className="relative pt-[60%] sm:pt-[56.25%] bg-gray-200 overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-center">
         {project.image ? (
           <img 
             src={project.image} 
@@ -247,26 +261,40 @@ function ResearchInitiatives() {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-            <Building2 className="w-12 h-12 text-blue-400" />
-          </div>
-        )}
-        
-        {/* Featured indicator - Blue like NewsEvents */}
-        {project.featured === 1 && (
-          <div className="absolute top-2 right-2">
-            <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
-              <Award className="w-4 h-4 text-white" />
-            </div>
+            <Building2 className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
           </div>
         )}
       </div>
+      
+      {/* Featured indicator - Blue like NewsEvents */}
+      {project.featured === 1 && (
+        <div className="absolute top-2 right-2">
+          <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
+            <Award className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+          </div>
+        </div>
+      )}
+    </div>
 
-      <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-semibold mb-3 text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+    <div className="p-3 sm:p-4 flex flex-col flex-grow">
+      {/* Fixed height title area with underline */}
+      <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
           {project.title || "Untitled Project"}
         </h3>
-        
-        <div className="space-y-2">
+      </div>
+      
+      <div className="space-y-1.5 sm:space-y-2 mt-1">
+        {/* Mobile: Show only project lead */}
+        <div className="flex sm:hidden flex-col space-y-1.5">
+          <p className="text-gray-600 flex items-start gap-1.5">
+            <UserCircle className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+            <span className="text-xs line-clamp-1">{project.project_lead || "N/A"}</span>
+          </p>
+        </div>
+
+        {/* Desktop: Show all details */}
+        <div className="hidden sm:block space-y-2">
           <p className="text-gray-600 flex items-start gap-2">
             <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
             <span className="text-sm">
@@ -297,7 +325,8 @@ function ResearchInitiatives() {
         </div>
       </div>
     </div>
-  ), [handleCardClick, formatDate]);
+  </div>
+), [handleCardClick, formatDate]);
 
   // Updated DetailView with properly formatted status
   const DetailView = useCallback(({ project }) => (
@@ -534,7 +563,7 @@ function ResearchInitiatives() {
       <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 mt-25">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="max-w-4xl">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
+            <h1 className="text-4xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl tracking-tight">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-800 leading-tight font-semibold">
                 Research Initiatives
               </span>
@@ -638,7 +667,7 @@ function ResearchInitiatives() {
                   </div>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 auto-rows-fr">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
                       {currentProjects.map((project) => (
                         <ProjectCard key={project.id} project={project} />
                       ))}
