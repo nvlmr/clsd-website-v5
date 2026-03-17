@@ -1,4 +1,5 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\pages\Collaborative Research\DostFundedProject.jsx
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
@@ -6,7 +7,7 @@ import Footer from "../../navigation/Footer.jsx";
 import Search from "../../components/Search.jsx";
 import { searchConfigs } from "../../config/searchConfigs.js";
 import { useSearch } from "../../hooks/useSearch.js";
-import dostProjects from "../../data/DostFundedProject.js";
+import useDostFundedProjects from "../../hooks/DostFundedProject.js";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -30,10 +31,16 @@ function DostFundedProjectPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedProject, setSelectedProject] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [searchError, setSearchError] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(9);
   
   const topRef = useRef(null);
+
+  // Use the custom hook for projects
+  const { 
+    projects: dostProjects, 
+    loading, 
+    error 
+  } = useDostFundedProjects();
 
   // Handle window resize for responsive items per page
   useEffect(() => {
@@ -103,7 +110,6 @@ function DostFundedProjectPage() {
       return result;
     } catch (err) {
       console.error("Error filtering projects:", err);
-      setSearchError("Error filtering projects");
       return [];
     }
   }, [filteredData, statusFilter]);
@@ -154,31 +160,17 @@ function DostFundedProjectPage() {
     setStatusFilter(status);
   }, []);
 
-  // Wrapper for search handlers with error handling
+  // Wrapper for search handlers
   const handleSearchResultsWrapper = useCallback((results) => {
-    try {
-      setSearchError(null);
-      handleSearchResults(results);
-    } catch (err) {
-      console.error("Search results error:", err);
-      setSearchError("Error processing search results");
-    }
+    handleSearchResults(results);
   }, [handleSearchResults]);
 
   const handleSearchStartWrapper = useCallback(() => {
-    try {
-      handleSearchStart();
-    } catch (err) {
-      console.error("Search start error:", err);
-    }
+    handleSearchStart();
   }, [handleSearchStart]);
 
   const handleSearchClearWrapper = useCallback(() => {
-    try {
-      handleSearchClear();
-    } catch (err) {
-      console.error("Search clear error:", err);
-    }
+    handleSearchClear();
   }, [handleSearchClear]);
 
   // Helper functions
@@ -276,7 +268,7 @@ function DostFundedProjectPage() {
         </div>
         
         <div className="space-y-1.5 sm:space-y-2 mt-1">
-          {/* Mobile: Show only project leader and status */}
+          {/* Mobile: Show only Project Leader and Implementing Agency with icons */}
           <div className="flex sm:hidden flex-col space-y-1.5">
             <p className="text-gray-600 flex items-start gap-1.5">
               <UserCircle className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
@@ -284,47 +276,29 @@ function DostFundedProjectPage() {
             </p>
             
             <p className="text-gray-600 flex items-start gap-1.5">
-              <Clock className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span className="text-xs capitalize line-clamp-1">{project.status || "N/A"}</span>
+              <Building2 className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span className="text-xs line-clamp-1">{project.implementing_agency || "N/A"}</span>
             </p>
           </div>
 
-          {/* Desktop: Show all details */}
+          {/* Desktop: Show only Project Leader and Implementing Agency with icons */}
           <div className="hidden sm:block space-y-2">
             <p className="text-gray-600 flex items-start gap-2">
               <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">
-                <span className="font-medium">Project Leader:</span> {project.project_lead || "N/A"}
-              </span>
+              <span className="text-sm line-clamp-1">{project.project_lead || "N/A"}</span>
             </p>
             
-            <p className="text-gray-600 flex items-start gap-2">
-              <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">
-                <span className="font-medium">Duration:</span> {formatDuration(project.start_date, project.end_date)}
-              </span>
-            </p>
-            
-            <p className="text-gray-600 flex items-start gap-2">
-              <DollarSign className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">
-                <span className="font-medium">Budget:</span> {formatCurrency(project.funding_amount)}
-              </span>
-            </p>
-
             <p className="text-gray-600 flex items-start gap-2">
               <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">
-                <span className="font-medium">Implementing:</span> {project.implementing_agency || "N/A"}
-              </span>
+              <span className="text-sm line-clamp-1">{project.implementing_agency || "N/A"}</span>
             </p>
           </div>
         </div>
       </div>
     </div>
-  ), [handleCardClick, formatDuration, formatCurrency]);
+  ), [handleCardClick]);
 
-  // Detail View Component - Updated to match ResearchInitiatives layout with responsive design
+  // Detail View Component
   const DetailView = useCallback(({ project }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button
@@ -509,6 +483,22 @@ function DostFundedProjectPage() {
     </div>
   ), [handleBackClick, formatDuration, formatCurrency, formatStatus]);
 
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white">
+        <AutoScroll/>
+        <NavBar />
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+            <p className="mt-4 text-gray-600">Loading projects...</p>
+          </div>
+        </div>
+        <Footer/>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <AutoScroll/>
@@ -530,16 +520,6 @@ function DostFundedProjectPage() {
           </div>
         </div>
       </section>
-
-      {/* Search Error Display */}
-      {searchError && (
-        <div className="container mx-auto px-4 mt-4">
-          <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
-            <p className="text-xs sm:text-sm text-red-700">{searchError}</p>
-          </div>
-        </div>
-      )}
       
       {!selectedProject && (
         <>
@@ -563,7 +543,7 @@ function DostFundedProjectPage() {
                 <span className="text-xs sm:text-sm font-medium text-gray-700">Filter by status:</span>
               </div>
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                {['all', 'ongoing', 'completed', 'upcoming'].map((status) => (
+                {['all', 'ongoing', 'completed', 'proposed'].map((status) => (
                   <button
                     key={status}
                     onClick={() => handleStatusFilterClick(status)}

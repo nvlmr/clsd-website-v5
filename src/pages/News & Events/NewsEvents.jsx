@@ -232,91 +232,88 @@ function NewsEvents() {
         ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 ring-2 ring-blue-300 ring-offset-2'
         : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
     }`;
-  };
-// Mobile-optimized EventCard - with fixed height title area and underline
-const EventCard = ({ event }) => (
-  <div 
-    className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
-    onClick={() => handleCardClick(event)}
-  >
-    {/* Blue line at the bottom on hover */}
-    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
-    
-    {/* Image Container - with aspect ratio */}
-    <div className="relative pt-[60%] sm:pt-[56.25%] bg-gray-200 overflow-hidden">
-      <div className="absolute inset-0 flex items-center justify-center">
-        {event.featured_image ? (
-          <img 
-            src={event.featured_image} 
-            alt={event.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://via.placeholder.com/400x200?text=News+Event";
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-            <Calendar className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
+    };
+  // Mobile-optimized EventCard - with fixed height title area and underline
+  const EventCard = ({ event }) => (
+    <div 
+      className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+      onClick={() => handleCardClick(event)}
+    >
+      {/* Blue line at the bottom on hover */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
+      
+      {/* Image Container - with aspect ratio */}
+      <div className="relative pt-[60%] sm:pt-[56.25%] bg-gray-200 overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center">
+          {event.featured_image ? (
+            <img 
+              src={event.featured_image} 
+              alt={event.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/400x200?text=News+Event";
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+              <Calendar className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
+            </div>
+          )}
+        </div>
+        
+        {/* Featured indicator - Using blue Award icon */}
+        {event.featured && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
+              <Award className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+            </div>
           </div>
         )}
       </div>
       
-      {/* Featured indicator - Using blue Award icon */}
-      {event.featured && (
-        <div className="absolute top-2 right-2">
-          <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
-            <Award className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+      <div className="p-3 sm:p-4 flex flex-col flex-grow">
+        {/* Fixed height title area with underline */}
+        <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+            {event.title}
+          </h3>
+        </div>
+        
+        <div className="space-y-1.5 sm:space-y-2 mt-1">
+          {/* Mobile: Show date and location */}
+          <div className="flex sm:hidden flex-col space-y-1.5">
+            <p className="text-gray-600 flex items-start gap-1.5">
+              <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span className="text-xs line-clamp-1">
+                {formatEventDate(event.event_start_date, event.event_end_date)}
+              </span>
+            </p>
+            
+            <p className="text-gray-600 flex items-start gap-1.5">
+              <MapPin className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span className="text-xs line-clamp-1">{event.event_location || 'TBA'}</span>
+            </p>
+          </div>
+
+          {/* Desktop: Show date and location */}
+          <div className="hidden sm:block space-y-2">
+            <p className="text-gray-600 flex items-start gap-2">
+              <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm line-clamp-1">
+                {formatEventDate(event.event_start_date, event.event_end_date)}
+              </span>
+            </p>
+            
+            <p className="text-gray-600 flex items-start gap-2">
+              <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm line-clamp-1">{event.event_location || 'TBA'}</span>
+            </p>
           </div>
         </div>
-      )}
-    </div>
-    
-    <div className="p-3 sm:p-4 flex flex-col flex-grow">
-      {/* Fixed height title area with underline */}
-      <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
-        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-          {event.title}
-        </h3>
-      </div>
-      
-      <div className="space-y-1.5 sm:space-y-2 mt-1">
-        {/* Mobile: Show only type and location */}
-        <div className="flex sm:hidden flex-col space-y-1.5">
-          <p className="text-gray-600 flex items-start gap-1.5">
-            <Tag className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-            <span className="text-xs capitalize line-clamp-1">{event.type}</span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-1.5">
-            <MapPin className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-            <span className="text-xs line-clamp-1">{event.event_location || 'TBA'}</span>
-          </p>
-        </div>
-
-        {/* Desktop: Show all three details */}
-        <div className="hidden sm:block space-y-2">
-          <p className="text-gray-600 flex items-start gap-2">
-            <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm line-clamp-1">
-              {formatEventDate(event.event_start_date, event.event_end_date)}
-            </span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <MapPin className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm line-clamp-1">{event.event_location || 'TBA'}</span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <Tag className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm capitalize">{event.type}</span>
-          </p>
-        </div>
       </div>
     </div>
-  </div>
-);
+  );
   const DetailView = ({ event }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button

@@ -73,7 +73,6 @@ function VideoGallery() {
   const handleBackClick = () => {
     setSelectedVideo(null);
   };
-
   // Mobile-optimized Video Card without description
   const VideoCard = ({ video }) => (
     <div 
@@ -110,13 +109,6 @@ function VideoGallery() {
             {video.duration}
           </div>
         )}
-
-        {/* Category indicator icon */}
-        <div className="absolute top-2 right-2">
-          <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
-            <Youtube className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-          </div>
-        </div>
       </div>
       
       <div className="p-3 sm:p-4 flex flex-col flex-grow">
@@ -136,21 +128,21 @@ function VideoGallery() {
             </div>
           </div>
 
-          {/* Desktop: Show category and date */}
-          <div className="hidden sm:block">
-            <div className="flex items-center gap-1 mb-2">
-              <Tag className="w-3 h-3 text-gray-500" />
+          {/* Desktop: Show category and date stacked */}
+          <div className="hidden sm:block space-y-2">
+            {/* Category */}
+            <div className="flex items-center gap-2">
+              <Tag className="w-3 h-3 text-blue-500" />
               <span className="text-sm text-gray-500 line-clamp-1">
                 {video.category}
               </span>
             </div>
             
+            {/* Date */}
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Calendar className="w-3 h-3" />
+              <Calendar className="w-3 h-3 text-blue-500" />
               <span>{video.date}</span>
             </div>
-            
-            {/* Removed description section */}
           </div>
         </div>
       </div>

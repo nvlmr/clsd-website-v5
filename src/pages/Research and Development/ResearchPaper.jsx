@@ -128,94 +128,62 @@ function ResearchPaper() {
 
   // Get unique manuscript types for filter
   const manuscriptTypes = ['all', ...new Set(researchPapersData.map(paper => paper.Manusript))];
-
-  // Mobile-optimized Research Paper Card with fixed height title and underline
-  const ResearchPaperCard = ({ paper }) => (
-    <div 
-      className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
-      onClick={() => handleCardClick(paper)}
-    >
-      {/* Blue line at the bottom on hover */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
-      
-      {/* Image Container - with gradient background */}
-      <div className="relative pt-[60%] sm:pt-[56.25%] bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
-        </div>
-        
-        {/* Manuscript Type indicator */}
-        <div className="absolute top-2 right-2">
-          <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
-            <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-          </div>
-        </div>
+// Mobile-optimized Research Paper Card with fixed height title and underline
+const ResearchPaperCard = ({ paper }) => (
+  <div 
+    className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+    onClick={() => handleCardClick(paper)}
+  >
+    {/* Blue line at the bottom on hover */}
+    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
+    
+    {/* Image Container - with gradient background */}
+    <div className="relative pt-[60%] sm:pt-[56.25%] bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
       </div>
+      
+      {/* Manuscript Type indicator - REMOVED */}
+    </div>
 
-      <div className="p-3 sm:p-4 flex flex-col flex-grow">
-        {/* Fixed height title area with underline */}
-        <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
-          <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-            {paper.title}
-          </h3>
+    <div className="p-3 sm:p-4 flex flex-col flex-grow">
+      {/* Fixed height title area with underline */}
+      <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+          {paper.title}
+        </h3>
+      </div>
+      
+      <div className="space-y-1.5 sm:space-y-2 mt-1">
+        {/* Mobile: Show only author and year */}
+        <div className="flex sm:hidden flex-col space-y-1.5">
+          <p className="text-gray-600 flex items-start gap-1.5">
+            <User className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+            <span className="text-xs line-clamp-1">{paper.authors}</span>
+          </p>
+          
+          <p className="text-gray-600 flex items-start gap-1.5">
+            <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+            <span className="text-xs line-clamp-1">{paper.Year}</span>
+          </p>
         </div>
-        
-        <div className="space-y-1.5 sm:space-y-2 mt-1">
-          {/* Mobile: Show only author and year */}
-          <div className="flex sm:hidden flex-col space-y-1.5">
-            <p className="text-gray-600 flex items-start gap-1.5">
-              <User className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span className="text-xs line-clamp-1">{paper.authors}</span>
-            </p>
-            
-            <p className="text-gray-600 flex items-start gap-1.5">
-              <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span className="text-xs line-clamp-1">{paper.Year}</span>
-            </p>
-          </div>
 
-          {/* Desktop: Show all details */}
-          <div className="hidden sm:block space-y-2">
-            <div className="flex items-start gap-2">
-              <User className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <p className="text-sm text-gray-700 line-clamp-1">
-                <span className="font-medium">Author:</span> {paper.authors}
-              </p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <GraduationCap className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <p className="text-sm text-gray-700 line-clamp-1">
-                <span className="font-medium">Degree:</span> {paper.degreeSought}
-              </p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <Users className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <p className="text-sm text-gray-700 line-clamp-1">
-                <span className="font-medium">Adviser:</span> {paper.adviser}
-              </p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">Year:</span> {paper.Year}
-              </p>
-            </div>
-
-            <div className="flex items-start gap-2">
-              <BookOpen className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <p className="text-sm text-gray-700">
-                <span className="font-medium">Type:</span> {paper.Manusript}
-              </p>
-            </div>
-          </div>
+        {/* Desktop: Show only author and year with icons (no labels) */}
+        <div className="hidden sm:block space-y-2">
+          <p className="text-gray-600 flex items-start gap-2">
+            <User className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm line-clamp-1">{paper.authors}</span>
+          </p>
+          
+          <p className="text-gray-600 flex items-start gap-2">
+            <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm line-clamp-1">{paper.Year}</span>
+          </p>
         </div>
       </div>
     </div>
-  );
-
+  </div>
+);
   const DetailView = ({ paper }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button

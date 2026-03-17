@@ -125,76 +125,52 @@ function PLD() {
         : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
     }`;
   };
-
-  // Mobile-optimized Publication Card with fixed height title and underline
-  const PublicationCard = ({ publication }) => (
-    <div 
-      className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
-      onClick={() => handleCardClick(publication)}
-    >
-      {/* Hover line at bottom with rounded corners */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-br-md rounded-bl-md"></div>
-      
-      {/* Image Container - with gradient background */}
-      <div className="relative pt-[60%] sm:pt-[56.25%] bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
-        </div>
-        
-        {/* Year indicator */}
-        {publication.year && (
-          <div className="absolute top-2 right-2">
-            <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
-              <Award className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-            </div>
-          </div>
-        )}
+// Mobile-optimized Publication Card with fixed height title and underline
+const PublicationCard = ({ publication }) => (
+  <div 
+    className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+    onClick={() => handleCardClick(publication)}
+  >
+    {/* Hover line at bottom with rounded corners */}
+    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-br-md rounded-bl-md"></div>
+    
+    {/* Image Container - with gradient background */}
+    <div className="relative pt-[60%] sm:pt-[56.25%] bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
       </div>
+      
+      {/* Year indicator - REMOVED */}
+    </div>
 
-      <div className="p-3 sm:p-4 flex flex-col flex-grow">
-        {/* Fixed height title area with underline */}
-        <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
-          <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-            {publication.title}
-          </h3>
+    <div className="p-3 sm:p-4 flex flex-col flex-grow">
+      {/* Fixed height title area with underline */}
+      <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
+        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+          {publication.title}
+        </h3>
+      </div>
+      
+      <div className="space-y-1.5 sm:space-y-2 mt-1">
+        {/* Mobile: Show only authors */}
+        <div className="flex sm:hidden flex-col space-y-1.5">
+          <p className="text-gray-600 flex items-start gap-1.5">
+            <Users className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+            <span className="text-xs line-clamp-1">{publication.authors}</span>
+          </p>
         </div>
-        
-        <div className="space-y-1.5 sm:space-y-2 mt-1">
-          {/* Mobile: Show only authors */}
-          <div className="flex sm:hidden flex-col space-y-1.5">
-            <p className="text-gray-600 flex items-start gap-1.5">
-              <Users className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span className="text-xs line-clamp-1">{publication.authors}</span>
-            </p>
-          </div>
 
-          {/* Desktop: Show all details */}
-          <div className="hidden sm:block space-y-2">
-            <p className="text-gray-600 flex items-start gap-2">
-              <Users className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">
-                <span className="font-medium">Authors:</span> {publication.authors}
-              </span>
-            </p>
-            <p className="text-gray-600 flex items-start gap-2">
-              <LinkIcon className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">
-                <span className="font-medium">DOI:</span> {publication.DOI}
-              </span>
-            </p>
-            {publication.year && (
-              <p className="text-gray-600 flex items-start gap-2">
-                <BookOpen className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-                <span className="text-sm">
-                  <span className="font-medium">Year:</span> {publication.year}
-                </span>
-              </p>
-            )}
-          </div>
+        {/* Desktop: Show authors and DOI with icons only (no labels) */}
+        <div className="hidden sm:block space-y-2">
+          <p className="text-gray-600 flex items-start gap-2">
+            <Users className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+            <span className="text-sm line-clamp-1">{publication.authors}</span>
+          </p>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 
   const DetailView = ({ publication }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">

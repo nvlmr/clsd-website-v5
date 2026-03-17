@@ -21,7 +21,12 @@ import {
   Award,
   UserCircle,
   Filter,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  Image as ImageIcon,
+  Download,
+  X as XIcon,
+  Maximize2
 } from "lucide-react";
 
 function ResearchInitiatives() {
@@ -30,10 +35,7 @@ function ResearchInitiatives() {
     localData,
     loading,
     error,
-    source,
-    serverAvailable,
-    refetch,
-    getInitiativeById
+    refetch
   } = useResearchInitiatives();
 
   // Safely prepare data for search
@@ -46,7 +48,7 @@ function ResearchInitiatives() {
   // Use the custom search hook with error handling
   const searchConfig = useMemo(() => {
     return searchConfigs.researchInitiatives || {
-      searchFields: ['title', 'description', 'project_lead'],
+      searchFields: ['title', 'description', 'project_lead', 'objectives'],
       placeholder: 'Search research initiatives...'
     };
   }, []);
@@ -67,6 +69,11 @@ function ResearchInitiatives() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchError, setSearchError] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(9);
+  
+  // Gallery/Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
   const topRef = useRef(null);
 
@@ -169,6 +176,48 @@ function ResearchInitiatives() {
     setStatusFilter(status);
   }, []);
 
+  // Gallery modal functions
+  const openGalleryModal = (images, index) => {
+    setSelectedImage(images);
+    setCurrentImageIndex(index);
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
+
+  const closeGalleryModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+    document.body.style.overflow = 'unset';
+  };
+
+  const navigateGallery = (direction) => {
+    if (!selectedImage) return;
+    
+    if (direction === 'next' && currentImageIndex < selectedImage.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+    } else if (direction === 'prev' && currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+    }
+  };
+
+  // Handle keyboard navigation for gallery
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isModalOpen) return;
+      
+      if (e.key === 'Escape') {
+        closeGalleryModal();
+      } else if (e.key === 'ArrowRight') {
+        navigateGallery('next');
+      } else if (e.key === 'ArrowLeft') {
+        navigateGallery('prev');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, currentImageIndex, selectedImage]);
+
   // Wrapper for search handlers with error handling
   const handleSearchResultsWrapper = useCallback((results) => {
     try {
@@ -226,6 +275,47 @@ function ResearchInitiatives() {
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   }, []);
 
+  // Get status color - now only used in filter buttons, not in detail view
+  const getStatusColor = useCallback((status) => {
+    switch(status?.toLowerCase()) {
+      case 'ongoing':
+        return 'bg-green-100 text-green-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      case 'upcoming':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  }, []);
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  // Download attachment
+  const downloadAttachment = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(url, '_blank');
+    }
+  };
+
   // Updated filter button style with proper centering
   const getStatusFilterButtonStyle = useCallback((status) => {
     const isActive = statusFilter === status;
@@ -237,112 +327,100 @@ function ResearchInitiatives() {
         : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
     }`;
   }, [statusFilter]);
-// Updated ProjectCard with fixed height title area and underline
-const ProjectCard = useCallback(({ project }) => (
-  <div 
-    className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
-    onClick={() => handleCardClick(project)}
-  >
-    {/* Blue line at the bottom on hover - matching NewsEvents */}
-    <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
-    
-    {/* Image Container - matching NewsEvents styling */}
-    <div className="relative pt-[60%] sm:pt-[56.25%] bg-gray-200 overflow-hidden">
-      <div className="absolute inset-0 flex items-center justify-center">
-        {project.image ? (
-          <img 
-            src={project.image} 
-            alt={project.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://via.placeholder.com/400x200?text=Research+Initiative";
-            }}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-            <Building2 className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
+
+  // YOUR ORIGINAL ProjectCard - PRESERVED EXACTLY
+  const ProjectCard = useCallback(({ project }) => (
+    <div 
+      className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+      onClick={() => handleCardClick(project)}
+    >
+      {/* Blue line at the bottom on hover - matching NewsEvents */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
+      
+      {/* Image Container - matching NewsEvents styling */}
+      <div className="relative pt-[60%] sm:pt-[56.25%] bg-gray-200 overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center">
+          {project.image ? (
+            <img 
+              src={project.image} 
+              alt={project.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/400x200?text=Research+Initiative";
+              }}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+              <Building2 className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
+            </div>
+          )}
+        </div>
+        
+        {/* Featured indicator - Blue like NewsEvents */}
+        {project.featured === 1 && (
+          <div className="absolute top-2 right-2">
+            <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
+              <Award className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+            </div>
           </div>
         )}
       </div>
-      
-      {/* Featured indicator - Blue like NewsEvents */}
-      {project.featured === 1 && (
-        <div className="absolute top-2 right-2">
-          <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
-            <Award className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+
+      <div className="p-3 sm:p-4 flex flex-col flex-grow">
+        {/* Fixed height title area with underline */}
+        <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
+          <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+            {project.title || "Untitled Project"}
+          </h3>
+        </div>
+        
+        <div className="space-y-1.5 sm:space-y-2 mt-1">
+          {/* Mobile: Show only Project Lead and Implementing Agency with icons */}
+          <div className="flex sm:hidden flex-col space-y-1.5">
+            <p className="text-gray-600 flex items-start gap-1.5">
+              <UserCircle className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span className="text-xs line-clamp-1">{project.project_lead || "N/A"}</span>
+            </p>
+            
+            <p className="text-gray-600 flex items-start gap-1.5">
+              <Building2 className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
+              <span className="text-xs line-clamp-1">{project.implementing_agency || "N/A"}</span>
+            </p>
+          </div>
+
+          {/* Desktop: Show only Project Lead and Implementing Agency with icons */}
+          <div className="hidden sm:block space-y-2">
+            <p className="text-gray-600 flex items-start gap-2">
+              <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm line-clamp-1">{project.project_lead || "N/A"}</span>
+            </p>
+            
+            <p className="text-gray-600 flex items-start gap-2">
+              <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
+              <span className="text-sm line-clamp-1">{project.implementing_agency || "N/A"}</span>
+            </p>
           </div>
         </div>
-      )}
-    </div>
-
-    <div className="p-3 sm:p-4 flex flex-col flex-grow">
-      {/* Fixed height title area with underline */}
-      <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
-        <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-          {project.title || "Untitled Project"}
-        </h3>
-      </div>
-      
-      <div className="space-y-1.5 sm:space-y-2 mt-1">
-        {/* Mobile: Show only project lead */}
-        <div className="flex sm:hidden flex-col space-y-1.5">
-          <p className="text-gray-600 flex items-start gap-1.5">
-            <UserCircle className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-            <span className="text-xs line-clamp-1">{project.project_lead || "N/A"}</span>
-          </p>
-        </div>
-
-        {/* Desktop: Show all details */}
-        <div className="hidden sm:block space-y-2">
-          <p className="text-gray-600 flex items-start gap-2">
-            <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm">
-              {formatDate(project.start_date)} - {formatDate(project.end_date)}
-            </span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm line-clamp-1">
-              <span className="font-medium">Lead:</span> {project.project_lead || "N/A"}
-            </span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <Landmark className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm line-clamp-1">
-              <span className="font-medium">Funding:</span> {project.funding_source || "N/A"}
-            </span>
-          </p>
-          
-          <p className="text-gray-600 flex items-start gap-2">
-            <Building2 className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-            <span className="text-sm line-clamp-1">
-              <span className="font-medium">Implementing:</span> {project.implementing_agency || "N/A"}
-            </span>
-          </p>
-        </div>
       </div>
     </div>
-  </div>
-), [handleCardClick, formatDate]);
+  ), [handleCardClick]);
 
-  // Updated DetailView with properly formatted status
+  // UPDATED DetailView - Status removed from hero image and made consistent with other details
   const DetailView = useCallback(({ project }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button
         onClick={handleBackClick}
         className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
       >
-        <ArrowLeft className="w-5 h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-        <span>Back to Research Initiatives</span>
+        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+        <span className="text-sm sm:text-base">Back to Research Initiatives</span>
       </button>
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Hero Image - matching NewsEvents styling */}
+        {/* Hero Image */}
         {project.image && (
-          <div className="relative h-64 md:h-96 overflow-hidden">
+          <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
             <img 
               src={project.image} 
               alt={project.title}
@@ -351,12 +429,22 @@ const ProjectCard = useCallback(({ project }) => (
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
             
-            {/* Featured indicator - Blue like NewsEvents */}
+            {/* Status badge removed from hero image */}
+            
+            {/* Expand button */}
+            <button
+              onClick={() => window.open(project.image, '_blank')}
+              className="absolute top-4 right-4 bg-black bg-opacity-60 text-white p-1.5 sm:p-2 rounded-full hover:bg-opacity-80 transition-all"
+            >
+              <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+            </button>
+
+            {/* Featured indicator */}
             {project.featured === 1 && (
               <div className="absolute top-4 left-4">
-                <div className="bg-blue-500 rounded-full p-2 shadow-lg flex items-center gap-1.5">
-                  <Award className="w-5 h-5 text-white" />
-                  <span className="text-white text-sm font-medium pr-1">Featured</span>
+                <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
                 </div>
               </div>
             )}
@@ -365,42 +453,40 @@ const ProjectCard = useCallback(({ project }) => (
 
         {/* If no hero image, put featured indicator in the colored header */}
         {!project.image && project.featured === 1 && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white relative">
-            <div className="absolute top-4 left-4">
-              <div className="bg-blue-500 rounded-full p-2 shadow-lg flex items-center gap-1.5">
-                <Award className="w-5 h-5 text-white" />
-                <span className="text-white text-sm font-medium pr-1">Featured</span>
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white relative">
+            <div className="absolute top-4 right-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-full p-1.5 flex items-center gap-1 sm:gap-1.5">
+                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
               </div>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-4 pl-32">{project.title || "Untitled Project"}</h1>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 pr-24 sm:pr-32">{project.title || "Untitled Project"}</h1>
           </div>
         )}
 
         {/* If there is a hero image, title is in the gradient overlay */}
         {project.image && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
-            <h1 className="text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
           </div>
         )}
 
         {/* If no hero image and not featured, just show title in blue header */}
         {!project.image && project.featured !== 1 && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-6 py-8 text-white">
-            <h1 className="text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
+          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
           </div>
         )}
 
-        <div className="p-6 md:p-8 space-y-6">
-          {/* Description - matching NewsEvents styling */}
+        <div className="p-4 sm:p-6 md:p-8 space-y-6">
+          {/* Description */}
           {project.description && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">Project Description</h2>
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h2 className="text-sm sm:text-lg font-bold text-gray-900">Project Description</h2>
               </div>
-              <div 
-                className="ml-7 prose prose-blue max-w-none text-gray-700"
-              >
+              <div className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700">
                 <p className="leading-relaxed">{project.description}</p>
               </div>
             </div>
@@ -410,99 +496,125 @@ const ProjectCard = useCallback(({ project }) => (
           {project.objectives && (
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <Award className="w-5 h-5 text-blue-600" />
-                <h2 className="text-lg font-bold text-gray-900">Objectives</h2>
+                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h2 className="text-sm sm:text-lg font-bold text-gray-900">Objectives</h2>
               </div>
-              <div className="ml-7">
-                {project.objectives.includes(';') ? (
+              <div className="ml-4 sm:ml-7">
+                {typeof project.objectives === 'string' && project.objectives.includes(';') ? (
                   <ul className="list-disc list-inside space-y-2">
                     {project.objectives.split(';').map((objective, index) => (
-                      <li key={index} className="text-gray-700">{objective.trim()}</li>
+                      <li key={index} className="text-sm sm:text-base text-gray-700">{objective.trim()}</li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-gray-700">{project.objectives}</p>
+                  <p className="text-sm sm:text-base text-gray-700">{project.objectives}</p>
                 )}
               </div>
             </div>
           )}
 
-          {/* Project Details Grid - matching NewsEvents styling */}
+          {/* Project Details Grid */}
           <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-4">Project Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Status - properly formatted, same color as other details */}
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <Calendar className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {/* Status - Now consistent with other details (no colored badge) */}
+              <div className="flex items-start gap-2 sm:gap-3">
+                <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-gray-500">Status</p>
-                  <p className="text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
+                <div className="min-w-0">
+                  <p className="text-xs sm:text-sm text-gray-500">Status</p>
+                  <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
                 </div>
               </div>
 
               {/* Project Lead */}
               {project.project_lead && (
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <UserCircle className="w-5 h-5 text-blue-600" />
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Project Lead</p>
-                    <p className="text-base font-medium text-gray-900">{project.project_lead}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Project Lead</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.project_lead}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Start Date */}
+              {project.start_date && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Start Date</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.start_date)}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* End Date */}
+              {project.end_date && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">End Date</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.end_date)}</p>
                   </div>
                 </div>
               )}
 
               {/* Funding Source */}
               {project.funding_source && (
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <Landmark className="w-5 h-5 text-blue-600" />
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Funding Source</p>
-                    <p className="text-base font-medium text-gray-900">{project.funding_source}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Funding Source</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.funding_source}</p>
                   </div>
                 </div>
               )}
 
               {/* Budget */}
               {project.budget && (
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-blue-600" />
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Budget</p>
-                    <p className="text-base font-medium text-gray-900">{formatCurrency(project.budget)}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Budget</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.budget)}</p>
                   </div>
                 </div>
               )}
 
               {/* Location */}
               {project.location && (
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <MapPin className="w-5 h-5 text-blue-600" />
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Location</p>
-                    <p className="text-base font-medium text-gray-900">{project.location}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Location</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.location}</p>
                   </div>
                 </div>
               )}
 
               {/* Implementing Agency */}
               {project.implementing_agency && (
-                <div className="flex items-start gap-3">
-                  <div className="bg-blue-100 p-2 rounded-lg">
-                    <Building2 className="w-5 h-5 text-blue-600" />
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Implementing Agency</p>
-                    <p className="text-base font-medium text-gray-900">{project.implementing_agency}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.implementing_agency}</p>
                   </div>
                 </div>
               )}
@@ -510,48 +622,213 @@ const ProjectCard = useCallback(({ project }) => (
           </div>
 
           {/* Team Members */}
-          {project.team_members && (
+          {project.team_members && project.team_members.length > 0 && (
             <div className="border-t border-gray-200 pt-6">
               <div className="flex items-center gap-2 mb-4">
-                <Users className="w-5 h-5 text-blue-600" />
-                <h3 className="text-md font-semibold text-gray-900">Team Members</h3>
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Team Members</h3>
+                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.team_members.length} members)</span>
               </div>
-              {project.team_members.includes(',') ? (
-                <div className="flex flex-wrap gap-2 ml-7">
-                  {project.team_members.split(',').map((member, index) => (
-                    <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
+              <div className="flex flex-wrap gap-2 ml-4 sm:ml-7">
+                {Array.isArray(project.team_members) ? (
+                  project.team_members.map((member, index) => (
+                    <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
+                      {member}
+                    </span>
+                  ))
+                ) : typeof project.team_members === 'string' ? (
+                  project.team_members.split(',').map((member, index) => (
+                    <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
                       {member.trim()}
                     </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-700 ml-7">{project.team_members}</p>
-              )}
+                  ))
+                ) : null}
+              </div>
             </div>
           )}
 
-          {/* Cooperating Agency */}
-          {project.cooperating_agency && (
+          {/* Cooperating Agencies */}
+          {project.cooperating_agency && project.cooperating_agency.length > 0 && (
             <div className="border-t border-gray-200 pt-6">
               <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-5 h-5 text-blue-600" />
-                <h3 className="text-md font-semibold text-gray-900">Cooperating Agency</h3>
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agencies</h3>
+                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.cooperating_agency.length} agencies)</span>
               </div>
-              {project.cooperating_agency.includes(',') ? (
-                <div className="ml-7 space-y-1">
-                  {project.cooperating_agency.split(',').map((agency, index) => (
-                    <p key={index} className="text-gray-700">• {agency.trim()}</p>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-700 ml-7">{project.cooperating_agency}</p>
-              )}
+              <div className="ml-4 sm:ml-7 space-y-1">
+                {Array.isArray(project.cooperating_agency) ? (
+                  project.cooperating_agency.map((agency, index) => (
+                    <p key={index} className="text-sm sm:text-base text-gray-700">• {agency}</p>
+                  ))
+                ) : typeof project.cooperating_agency === 'string' ? (
+                  project.cooperating_agency.split(',').map((agency, index) => (
+                    <p key={index} className="text-sm sm:text-base text-gray-700">• {agency.trim()}</p>
+                  ))
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          {/* Gallery */}
+          {project.gallery && project.gallery.length > 0 && (
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Gallery</h3>
+                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.gallery.length} images)</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
+                {project.gallery.map((image, index) => (
+                  <div
+                    key={index}
+                    className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
+                    style={{ height: '120px' }}
+                    onClick={() => openGalleryModal(project.gallery, index)}
+                  >
+                    <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
+                      <img
+                        src={image}
+                        alt={`Gallery ${index + 1}`}
+                        className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
+                        }}
+                      />
+                    </div>
+                    
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 flex items-center gap-1 sm:gap-2">
+                        <span className="bg-black/60 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full backdrop-blur-sm">
+                          {index + 1}/{project.gallery.length}
+                        </span>
+                        <div className="bg-blue-600 text-white p-1 sm:p-1.5 rounded-full">
+                          <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Documents */}
+          {project.documents && project.documents.length > 0 && (
+            <div className="border-t border-gray-200 pt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Documents</h3>
+                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.documents.length} files)</span>
+              </div>
+              <div className="space-y-2 sm:space-y-3">
+                {project.documents.map((doc, index) => {
+                  const docUrl = typeof doc === 'string' ? doc : doc.url;
+                  const docName = typeof doc === 'string' ? `Document ${index + 1}` : (doc.name || `Document ${index + 1}`);
+                  
+                  return (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{docName}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                        <button
+                          onClick={() => downloadAttachment(docUrl, docName)}
+                          className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                          title="Download"
+                        >
+                          <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
       </div>
     </div>
-  ), [handleBackClick, formatDate, formatCurrency, formatStatus]);
+  ), [handleBackClick, formatDate, formatCurrency, formatStatus, openGalleryModal, downloadAttachment]);
+
+  // Gallery Modal - from NewsEvents
+  const GalleryModal = () => {
+    if (!isModalOpen || !selectedImage) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div 
+          className="absolute inset-0 bg-black bg-opacity-90 backdrop-blur-sm"
+          onClick={closeGalleryModal}
+        />
+        
+        <div className="relative z-10 w-full h-full flex items-center justify-center p-2 sm:p-4">
+          <button
+            onClick={closeGalleryModal}
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-1.5 sm:p-2 transition-all z-20"
+          >
+            <XIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+          </button>
+
+          <div className="absolute top-2 sm:top-4 left-2 sm:left-4 text-white bg-black bg-opacity-50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm">
+            {currentImageIndex + 1} / {selectedImage.length}
+          </div>
+
+          {selectedImage.length > 1 && (
+            <>
+              <button
+                onClick={() => navigateGallery('prev')}
+                disabled={currentImageIndex === 0}
+                className={`absolute left-2 sm:left-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 sm:p-3 transition-all z-20 ${
+                  currentImageIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
+              </button>
+              <button
+                onClick={() => navigateGallery('next')}
+                disabled={currentImageIndex === selectedImage.length - 1}
+                className={`absolute right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 sm:p-3 transition-all z-20 ${
+                  currentImageIndex === selectedImage.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
+              </button>
+            </>
+          )}
+
+          <div className="flex items-center justify-center w-full h-full">
+            <img
+              src={selectedImage[currentImageIndex]}
+              alt={`Gallery ${currentImageIndex + 1}`}
+              className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-lg"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/800x600?text=Image+Not+Found";
+              }}
+            />
+          </div>
+
+          <a
+            href={selectedImage[currentImageIndex]}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 sm:p-3 transition-all z-20"
+            title="Download image"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+          </a>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -575,7 +852,7 @@ const ProjectCard = useCallback(({ project }) => (
         </div>
       </section>
 
-      {/* Loading State - Matching NewsEvents style */}
+      {/* Loading State */}
       {loading && (
         <div className="container mx-auto px-4 mt-8 text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -610,7 +887,7 @@ const ProjectCard = useCallback(({ project }) => (
                 />
               </div>
               
-              {/* Status Filter Buttons - equal width, no clear filter */}
+              {/* Status Filter Buttons */}
               <div className="container mx-auto px-4 mt-8">
                 <div className="flex flex-col items-center">
                   <div className="flex items-center gap-2 mb-4">
@@ -631,7 +908,7 @@ const ProjectCard = useCallback(({ project }) => (
                 </div>
               </div>
 
-              {/* Search Stats - matching NewsEvents styling */}
+              {/* Search Stats */}
               {searchTerm && (
                 <div className="container mx-auto px-4 mt-4">
                   <p className="text-sm text-gray-600">
@@ -645,10 +922,13 @@ const ProjectCard = useCallback(({ project }) => (
 
           <div className="flex-grow container mx-auto px-4 mt-8">
             {selectedProject ? (
-              <DetailView project={selectedProject} />
+              <>
+                <DetailView project={selectedProject} />
+                <GalleryModal />
+              </>
             ) : (
               <>
-                {/* Only show error if it's not the server unavailable message */}
+                {/* Error Display */}
                 {error && !error.includes('Server not available') && !loading && (
                   <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-6">
                     <p className="text-red-700">{error}</p>

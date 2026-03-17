@@ -1,4 +1,5 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\data\DostFundedProject.js
+
 import image1 from "../assets/images/DostFundedProject/bio-freezer.jpg";
 import image2 from "../assets/images/DostFundedProject/analytical digital weighing scale.jpg";
 import image3 from "../assets/images/DostFundedProject/autoclave.jpg";

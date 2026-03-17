@@ -1,3 +1,4 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\hooks\ResearchInitiatives.js
 import { useState, useEffect, useCallback } from 'react';
 import { checkServerAvailability, getResearchInitiatives } from '../services/research_initiatives_api';
 import localResearchInitiatives from '../data/ResearchInitiatives';

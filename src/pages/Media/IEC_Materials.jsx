@@ -117,8 +117,7 @@ function IEC_Materials() {
         return <FileText className="w-4 h-4" />;
     }
   };
-
-  // Mobile-optimized Material Card with fixed height title and underline
+// Mobile-optimized Material Card with fixed height title and underline
   const MaterialCard = ({ material }) => (
     <div 
       className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
@@ -146,13 +145,6 @@ function IEC_Materials() {
             </div>
           )}
         </div>
-        
-        {/* Category indicator icon */}
-        <div className="absolute top-2 right-2">
-          <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
-            {getCategoryIcon(material.category)}
-          </div>
-        </div>
       </div>
       
       <div className="p-3 sm:p-4 flex flex-col flex-grow">
@@ -172,30 +164,30 @@ function IEC_Materials() {
             </span>
           </div>
 
-          {/* Desktop: Show category and date */}
-          <div className="hidden sm:block">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-                {getCategoryIcon(material.category)}
-                <span className="capitalize">{material.category}</span>
+          {/* Desktop: Show category and date stacked */}
+          <div className="hidden sm:block space-y-2">
+            {/* Category */}
+            <div className="flex items-center gap-2">
+              <Tag className="w-3 h-3 text-blue-500" />
+              <span className="text-xs sm:text-sm text-gray-600 capitalize">
+                {material.category}
               </span>
-              
-              {material.date && (
-                <>
-                  <span className="text-gray-400 text-xs">•</span>
-                  <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-gray-600">
-                    <Calendar className="w-3 h-3" />
-                    {formatDate(material.date)}
-                  </span>
-                </>
-              )}
             </div>
+            
+            {/* Date (if available) */}
+            {material.date && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-3 h-3 text-blue-500" />
+                <span className="text-xs sm:text-sm text-gray-600">
+                  {formatDate(material.date)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
-
   const DetailView = ({ material }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button
@@ -207,49 +199,48 @@ function IEC_Materials() {
       </button>
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Hero Image */}
+        {/* Hero Image Section */}
         {material.image && (
           <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
             <img 
               src={material.image} 
               alt={material.title}
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-contain"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
           </div>
         )}
 
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{material.title}</h1>
+        {/* Title section */}
+        <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{material.title}</h1>
         </div>
 
         <div className="p-4 sm:p-6 md:p-8">
-          {/* Description */}
-          <div className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">Description</h2>
-            </div>
-            <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7 leading-relaxed whitespace-pre-line">
+          {/* Description first */}
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Description</h2>
+            <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">
               {material.description}
             </p>
           </div>
 
-          {/* Category and Date */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 sm:w-4 sm:h-4 text-blue-600" />
-              <span className="text-xs sm:text-sm text-gray-600">
-                Category: <span className="font-medium text-gray-900 capitalize">{material.category}</span>
-              </span>
+          {/* Category and Date with icons */}
+          <div className="space-y-3 sm:space-y-4">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Tag className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="text-xs sm:text-sm text-gray-500">Category</span>
+                <p className="text-sm sm:text-base text-gray-900 font-medium capitalize">{material.category}</p>
+              </div>
             </div>
             
             {material.date && (
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 sm:w-4 sm:h-4 text-blue-600" />
-                <span className="text-xs sm:text-sm text-gray-600">
-                  Published: <span className="font-medium text-gray-900">{formatDate(material.date)}</span>
-                </span>
+              <div className="flex items-start gap-2 sm:gap-3">
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-xs sm:text-sm text-gray-500">Published</span>
+                  <p className="text-sm sm:text-base text-gray-900 font-medium">{formatDate(material.date)}</p>
+                </div>
               </div>
             )}
           </div>
