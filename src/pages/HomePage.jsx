@@ -1,19 +1,20 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\pages\HomePage.jsx
+
 import React from "react";
-import { useNavigate } from "react-router-dom"; // Add this import
+import { useNavigate } from "react-router-dom";
 import NavBar from "../navigation/NavBar.jsx";
 import Footer from "../navigation/Footer.jsx";
 import AboutCLSD from "./AboutCLSD.jsx";
 import bgImage from "../assets/images/background.jpg";
 import AutoScroll from "../components/AutoScroll.jsx";
+import ChatBot from "../components/chatBot.jsx";
 import { ArrowRight } from 'lucide-react';
 import ResearchUnits from "./ResearchUnits.jsx";
 
 function Home() {
-  const navigate = useNavigate(); // Add this hook
-  // Extract YouTube video ID from URL
+  const navigate = useNavigate();
   const videoId = 'vErBTHQQM1Y';
 
-  // Function to handle smooth scroll to second section
   const scrollToSecondSection = () => {
     const secondSection = document.getElementById('niche-section');
     if (secondSection) {
@@ -24,13 +25,13 @@ function Home() {
     }
   };
 
-  // Function to handle navigation to Research Initiatives
   const handleExploreResearch = () => {
     navigate('/ResearchInitiatives');
   };
 
   return (
     <div className="flex flex-col min-h-screen">
+      <ChatBot />
       <AutoScroll/>
       <NavBar />
       
@@ -53,7 +54,7 @@ function Home() {
           </p>
           <div className="group flex flex-row justify-center gap-2 sm:gap-4 w-full max-w-md mx-auto">
             <button 
-              onClick={handleExploreResearch} // Add onClick handler here
+              onClick={handleExploreResearch}
               className="group/btn-primary flex-1 flex items-center justify-center gap-2 px-4 sm:px-10 py-3 rounded-md font-normal transition-all duration-300 shadow-xl border-2 
               bg-blue-600 text-white border-blue-600
               group-hover:bg-transparent group-hover:text-white group-hover:border-white
@@ -105,7 +106,7 @@ function Home() {
               </p>  
             </div>
             {/* Right side - YouTube video */}
-            <div className="flex-1 mt-10 lg:mt-[-40px]"> {/* Only moves up on lg screens and above */}
+            <div className="flex-1 mt-10 lg:mt-[-40px]">
               <div className="relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-500 transform hover:-translate-y-1">
                 {/* YouTube iframe for playable video */}
                 <div className="relative pt-[56.25%]">

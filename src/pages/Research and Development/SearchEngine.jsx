@@ -440,8 +440,7 @@ function SearchEngine() {
                   </span>
                 </h1>
                 <p className="text-gray-600 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed">
-                  Search millions of lake research papers, theses, and scientific publications
-                  from CrossRef, OpenAlex, Semantic Scholar, arXiv, Europe PMC, and DOAJ.
+                  Search millions of lake research papers, theses, and scientific publications.
                 </p>
               </div>
 
