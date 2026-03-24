@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import logo from "../assets/logo/LSD.png";
 import { MessageCircle, X, Send } from 'lucide-react';
 import data from "../data/chatBot.js";
+import { useChat } from '../context/ChatContext.jsx';
 
-// ─── Simple Markdown Renderer ────────────────────────────────────────────────
 const MarkdownText = ({ text }) => {
   const lines = text.split('\n');
 
@@ -57,16 +57,10 @@ const MarkdownText = ({ text }) => {
 };
 
 const ChatBot = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      text: data.welcomeMessage,
-      isUser: false,
-      timestamp: new Date(),
-    },
-  ]);
+  // Use context instead of local state
+  const { isOpen, setIsOpen, messages, setMessages, isTyping, setIsTyping } = useChat();
+  
   const [inputMessage, setInputMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -97,7 +91,7 @@ const ChatBot = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -422,4 +416,4 @@ const ChatBot = () => {
   );
 };
 
-export default ChatBot; 
+export default ChatBot;

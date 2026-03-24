@@ -7,6 +7,7 @@ import Search from "../../components/Search.jsx";
 import { searchConfigs } from "../../config/searchConfigs.js";
 import { useSearch } from "../../hooks/useSearch.js";
 import useResearchInitiatives from "../../hooks/ResearchInitiatives.js";
+
 import { 
   ChevronLeft, 
   ChevronRight, 

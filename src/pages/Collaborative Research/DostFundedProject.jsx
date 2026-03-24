@@ -8,6 +8,7 @@ import Search from "../../components/Search.jsx";
 import { searchConfigs } from "../../config/searchConfigs.js";
 import { useSearch } from "../../hooks/useSearch.js";
 import useDostFundedProjects from "../../hooks/DostFundedProject.js";
+
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -60,11 +61,11 @@ function DostFundedProjectPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Use the custom search hook
+  // Use the search config from searchConfigs but only for search fields and placeholder
   const searchConfig = useMemo(() => {
-    return searchConfigs.dostFundedProjects || {
-      searchFields: ['title', 'project_lead', 'implementing_agency', 'cooperating_agency', 'status', 'description'],
-      placeholder: 'Search DOST funded projects...'
+    return {
+      searchFields: searchConfigs.dostFundedProjects?.searchKeys || ['title', 'project_lead', 'implementing_agency', 'cooperating_agency', 'status', 'description'],
+      placeholder: searchConfigs.dostFundedProjects?.placeholder || 'Search DOST funded projects...'
     };
   }, []);
 
@@ -531,11 +532,11 @@ function DostFundedProjectPage() {
       
       {!selectedProject && !loading && !error && (
         <>
-          {/* Search Component */}
+          {/* Search Component - keeping original styling */}
           <div className="mt-15">
             <Search 
               data={dostProjects}
-              searchFields={searchConfig.searchFields}
+              searchKeys={searchConfig.searchFields}
               placeholder={searchConfig.placeholder}
               onSearchResults={handleSearchResultsWrapper}
               onSearchStart={handleSearchStartWrapper}

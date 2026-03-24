@@ -1,3 +1,5 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\LandingRoutes.jsx
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./HomePage.jsx";
 
@@ -24,10 +26,13 @@ import VideoGallery from "./Media/VideoGallery.jsx";
 
 import NewsEvents from "./News & Events/NewsEvents.jsx";
 
+import { ChatProvider } from '../context/ChatContext.jsx';
+import ChatBot from '../components/chatBot.jsx';
 
-function LandingRoutes () {
+function LandingRoutes() {
   return (
-    <Routes>
+    <ChatProvider>
+      <Routes>
         <Route path="/" element={<Home />} />
 
         <Route path="/MBML" element={<MBML />} />
@@ -42,17 +47,19 @@ function LandingRoutes () {
         <Route path="/ResearchInitiatives" element={<ResearchInitiatives />} />
         <Route path="/ResearchPaper" element={<ResearchPaper />} />
         <Route path="/PDL" element={<PDL />} />
-        <Route path="/SearchEngine" element={<SearchEngine/>} />
+        <Route path="/SearchEngine" element={<SearchEngine />} />
 
-        <Route path="/AboutS&R" element={<AboutScienceAndResearch/>} />
-        <Route path="/DostFundedProject" element={<DostFundedProject/>} />
-        <Route path="/IEC_Materials" element={<IEC_Materials/>} />
+        <Route path="/AboutS&R" element={<AboutScienceAndResearch />} />
+        <Route path="/DostFundedProject" element={<DostFundedProject />} />
+        <Route path="/IEC_Materials" element={<IEC_Materials />} />
 
-        <Route path="/VideoGallery" element={<VideoGallery/>} />
-        <Route path="/E-sentry" element={<Esentry/>} />
-        
-        <Route path="/NewsEvents" element={<NewsEvents/>}/>
-    </Routes>
+        <Route path="/VideoGallery" element={<VideoGallery />} />
+        <Route path="/E-sentry" element={<Esentry />} />
+
+        <Route path="/NewsEvents" element={<NewsEvents />} />
+      </Routes>
+      <ChatBot />
+    </ChatProvider>
   );
 }
 

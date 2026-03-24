@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
+import AutoScroll from "../../components/AutoScroll.jsx";
+
 import {
   Search, X, BookOpen, FileText, User, Calendar, ExternalLink,
   Download, Globe, Copy, Check, AlertCircle, RefreshCw, Sparkles,
@@ -415,7 +417,8 @@ function SearchEngine() {
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col font-sans">
+    <div className="min-h-screen bg-white flex flex-col font-sans">
+      <AutoScroll/>
       <NavBar />
 
       <main className="flex-1 mt-18">
@@ -423,11 +426,6 @@ function SearchEngine() {
         {/* ══════════════════════════ HERO ══════════════════════════════════════ */}
         {!searchPerformed && (
           <section className="relative min-h-[calc(100vh-80px)] flex items-center justify-center">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob" />
-              <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000" />
-            </div>
-
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-5xl relative z-10">
               <div className="text-center space-y-6 mb-12">
                 <div className="flex items-center justify-center gap-2 mb-4">
@@ -446,7 +444,7 @@ function SearchEngine() {
 
               {/* Search box */}
               <div className="relative transform transition-all duration-500 hover:scale-[1.02]">
-                <div className={`bg-white/90 backdrop-blur-xl rounded-3xl border border-blue-100 shadow-2xl overflow-hidden transition-all ${isFocused ? "ring-4 ring-blue-500/20 border-transparent" : ""}`}>
+                <div className={`bg-white rounded-3xl border border-blue-100 shadow-2xl overflow-hidden transition-all ${isFocused ? "ring-4 ring-blue-500/20 border-transparent" : ""}`}>
                   <form onSubmit={handleSearch} className="flex items-center">
                     <div className="relative flex-1">
                       <input
@@ -555,7 +553,7 @@ function SearchEngine() {
 
             {/* Error */}
             {error && (
-              <div className="mb-6 p-4 bg-amber-50/90 border-l-4 border-amber-500 text-amber-800 rounded-xl flex items-center gap-3 shadow-md">
+              <div className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-800 rounded-xl flex items-center gap-3 shadow-md">
                 <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
                 <p className="text-sm flex-1">{error}</p>
                 <button onClick={handleSearch} className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors text-sm">

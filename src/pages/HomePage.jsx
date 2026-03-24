@@ -7,7 +7,6 @@ import Footer from "../navigation/Footer.jsx";
 import AboutCLSD from "./AboutCLSD.jsx";
 import bgImage from "../assets/images/background.jpg";
 import AutoScroll from "../components/AutoScroll.jsx";
-import ChatBot from "../components/chatBot.jsx";
 import { ArrowRight } from 'lucide-react';
 import ResearchUnits from "./ResearchUnits.jsx";
 
@@ -31,7 +30,6 @@ function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <ChatBot />
       <AutoScroll/>
       <NavBar />
       

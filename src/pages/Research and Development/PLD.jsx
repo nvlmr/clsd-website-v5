@@ -4,6 +4,7 @@ import AutoScroll from "../../components/AutoScroll.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import Search from "../../components/Search.jsx";
 import PLDData from "../../data/PLD.js";
+
 import { 
   ChevronLeft, 
   ChevronRight, 

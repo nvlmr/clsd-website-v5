@@ -3,6 +3,7 @@ import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import { useResearchTeam } from "../../hooks/OrganizationalStructure.js";
+
 import { ChevronLeft, ChevronRight, GraduationCap, Award, Building2, User } from "lucide-react";
 
 function OrganizationalStructure() {

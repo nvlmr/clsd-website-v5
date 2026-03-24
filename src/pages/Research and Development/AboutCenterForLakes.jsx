@@ -4,6 +4,7 @@ import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import ClsdMain from "../../assets/images/clsd main.jpg";
 import Lake from "../../assets/images/background.jpg";
+
 import { 
   Building2,
   Globe2,

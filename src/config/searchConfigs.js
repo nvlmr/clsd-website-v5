@@ -1,3 +1,5 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\config\searchConfigs.js
+
 export const searchConfigs = {
   newsEvents: {
     searchKeys: [
@@ -40,6 +42,46 @@ export const searchConfigs = {
     showNoResultsMessage: true,
     noResultsMessage: 'No research initiatives found for "{query}"',
     minChars: 2
+  },
+
+  // DOST Funded Projects page
+  dostFundedProjects: {
+    searchKeys: [
+      'title',
+      'description',
+      'funding_agency',
+      'project_lead',
+      'implementing_agency',
+      'cooperating_agency',
+      'project_duration',
+      'status',
+      'keywords',
+      'objectives',
+      'expected_outputs'
+    ],
+    placeholder: 'Search DOST funded projects...',
+    variant: 'elevated',
+    size: 'lg',
+    theme: 'light',
+    showResultCount: true,
+    debounceTime: 400,
+    showNoResultsMessage: true,
+    noResultsMessage: 'No DOST funded projects found for "{query}"',
+    minChars: 2,
+    // Additional DOST-specific configurations
+    filterOptions: [
+      { value: 'all', label: 'All Projects' },
+      { value: 'ongoing', label: 'Ongoing' },
+      { value: 'completed', label: 'Completed' },
+      { value: 'upcoming', label: 'Upcoming' }
+    ],
+    sortOptions: [
+      { value: 'title_asc', label: 'Title (A-Z)' },
+      { value: 'title_desc', label: 'Title (Z-A)' },
+      { value: 'date_newest', label: 'Newest First' },
+      { value: 'date_oldest', label: 'Oldest First' }
+    ],
+    resultCountMessage: 'Found {count} project{plural} for "{query}"'
   },
 
   // CLSD Equipment page

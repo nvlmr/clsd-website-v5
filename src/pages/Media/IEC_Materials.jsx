@@ -4,6 +4,7 @@ import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import Search from "../../components/Search.jsx";
 import IECMaterialsData from "../../data/IECMaterials.js";
+
 import { 
   ChevronLeft, 
   ChevronRight, 
