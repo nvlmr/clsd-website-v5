@@ -109,7 +109,7 @@ const NavBar = () => {
         { label: "Organizational Structure", path: "/OrganizationalStructure" },
         { label: "Research Initiatives", path: "/ResearchInitiatives" },
         { label: "Research Paper", path: "/ResearchPaper" },
-        { label: "Philippine Lakes Database", path: "/PDL" },
+        // { label: "Philippine Lakes Database", path: "/PDL" },
         { label: "Scientific Literature Search Tool", path: "/SearchEngine" },
       ],
     },

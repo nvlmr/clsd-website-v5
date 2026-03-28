@@ -74,8 +74,7 @@ function SearchEngine() {
       url:         item.URL ?? (item.DOI ? `https://doi.org/${item.DOI}` : "#"),
       type:        "Research Article",
       citations:   item["is-referenced-by-count"] ?? 0,
-      source:      "CrossRef",
-      pdfUrl:      item.link?.find((l) => l["content-type"] === "application/pdf" || l["intended-application"] === "text-mining")?.URL ?? null,
+      pdfUrl:      null,
       keywords:    item.subject ?? [],
     }));
   };
@@ -114,8 +113,7 @@ function SearchEngine() {
         url:         item.primary_location?.landing_page_url ?? item.open_access?.oa_url ?? (doiRaw ? `https://doi.org/${doiRaw}` : "#"),
         type:        "Research Article",
         citations:   item.cited_by_count ?? 0,
-        source:      "OpenAlex",
-        pdfUrl:      item.primary_location?.pdf_url ?? item.open_access?.oa_url ?? null,
+        pdfUrl:      null,
         keywords:    item.keywords?.map((k) => k.keyword) ?? [],
       };
     });
@@ -142,8 +140,7 @@ function SearchEngine() {
       url:         item.url ?? (item.externalIds?.DOI ? `https://doi.org/${item.externalIds.DOI}` : "#"),
       type:        "Research Paper",
       citations:   item.citationCount ?? 0,
-      source:      "Semantic Scholar",
-      pdfUrl:      item.openAccessPdf?.url ?? null,
+      pdfUrl:      null,
       keywords:    item.fieldsOfStudy ?? [],
     }));
   };
@@ -177,8 +174,7 @@ function SearchEngine() {
         doi:         null,
         type:        "Preprint",
         citations:   0,
-        source:      "arXiv",
-        pdfUrl:      pdfLink ? pdfLink.getAttribute("href") : null,
+        pdfUrl:      null,
         keywords:    categories,
       };
     });
@@ -204,8 +200,7 @@ function SearchEngine() {
       url:         item.doi ? `https://doi.org/${item.doi}` : item.fullTextUrlList?.fullTextUrl?.[0]?.url ?? "#",
       type:        "Research Article",
       citations:   item.citedByCount ?? 0,
-      source:      "Europe PMC",
-      pdfUrl:      item.fullTextUrlList?.fullTextUrl?.find((u) => u.documentStyle === "pdf")?.url ?? null,
+      pdfUrl:      null,
       keywords:    item.keywordList?.keyword ?? [],
     }));
   };
@@ -220,7 +215,6 @@ function SearchEngine() {
     return (json?.results ?? []).map((item) => {
       const bib     = item.bibjson ?? {};
       const doi     = bib.identifier?.find((id) => id.type === "doi")?.id;
-      const pdfLink = bib.link?.find((l) => l.type === "fulltext" && l.url?.endsWith(".pdf"))?.url;
       const fullLink = bib.link?.find((l) => l.type === "fulltext")?.url ?? (doi ? `https://doi.org/${doi}` : "#");
       return {
         id:          item.id ?? `doaj-${Math.random()}`,
@@ -233,8 +227,7 @@ function SearchEngine() {
         url:         fullLink,
         type:        "Research Article (Open Access)",
         citations:   0,
-        source:      "DOAJ",
-        pdfUrl:      pdfLink ?? null,
+        pdfUrl:      null,
         keywords:    bib.keywords ?? [],
       };
     });
@@ -262,21 +255,84 @@ function SearchEngine() {
     });
   };
 
-  // ── Rank ──────────────────────────────────────────────────────────────────────
+  // ── Advanced Ranking with Author/Title Priority ────────────────────────────────
   const rankResults = (results, query) => {
-    const terms = query.toLowerCase().split(/\s+/).filter((t) => t.length > 2);
+    const searchTerms = query.toLowerCase().split(/\s+/).filter((t) => t.length > 1);
+    const exactQuery = query.toLowerCase().trim();
+    
     return [...results].sort((a, b) => {
-      const score = (item) => {
-        let s = 0;
-        const titleL    = item.title?.toLowerCase()    ?? "";
-        const abstractL = item.abstract?.toLowerCase() ?? "";
-        terms.forEach((t) => { if (titleL.includes(t)) s += 15; if (abstractL.includes(t)) s += 5; });
-        LAKE_KEYWORDS.forEach((kw) => { if (titleL.includes(kw)) s += 20; });
-        s += Math.min((item.citations ?? 0) * 0.05, 30);
-        s += ((parseInt(item.year) || 2000) - 2000) * 0.3;
-        return s;
+      const calculateScore = (item) => {
+        let score = 0;
+        
+        const titleLower = item.title?.toLowerCase() ?? "";
+        const authorsLower = item.authors?.toLowerCase() ?? "";
+        const abstractLower = item.abstract?.toLowerCase() ?? "";
+        
+        // EXACT MATCH BONUS - Highest priority
+        // Exact title match
+        if (titleLower === exactQuery) {
+          score += 1000;
+        }
+        // Title starts with query
+        else if (titleLower.startsWith(exactQuery)) {
+          score += 500;
+        }
+        // Title contains exact phrase
+        else if (titleLower.includes(exactQuery)) {
+          score += 300;
+        }
+        
+        // Exact author match
+        if (authorsLower === exactQuery) {
+          score += 800;
+        }
+        // Author contains exact name (for full names)
+        else if (authorsLower.includes(exactQuery)) {
+          score += 400;
+        }
+        
+        // Partial matches for each search term
+        searchTerms.forEach(term => {
+          // Title matches
+          if (titleLower === term) {
+            score += 200;
+          } else if (titleLower.startsWith(term)) {
+            score += 100;
+          } else if (titleLower.includes(term)) {
+            score += 50;
+          }
+          
+          // Author matches
+          if (authorsLower === term) {
+            score += 150;
+          } else if (authorsLower.includes(term)) {
+            score += 75;
+          }
+          
+          // Abstract matches
+          if (abstractLower.includes(term)) {
+            score += 20;
+          }
+        });
+        
+        // Lake keywords boost
+        LAKE_KEYWORDS.forEach((kw) => { 
+          if (titleLower.includes(kw)) score += 30; 
+        });
+        
+        // Citation score (capped)
+        score += Math.min((item.citations ?? 0) * 0.1, 30);
+        
+        // Recency boost (newer papers get slight advantage)
+        const year = parseInt(item.year);
+        if (!isNaN(year)) {
+          score += (year - 2000) * 0.5;
+        }
+        
+        return score;
       };
-      return score(b) - score(a);
+      
+      return calculateScore(b) - calculateScore(a);
     });
   };
 
@@ -302,7 +358,7 @@ function SearchEngine() {
 
   // ── Main search ───────────────────────────────────────────────────────────────
   const handleSearch = async (e) => {
-    e?.preventDefault();
+    if (e) e.preventDefault();
     if (!searchQuery.trim()) return;
 
     if (abortControllerRef.current) abortControllerRef.current.abort();
@@ -402,17 +458,27 @@ function SearchEngine() {
     return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
   };
 
-  // ── Source icon map ───────────────────────────────────────────────────────────
-  const SourceIcon = ({ source }) => {
-    const icons = {
-      "CrossRef":         <BookOpen className="w-3 h-3" />,
-      "OpenAlex":         <Library className="w-3 h-3" />,
-      "Semantic Scholar": <GraduationCap className="w-3 h-3" />,
-      "arXiv":            <Newspaper className="w-3 h-3" />,
-      "Europe PMC":       <FileText className="w-3 h-3" />,
-      "DOAJ":             <Globe className="w-3 h-3" />,
-    };
-    return icons[source] ?? <Sparkles className="w-3 h-3" />;
+  // ── Bold text helper with word boundaries for all fields ────────────────────────
+  const boldText = (text, query) => {
+    if (!text || !query) return text;
+    
+    // Split query into individual terms and filter out short words
+    const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+    if (terms.length === 0) return text;
+    
+    let result = text;
+    
+    terms.forEach(term => {
+      // Create regex that matches whole words only (using word boundaries)
+      // Escape special regex characters in the term
+      const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`\\b(${escapedTerm})\\b`, 'gi');
+      
+      // Replace matches with bold tags
+      result = result.replace(regex, '<strong class="font-bold text-blue-800">$1</strong>');
+    });
+    
+    return result;
   };
 
   // ── Render ────────────────────────────────────────────────────────────────────
@@ -454,8 +520,13 @@ function SearchEngine() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSearch(e);
+                          }
+                        }}
                         className="w-full pl-6 pr-4 py-6 bg-transparent text-gray-800 text-xl focus:outline-none"
-                        placeholder="Search lake research papers, theses, studies..."
+                        placeholder="Search by author, title, or topic..."
                       />
                     </div>
                     <div className="flex items-center gap-1 pr-3">
@@ -490,8 +561,13 @@ function SearchEngine() {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSearch(e);
+                        }
+                      }}
                       className="w-full pl-6 pr-4 py-4 bg-transparent text-gray-800 text-lg focus:outline-none"
-                      placeholder="Refine your search..."
+                      placeholder="Search by author, title, or topic..."
                     />
                   </div>
                   <div className="flex items-center gap-1 pr-3">
@@ -525,21 +601,6 @@ function SearchEngine() {
                     </span>
                   )}
                 </h2>
-
-                {/* Per-source badges */}
-                {crawlStats.sources?.length > 0 && !loading && (
-                  <div className="flex flex-wrap gap-2">
-                    {crawlStats.sources.map((stat, i) => (
-                      <div
-                        key={i}
-                        title={stat.error}
-                        className={`text-xs px-2 py-1 rounded-full ${stat.success ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
-                      >
-                        {stat.source}: {stat.count}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <button
@@ -569,7 +630,7 @@ function SearchEngine() {
                   <RefreshCw className="w-8 h-8 text-blue-500 animate-spin" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Searching Academic Databases</h3>
-                <p className="text-gray-500">Querying CrossRef, OpenAlex, Semantic Scholar, arXiv, Europe PMC, and DOAJ…</p>
+                <p className="text-gray-500">Querying multiple databases for lake research…</p>
               </div>
             )}
 
@@ -580,6 +641,7 @@ function SearchEngine() {
                   {paginatedResults.length > 0 ? (
                     paginatedResults.map((result, index) => {
                       const globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + index;
+                      
                       return (
                         <article
                           key={result.id || globalIndex}
@@ -591,18 +653,13 @@ function SearchEngine() {
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1">
                                 <a
-                                  href={result.url || result.pdfUrl || (result.doi ? `https://doi.org/${result.doi}` : "#")}
+                                  href={result.url || (result.doi ? `https://doi.org/${result.doi}` : "#")}
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className="text-xl font-bold text-blue-700 group-hover:text-blue-800 leading-tight hover:underline"
-                                >
-                                  {result.title || "Untitled"}
-                                </a>
+                                  dangerouslySetInnerHTML={{ __html: boldText(result.title || "Untitled", searchQuery) }}
+                                />
                                 <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                  <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-full flex items-center gap-1">
-                                    <SourceIcon source={result.source} />
-                                    {result.source}
-                                  </span>
                                   {result.type && (
                                     <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full">{result.type}</span>
                                   )}
@@ -613,11 +670,6 @@ function SearchEngine() {
                               </div>
 
                               <div className="flex items-center gap-2">
-                                {result.pdfUrl && (
-                                  <a href={result.pdfUrl} target="_blank" rel="noopener noreferrer" className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Download PDF">
-                                    <Download className="w-4 h-4" />
-                                  </a>
-                                )}
                                 <button
                                   onClick={() => copyToClipboard(`${result.title} - ${result.authors} (${result.year}). ${result.publication}. DOI: ${result.doi || "N/A"}`, result.id || globalIndex)}
                                   className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -639,20 +691,26 @@ function SearchEngine() {
                               </div>
                             </div>
 
-                            {/* Authors */}
+                            {/* Authors with bold text */}
                             {result.authors && result.authors !== "Unknown" && (
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <User className="w-4 h-4 flex-shrink-0" />
-                                <span className="line-clamp-1">{result.authors}</span>
+                                <span 
+                                  className="line-clamp-1"
+                                  dangerouslySetInnerHTML={{ __html: boldText(result.authors, searchQuery) }}
+                                />
                               </div>
                             )}
 
-                            {/* Meta */}
+                            {/* Meta - Publication and Year with bold text */}
                             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
                               {result.publication && result.publication !== "Unknown" && (
                                 <span className="flex items-center gap-1 text-gray-600">
                                   <BookOpen className="w-4 h-4" />
-                                  <span className="line-clamp-1">{result.publication}</span>
+                                  <span 
+                                    className="line-clamp-1"
+                                    dangerouslySetInnerHTML={{ __html: boldText(result.publication, searchQuery) }}
+                                  />
                                 </span>
                               )}
                               {result.year && result.year !== "Unknown" && (
@@ -668,12 +726,13 @@ function SearchEngine() {
                               )}
                             </div>
 
-                            {/* Abstract */}
+                            {/* Abstract with bold text */}
                             {result.abstract && result.abstract !== "No abstract available" && (
                               <div className="mt-2">
-                                <p className={`text-gray-600 text-sm leading-relaxed ${expandedAbstract === globalIndex ? "" : "line-clamp-3"}`}>
-                                  {result.abstract.replace(/<[^>]*>/g, "")}
-                                </p>
+                                <p 
+                                  className={`text-gray-600 text-sm leading-relaxed ${expandedAbstract === globalIndex ? "" : "line-clamp-3"}`}
+                                  dangerouslySetInnerHTML={{ __html: boldText(result.abstract.replace(/<[^>]*>/g, ""), searchQuery) }}
+                                />
                                 {result.abstract.length > 300 && (
                                   <button
                                     onClick={() => setExpandedAbstract(expandedAbstract === globalIndex ? null : globalIndex)}
@@ -685,7 +744,7 @@ function SearchEngine() {
                               </div>
                             )}
 
-                            {/* Keywords */}
+                            {/* Keywords with bold text */}
                             {result.keywords && result.keywords.length > 0 && (
                               <div className="flex flex-wrap gap-2 mt-2">
                                 {result.keywords.slice(0, 5).map((keyword, i) => (
@@ -693,9 +752,8 @@ function SearchEngine() {
                                     key={i}
                                     onClick={() => setSearchQuery(keyword)}
                                     className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 cursor-pointer transition-colors"
-                                  >
-                                    {keyword}
-                                  </span>
+                                    dangerouslySetInnerHTML={{ __html: boldText(keyword, searchQuery) }}
+                                  />
                                 ))}
                               </div>
                             )}
@@ -712,12 +770,6 @@ function SearchEngine() {
                                 <a href={result.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-600">
                                   <ExternalLink className="w-3 h-3" />
                                   View Source
-                                </a>
-                              )}
-                              {result.pdfUrl && (
-                                <a href={result.pdfUrl} className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors">
-                                  <FileText className="w-3.5 h-3.5" />
-                                  Download PDF
                                 </a>
                               )}
                             </div>

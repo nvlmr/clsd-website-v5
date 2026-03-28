@@ -2,12 +2,12 @@
 
 import axios from 'axios';
 
-// Use import.meta.env for Vite instead of process.env
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/clsd-backend/public';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 5000, // 5 second timeout
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   }
