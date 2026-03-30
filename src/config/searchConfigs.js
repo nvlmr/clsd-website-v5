@@ -109,5 +109,93 @@ export const searchConfigs = {
       { value: 'maintenance', label: 'Under Maintenance' }
     ],
     resultCountMessage: 'Found {count} result{plural} for "{query}"'
+  },
+  
+  researchPapers: {
+    searchKeys: [
+      'title',
+      'student',
+      'adviser',
+      'degree',
+      'tags',
+      'year'
+    ],
+    placeholder: 'Search research papers...',
+    variant: 'elevated',
+    size: 'md',
+    theme: 'light',
+    showResultCount: true,
+    debounceTime: 300,
+    showNoResultsMessage: true,
+    noResultsMessage: 'No research papers found for "{query}"',
+    minChars: 2,
+    filterOptions: [
+      { value: 'all', label: 'All Papers' },
+      { value: 'thesis', label: 'Thesis' },
+      { value: 'dissertation', label: 'Dissertation' },
+      { value: 'research', label: 'Research Paper' }
+    ],
+    sortOptions: [
+      { value: 'year_desc', label: 'Newest First' },
+      { value: 'year_asc', label: 'Oldest First' },
+      { value: 'title_asc', label: 'Title (A-Z)' },
+      { value: 'title_desc', label: 'Title (Z-A)' },
+      { value: 'author_asc', label: 'Author (A-Z)' }
+    ],
+    resultCountMessage: 'Found {count} paper{plural} for "{query}"'
+  },
+
+  // Video Gallery page
+  videoGallery: {
+    searchKeys: ['title', 'year', 'description'],
+    placeholder: 'Search videos...',
+    variant: 'elevated',
+    size: 'md',
+    theme: 'light',
+    showResultCount: true,
+    debounceTime: 300,
+    showNoResultsMessage: true,
+    noResultsMessage: 'No videos found for "{query}"',
+    minChars: 1,
+    // Additional video-specific configurations
+    filterOptions: [
+      { value: 'all', label: 'All Videos' },
+      { value: 'published', label: 'Published' },
+      { value: 'draft', label: 'Draft' }
+    ],
+    sortOptions: [
+      { value: 'year_desc', label: 'Newest First' },
+      { value: 'year_asc', label: 'Oldest First' },
+      { value: 'title_asc', label: 'Title (A-Z)' },
+      { value: 'title_desc', label: 'Title (Z-A)' }
+    ],
+    resultCountMessage: 'Found {count} video{plural} for "{query}"'
+  },
+
+  // IEC Materials page - ADD THIS CONFIGURATION
+  iecMaterials: {
+    searchKeys: ['title', 'description', 'year'],
+    placeholder: 'Search IEC materials...',
+    variant: 'elevated',
+    size: 'md',
+    theme: 'light',
+    showResultCount: true,
+    debounceTime: 300,
+    showNoResultsMessage: true,
+    noResultsMessage: 'No IEC materials found for "{query}"',
+    minChars: 2,
+    // Additional IEC-specific configurations
+    filterOptions: [
+      { value: 'all', label: 'All Materials' },
+      { value: 'published', label: 'Published' },
+      { value: 'draft', label: 'Draft' }
+    ],
+    sortOptions: [
+      { value: 'year_desc', label: 'Newest First' },
+      { value: 'year_asc', label: 'Oldest First' },
+      { value: 'title_asc', label: 'Title (A-Z)' },
+      { value: 'title_desc', label: 'Title (Z-A)' }
+    ],
+    resultCountMessage: 'Found {count} material{plural} for "{query}"'
   }
 };

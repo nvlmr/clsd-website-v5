@@ -25,7 +25,8 @@ import {
   Filter,
   AlertCircle,
   Clock,
-  Tag
+  Tag,
+  RefreshCw
 } from "lucide-react";
 
 function DostFundedProjectPage() {
@@ -485,6 +486,94 @@ function DostFundedProjectPage() {
     </div>
   ), [handleBackClick, formatDuration, formatCurrency, formatStatus]);
 
+  const renderContent = () => {
+    if (selectedProject) {
+      return <DetailView project={selectedProject} />;
+    }
+
+    if (filteredAndSearchedProjects.length === 0 && !loading) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-sm sm:text-lg">
+            {searchTerm 
+              ? `No DOST funded projects found matching "${searchTerm}". Try a different search term.`
+              : 'No projects found.'}
+          </p>
+          {searchTerm && (
+            <button
+              onClick={() => {
+                handleSearchClear();
+                resetSearch();
+              }}
+              className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Clear search
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
+          {currentProjects.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+            <button
+              onClick={() => handlePageChange('prev')}
+              disabled={currentPage === 1}
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                currentPage === 1
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+              }`}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  aria-label={`Go to page ${page}`}
+                  aria-current={currentPage === page ? 'page' : undefined}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange('next')}
+              disabled={currentPage === totalPages}
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                currentPage === totalPages
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+              }`}
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       <AutoScroll/>
@@ -492,6 +581,7 @@ function DostFundedProjectPage() {
       
       <div ref={topRef} />
       
+      {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 mt-25">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="max-w-4xl">
@@ -519,20 +609,26 @@ function DostFundedProjectPage() {
       {error && !loading && (
         <div className="container mx-auto px-4 mt-8">
           <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-            <p className="text-red-700">Error: {error}</p>
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <p className="text-red-700 font-medium">Error loading projects</p>
+            </div>
+            <p className="text-red-600 text-sm mb-3">{error}</p>
             <button
               onClick={() => refresh()}
-              className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
             >
+              <RefreshCw className="w-4 h-4" />
               Try Again
             </button>
           </div>
         </div>
       )}
       
+      {/* Search and Filter Section - Only show when not in detail view, not loading, and no errors */}
       {!selectedProject && !loading && !error && (
         <>
-          {/* Search Component - keeping original styling */}
+          {/* Search Component */}
           <div className="mt-15">
             <Search 
               data={dostProjects}
@@ -541,6 +637,12 @@ function DostFundedProjectPage() {
               onSearchResults={handleSearchResultsWrapper}
               onSearchStart={handleSearchStartWrapper}
               onSearchClear={handleSearchClearWrapper}
+              showResultCount={searchConfigs.dostFundedProjects?.showResultCount}
+              debounceTime={searchConfigs.dostFundedProjects?.debounceTime}
+              minChars={searchConfigs.dostFundedProjects?.minChars}
+              variant={searchConfigs.dostFundedProjects?.variant}
+              size={searchConfigs.dostFundedProjects?.size}
+              theme={searchConfigs.dostFundedProjects?.theme}
             />
           </div>
           
@@ -568,89 +670,24 @@ function DostFundedProjectPage() {
           {/* Search Stats */}
           {searchTerm && (
             <div className="container mx-auto px-4 mt-4">
-              <p className="text-xs sm:text-sm text-gray-600">
-                Found {filteredAndSearchedProjects.length} results for "{searchTerm}"
+              <p className="text-xs sm:text-sm text-gray-600 text-center">
+                Found {searchResults.filtered} result{searchResults.filtered !== 1 ? 's' : ''} 
+                {searchTerm && ` matching "${searchTerm}"`}
                 {statusFilter !== 'all' && ` in ${statusFilter} status`}
+                {searchResults.total !== searchResults.filtered && 
+                  ` out of ${searchResults.total} total projects`
+                }
               </p>
             </div>
           )}
         </>
       )}
 
+      {/* Main Content Area */}
       <div className="flex-grow container mx-auto px-4 mt-8">
-        {selectedProject ? (
-          <DetailView project={selectedProject} />
-        ) : (
-          <>
-            {loading ? null : error ? null : (
-              <>
-                {filteredAndSearchedProjects.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-sm sm:text-lg">No projects found.</p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
-                      {currentProjects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
-                      ))}
-                    </div>
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                      <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
-                        <button
-                          onClick={() => handlePageChange('prev')}
-                          disabled={currentPage === 1}
-                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                            currentPage === 1
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                          }`}
-                          aria-label="Previous page"
-                        >
-                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                            <button
-                              key={page}
-                              onClick={() => goToPage(page)}
-                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                                currentPage === page
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-600 hover:bg-gray-100'
-                              }`}
-                              aria-label={`Go to page ${page}`}
-                              aria-current={currentPage === page ? 'page' : undefined}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                        </div>
-
-                        <button
-                          onClick={() => handlePageChange('next')}
-                          disabled={currentPage === totalPages}
-                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                            currentPage === totalPages
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                          }`}
-                          aria-label="Next page"
-                        >
-                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </>
-            )}
-          </>
-        )}
+        {!loading && !error && renderContent()}
       </div>
+      
       <Footer/>
     </div>
   );

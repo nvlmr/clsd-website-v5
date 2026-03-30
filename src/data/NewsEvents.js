@@ -1,4 +1,4 @@
-// Updated NewsEvents.js with correct enum values ('news' or 'event')
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\data\NewsEvents.js
 import image1 from "../assets/images/News and Events/event1.jpg";
 import image2 from "../assets/images/News and Events/event2.jpg";
 import image3 from "../assets/images/News and Events/event3.jpg";

@@ -1,122 +1,81 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\hooks\ResearchPaper.js
+import { useState, useEffect, useCallback } from 'react';
+import researchPaperApi from '../services/research_paper_api.js';
+import researchPapersData from "../data/ResearchPaper.js";
 
-import { useState, useEffect, useCallback } from "react";
-import { 
-  fetchResearchPapers, 
-  fetchResearchPaperById, 
-  checkServerHealth,
-  downloadResearchPaper 
-} from "../services/research_paper_api";
+export const useResearchPapers = (initialOptions = {}) => {
+  const {
+    autoFetch = true,
+    useMockData = false
+  } = initialOptions;
 
-export const useResearchPapers = () => {
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dataSource, setDataSource] = useState(null);
-  const [serverAvailable, setServerAvailable] = useState(null);
+  const [usingMock, setUsingMock] = useState(useMockData);
+  const [apiAvailable, setApiAvailable] = useState(null);
+  const [downloading, setDownloading] = useState(null);
 
-  // Check server availability on mount
+  // Set mock data usage if specified
   useEffect(() => {
-    const checkServer = async () => {
-      const health = await checkServerHealth();
-      setServerAvailable(health.available);
-    };
-    checkServer();
-  }, []);
+    researchPaperApi.setUseMockData(useMockData);
+    setUsingMock(useMockData);
+  }, [useMockData]);
 
-  // Fetch all research papers
-  const fetchAllPapers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await fetchResearchPapers();
-      
-      if (result.success) {
-        setPapers(result.data);
-        setDataSource(result.source);
-        if (result.source === "mock") {
-          console.warn("Using mock data - server unavailable");
-        }
-      } else {
-        setError(result.message || "Failed to fetch research papers");
-      }
-    } catch (err) {
-      setError(err.message);
-      console.error("Error fetching research papers:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch a single paper by ID
-  const fetchPaperById = useCallback(async (id) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const result = await fetchResearchPaperById(id);
-      
-      if (result.success) {
-        setDataSource(result.source);
-        return result.data;
-      } else {
-        setError(result.message || "Paper not found");
-        return null;
-      }
-    } catch (err) {
-      setError(err.message);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Download a paper
-  const downloadPaper = useCallback(async (paper) => {
-    try {
-      const result = await downloadResearchPaper(paper);
-      return result;
-    } catch (error) {
-      console.error("Download error:", error);
-      throw error;
-    }
-  }, []);
-
-  // Filter papers by search query
-  const searchPapers = useCallback((query, searchKeys = ['title', 'student', 'adviser', 'degree', 'tags']) => {
-    if (!query || query.trim() === "") {
+  // Search papers function
+  const searchPapers = useCallback((query) => {
+    if (!query || query.trim() === '') {
       return papers;
     }
     
-    const lowerQuery = query.toLowerCase();
+    const searchTerm = query.toLowerCase();
     return papers.filter(paper => {
-      return searchKeys.some(key => {
-        const value = paper[key];
-        if (!value) return false;
-        return String(value).toLowerCase().includes(lowerQuery);
-      });
+      return (
+        paper.title?.toLowerCase().includes(searchTerm) ||
+        paper.student?.toLowerCase().includes(searchTerm) ||
+        paper.adviser?.toLowerCase().includes(searchTerm) ||
+        paper.degree?.toLowerCase().includes(searchTerm) ||
+        paper.tags?.toLowerCase().includes(searchTerm) ||
+        paper.year?.toString().includes(searchTerm)
+      );
     });
   }, [papers]);
 
-  // Filter papers by type (Thesis/Dissertation)
-  const filterByType = useCallback((type, papersList = papers) => {
-    if (!type || type === 'all') {
-      return papersList;
-    }
+  // Fetch research papers
+  const fetchResearchPapers = useCallback(async (forceRefresh = false) => {
+    setLoading(true);
+    setError(null);
     
-    return papersList.filter(paper => {
-      if (!paper.tags) return false;
-      return paper.tags.toLowerCase().includes(type.toLowerCase());
-    });
-  }, [papers]);
+    try {
+      const result = await researchPaperApi.fetchResearchPapers();
+      setPapers(result);
+      
+      // Check if we're using mock data
+      const isUsingMock = researchPaperApi.useMockData;
+      setUsingMock(isUsingMock);
+      
+      if (isUsingMock) {
+        console.log('Currently using mock data for research papers');
+      }
+      
+    } catch (err) {
+      setError(err.message || 'Failed to fetch research papers');
+      console.error('Error in useResearchPapers hook:', err);
+      
+      // Fallback to mock data on error
+      setPapers(researchPapersData);
+      setUsingMock(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Get unique manuscript types for filter
+  // Get manuscript types from tags
   const getManuscriptTypes = useCallback(() => {
     const types = new Set();
     papers.forEach(paper => {
       if (paper.tags) {
-        const tags = paper.tags.split(',').map(tag => tag.trim());
+        const tags = paper.tags.split(',').map(t => t.trim());
         tags.forEach(tag => {
           if (tag === 'Thesis' || tag === 'Dissertation') {
             types.add(tag);
@@ -124,91 +83,90 @@ export const useResearchPapers = () => {
         });
       }
     });
-    return ['all', ...Array.from(types)];
+    return Array.from(types);
   }, [papers]);
+
+  // Download paper with progress tracking
+  const downloadPaper = useCallback(async (paper) => {
+    if (!paper.document) {
+      throw new Error("No document available for download");
+    }
+    
+    setDownloading(paper.id);
+    
+    try {
+      const result = await researchPaperApi.downloadPaper(paper);
+      return result;
+    } catch (error) {
+      console.error('Download error:', error);
+      throw error;
+    } finally {
+      setDownloading(null);
+    }
+  }, []);
+
+  // Get paper by ID
+  const getPaperById = useCallback(async (id) => {
+    // First try from current data
+    const fromCurrentData = papers.find(paper => paper.id === parseInt(id));
+    if (fromCurrentData) return fromCurrentData;
+    
+    // Otherwise fetch fresh
+    try {
+      const paper = await researchPaperApi.getResearchPaperById(id);
+      return paper;
+    } catch (error) {
+      console.error('Error fetching paper by ID:', error);
+      return null;
+    }
+  }, [papers]);
+
+  // Check API health
+  const checkApiHealth = useCallback(async () => {
+    const available = await researchPaperApi.checkApiHealth();
+    setApiAvailable(available);
+    return available;
+  }, []);
 
   // Refresh data
   const refresh = useCallback(() => {
-    fetchAllPapers();
-  }, [fetchAllPapers]);
+    return fetchResearchPapers(true);
+  }, [fetchResearchPapers]);
 
-  // Initial fetch on mount
+  // Auto-fetch on mount
   useEffect(() => {
-    fetchAllPapers();
-  }, [fetchAllPapers]);
+    if (autoFetch) {
+      fetchResearchPapers();
+    }
+  }, [autoFetch, fetchResearchPapers]);
 
   return {
+    // Data
     papers,
     loading,
     error,
-    dataSource,
-    serverAvailable,
-    fetchAllPapers,
-    fetchPaperById,
-    downloadPaper,
-    searchPapers,
-    filterByType,
-    getManuscriptTypes,
-    refresh
-  };
-};
-
-/**
- * Custom hook for managing a single research paper
- */
-export const useResearchPaper = (id) => {
-  const [paper, setPaper] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [dataSource, setDataSource] = useState(null);
-
-  useEffect(() => {
-    const fetchPaper = async () => {
-      if (!id) {
-        setLoading(false);
-        return;
-      }
-      
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const result = await fetchResearchPaperById(id);
-        
-        if (result.success) {
-          setPaper(result.data);
-          setDataSource(result.source);
-          if (result.source === "mock") {
-            console.warn("Using mock data - server unavailable");
-          }
-        } else {
-          setError(result.message || "Failed to fetch research paper");
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
+    usingMock,
+    apiAvailable,
+    downloading,
     
-    fetchPaper();
-  }, [id]);
-
-  const downloadPaper = useCallback(async () => {
-    if (!paper) return;
-    try {
-      return await downloadResearchPaper(paper);
-    } catch (error) {
-      console.error("Download error:", error);
-      throw error;
+    // Methods
+    fetchResearchPapers,
+    searchPapers,
+    getPaperById,
+    downloadPaper,
+    getManuscriptTypes,
+    refresh,
+    checkApiHealth,
+    
+    // Setters
+    setUseMockData: (useMock) => {
+      researchPaperApi.setUseMockData(useMock);
+      setUsingMock(useMock);
+      if (!useMock) {
+        fetchResearchPapers(true);
+      }
     }
-  }, [paper]);
-
-  return {
-    paper,
-    loading,
-    error,
-    dataSource,
-    downloadPaper
   };
 };
+
+export default useResearchPapers;

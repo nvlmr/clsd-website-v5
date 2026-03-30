@@ -1,27 +1,59 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\pages\Media\VideoGallery.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
 import Search from "../../components/Search.jsx";
-import VideoGalleryData from "../../data/VideoGallery.js";
+import { useVideoGallery } from "../../hooks/VideoGallery.js";
+import { useSearch } from "../../hooks/useSearch.js";
+import { searchConfigs } from "../../config/searchConfigs.js";
 
 import { 
   ChevronLeft, 
   ChevronRight, 
   Calendar, 
-  Tag, 
   Play,
   ArrowLeft,
-  Youtube
+  FileText,
+  AlertCircle,
+  RefreshCw,
+  Download,
+  Maximize2,
+  Image as ImageIcon,
+  Tag
 } from "lucide-react";
 
 function VideoGallery() {
-  const [filteredVideos, setFilteredVideos] = useState(VideoGalleryData);
+  const { videos, loading, error, refreshVideos } = useVideoGallery();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(9);
   
   const topRef = useRef(null);
+
+  // Use the video gallery search configuration from searchConfigs
+  const videoSearchConfig = searchConfigs.videoGallery;
+
+  // Use the search hook
+  const {
+    filteredData: filteredVideos,
+    searchTerm,
+    isSearching,
+    searchResults,
+    handleSearchResults,
+    handleSearchStart,
+    handleSearchClear,
+    resetSearch,
+    setFilteredData
+  } = useSearch(videos, videoSearchConfig);
+
+  // Update filtered videos when videos data loads
+  useEffect(() => {
+    if (videos.length > 0) {
+      setFilteredData(videos);
+    }
+  }, [videos, setFilteredData]);
 
   // Handle window resize for responsive items per page
   useEffect(() => {
@@ -49,6 +81,11 @@ function VideoGallery() {
     }
   }, [currentPage, selectedVideo]);
 
+  // Reset to page 1 when search results change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredVideos]);
+
   const totalPages = Math.ceil(filteredVideos.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -74,22 +111,111 @@ function VideoGallery() {
   const handleBackClick = () => {
     setSelectedVideo(null);
   };
-  // Mobile-optimized Video Card without description
+
+  // Format date from timestamp to readable format
+  const formatDate = (timestamp) => {
+    if (!timestamp) return "Date not available";
+    const date = new Date(timestamp);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  // Extract YouTube ID from video_url
+  const getYouTubeId = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&]+)/);
+    return match ? match[1] : null;
+  };
+
+  // Get thumbnail - prioritize cover_image over YouTube thumbnail
+  const getThumbnail = (video) => {
+    // Always use cover_image if available
+    if (video.cover_image) {
+      // Check if cover_image is a full URL or relative path
+      if (video.cover_image.startsWith('http')) {
+        return video.cover_image;
+      }
+      // If relative path, prepend uploads base URL
+      const uploadsBaseUrl = import.meta.env.VITE_UPLOADS_BASE_URL;
+      return `${uploadsBaseUrl}/${video.cover_image.replace(/^\/+/, '')}`;
+    }
+    
+    // Fallback to YouTube thumbnail if no cover_image
+    const youtubeId = getYouTubeId(video.video_url);
+    if (youtubeId) return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+    
+    // Default placeholder
+    return "https://via.placeholder.com/400x225?text=Video+Thumbnail";
+  };
+
+  // Get document URL with proper handling
+  const getDocumentUrl = (document) => {
+    if (!document) return null;
+    
+    // If it's already a full URL, return it
+    if (document.startsWith('http://') || document.startsWith('https://')) {
+      return document;
+    }
+    
+    // Clean up the path (remove leading/trailing slashes)
+    const cleanPath = document.replace(/^\/+|\/+$/g, '');
+    
+    // Get uploads base URL from environment variable
+    const uploadsBaseUrl = import.meta.env.VITE_UPLOADS_BASE_URL;
+    
+    // If uploadsBaseUrl is not configured, use relative path
+    if (!uploadsBaseUrl) {
+      return `/${cleanPath}`;
+    }
+    
+    // Combine base URL with document path
+    return `${uploadsBaseUrl}/${cleanPath}`;
+  };
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  // Download attachment - same as NewsEvents
+  const downloadAttachment = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Download failed:', error);
+      window.open(url, '_blank');
+    }
+  };
+
+  // Video Card Component
   const VideoCard = ({ video }) => (
     <div 
       className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
       onClick={() => handleCardClick(video)}
     >
-      {/* Blue line at the bottom on hover */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
       
-      {/* Video Thumbnail with Play Overlay - with aspect ratio */}
       <div className="relative pt-[56.25%] bg-gray-900 overflow-hidden">
         <div className="absolute inset-0">
           <img 
-            src={video.thumbnail || `https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
+            src={getThumbnail(video)}
             alt={video.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 opacity-90"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={(e) => {
               e.target.onerror = null;
               e.target.src = "https://via.placeholder.com/400x225?text=Video+Thumbnail";
@@ -97,23 +223,14 @@ function VideoGallery() {
           />
         </div>
         
-        {/* Play Button Overlay */}
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors duration-300">
           <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-red-600 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
             <Play className="w-4 h-4 sm:w-6 sm:h-6 text-white fill-current" />
           </div>
         </div>
-        
-        {/* Duration Badge */}
-        {video.duration && (
-          <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
-            {video.duration}
-          </div>
-        )}
       </div>
       
       <div className="p-3 sm:p-4 flex flex-col flex-grow">
-        {/* Fixed height title area with underline */}
         <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
           <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
             {video.title}
@@ -121,95 +238,227 @@ function VideoGallery() {
         </div>
         
         <div className="space-y-1.5 sm:space-y-2 mt-1">
-          {/* Mobile: Show only category */}
           <div className="flex sm:hidden flex-col space-y-1.5">
             <div className="flex items-center gap-1.5">
-              <Tag className="w-3 h-3 text-blue-500 flex-shrink-0" />
-              <span className="text-xs text-gray-600 line-clamp-1">{video.category}</span>
+              <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0" />
+              <span className="text-xs text-gray-600">{video.year}</span>
             </div>
           </div>
 
-          {/* Desktop: Show category and date stacked */}
           <div className="hidden sm:block space-y-2">
-            {/* Category */}
             <div className="flex items-center gap-2">
-              <Tag className="w-3 h-3 text-blue-500" />
-              <span className="text-sm text-gray-500 line-clamp-1">
-                {video.category}
+              <Calendar className="w-4 h-4 text-blue-500" />
+              <span className="text-sm text-gray-500">
+                {video.year}
               </span>
             </div>
-            
-            {/* Date */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Calendar className="w-3 h-3 text-blue-500" />
-              <span>{video.date}</span>
-            </div>
           </div>
         </div>
       </div>
     </div>
   );
 
-  const DetailView = ({ video }) => (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <button
-        onClick={handleBackClick}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
-      >
-        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-        <span className="text-sm sm:text-base">Back to Video Gallery</span>
-      </button>
+  const DetailView = ({ video }) => {
+    const youtubeId = getYouTubeId(video.video_url);
+    const documentUrl = getDocumentUrl(video.document);
+    const thumbnailUrl = getThumbnail(video);
+    
+    // Check if there's a document to display as attachment
+    const hasAttachment = documentUrl && video.document;
+    const attachmentName = video.document ? video.document.split('/').pop() : 'document';
+    
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <button
+          onClick={handleBackClick}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
+        >
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+          <span className="text-sm sm:text-base">Back to Video Gallery</span>
+        </button>
 
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Video Player Section */}
-        <div className="relative bg-black aspect-video">
-          <iframe
-            width="100%"
-            height="100%"
-            src={`https://www.youtube.com/embed/${video.youtubeId}`}
-            title={video.title}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="absolute inset-0 w-full h-full"
-          ></iframe>
-        </div>
-
-        {/* Title section */}
-        <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{video.title}</h1>
-        </div>
-
-        <div className="p-4 sm:p-6 md:p-8">
-          {/* Description first */}
-          <div className="mb-6 sm:mb-8">
-            <h2 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">Description</h2>
-            <p className="text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">
-              {video.description}
-            </p>
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+          {/* Video Player Section */}
+          <div className="relative bg-black aspect-video">
+            {youtubeId ? (
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${youtubeId}`}
+                title={video.title}
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 w-full h-full"
+              ></iframe>
+            ) : video.video_url ? (
+              <video
+                controls
+                className="absolute inset-0 w-full h-full"
+                poster={thumbnailUrl}
+              >
+                <source src={video.video_url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                <p className="text-white">Video not available</p>
+              </div>
+            )}
           </div>
 
-          {/* Category and Date with icons */}
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex items-start gap-2 sm:gap-3">
-              <Tag className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="text-xs sm:text-sm text-gray-500">Category</span>
-                <p className="text-sm sm:text-base text-gray-900 font-medium">{video.category}</p>
+          <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{video.title}</h1>
+          </div>
+
+          <div className="p-4 sm:p-6 md:p-8">
+            {/* Description */}
+            {video.description && (
+              <div className="mb-6 sm:mb-8">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900">Description</h2>
+                </div>
+                <p className="ml-4 sm:ml-7 text-sm sm:text-base text-gray-700 leading-relaxed whitespace-pre-line">
+                  {video.description}
+                </p>
+              </div>
+            )}
+
+            {/* Video Details - Only Year */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Video Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Year</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{video.year}</p>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="flex items-start gap-2 sm:gap-3">
-              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <span className="text-xs sm:text-sm text-gray-500">Date</span>
-                <p className="text-sm sm:text-base text-gray-900 font-medium">{video.date}</p>
+
+            {/* Attachments - Styled like NewsEvents attachments section */}
+            {hasAttachment && (
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Attachments</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">(1 file)</span>
+                </div>
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{attachmentName}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                      <button
+                        onClick={() => downloadAttachment(documentUrl, attachmentName)}
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                        title="Download"
+                      >
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
+
+  // Render content based on state
+  const renderContent = () => {
+    if (selectedVideo) {
+      return <DetailView video={selectedVideo} />;
+    }
+
+    if (filteredVideos.length === 0 && !loading) {
+      return (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-sm sm:text-lg">
+            {searchTerm 
+              ? `No videos found matching "${searchTerm}". Try a different search term.`
+              : 'No videos found.'}
+          </p>
+          {searchTerm && (
+            <button
+              onClick={() => {
+                handleSearchClear();
+                resetSearch();
+              }}
+              className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              Clear search
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
+          {currentVideos.map((video) => (
+            <VideoCard key={video.id} video={video} />
+          ))}
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+            <button
+              onClick={() => handlePageChange('prev')}
+              disabled={currentPage === 1}
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                currentPage === 1
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+              }`}
+            >
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => goToPage(page)}
+                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => handlePageChange('next')}
+              disabled={currentPage === totalPages}
+              className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                currentPage === totalPages
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+              }`}
+            >
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+          </div>
+        )}
+      </>
+    );
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -218,6 +467,7 @@ function VideoGallery() {
       
       <div ref={topRef} />
       
+      {/* Hero Section - Always visible */}
       <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 mt-25">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="max-w-4xl">
@@ -233,81 +483,69 @@ function VideoGallery() {
         </div>
       </section>
       
-      {!selectedVideo && (
+      {/* Loading State - Moved outside main content container like NewsEvents */}
+      {loading && (
+        <div className="container mx-auto px-4 mt-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-gray-600">Loading videos...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="container mx-auto px-4 mt-8">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+            <p className="text-red-700">Error: {error}</p>
+            <button
+              onClick={() => refreshVideos()}
+              className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Search Component - Only show when not in detail view, not loading, and data is loaded */}
+      {!selectedVideo && !loading && videos.length > 0 && !error && (
         <Search 
           className="mt-15"
-          data={VideoGalleryData}
-          searchKeys={['title', 'description', 'category']}
-          onSearchResults={setFilteredVideos}
-          showResultCount={true}
+          data={videos}
+          searchKeys={videoSearchConfig.searchKeys}
+          onSearchResults={handleSearchResults}
+          onSearchStart={handleSearchStart}
+          onSearchClear={handleSearchClear}
+          showResultCount={videoSearchConfig.showResultCount}
+          placeholder={videoSearchConfig.placeholder}
+          variant={videoSearchConfig.variant}
+          size={videoSearchConfig.size}
+          theme={videoSearchConfig.theme}
+          debounceTime={videoSearchConfig.debounceTime}
+          minChars={videoSearchConfig.minChars}
+          noResultsMessage={videoSearchConfig.noResultsMessage}
         />
       )}
 
-      <div className="flex-grow container mx-auto px-4 mt-14">
-        {selectedVideo ? (
-          <DetailView video={selectedVideo} />
-        ) : (
-          <>
-            {filteredVideos.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 text-sm sm:text-lg">No videos found.</p>
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
-                  {currentVideos.map((video) => (
-                    <VideoCard key={video.id} video={video} />
-                  ))}
-                </div>
+      {/* Search Stats - Show when searching and not in detail view */}
+      {!selectedVideo && searchTerm && filteredVideos.length > 0 && !loading && !error && (
+        <div className="container mx-auto px-4 mt-4">
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Found {searchResults.filtered} video{searchResults.filtered !== 1 ? 's' : ''} 
+              {searchTerm && ` matching "${searchTerm}"`}
+              {searchResults.total !== searchResults.filtered && 
+                ` out of ${searchResults.total} total videos`
+              }
+            </p>
+          </div>
+        </div>
+      )}
 
-                {totalPages > 1 && (
-                  <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
-                    <button
-                      onClick={() => handlePageChange('prev')}
-                      disabled={currentPage === 1}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        currentPage === 1
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                      }`}
-                    >
-                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                        <button
-                          key={page}
-                          onClick={() => goToPage(page)}
-                          className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                            currentPage === page
-                              ? 'bg-blue-600 text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => handlePageChange('next')}
-                      disabled={currentPage === totalPages}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                        currentPage === totalPages
-                          ? 'text-gray-400 cursor-not-allowed'
-                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                      }`}
-                    >
-                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </>
-        )}
+      {/* Main Content Area */}
+      <div className="flex-grow container mx-auto px-4 mt-8">
+        {!loading && !error && renderContent()}
       </div>
+      
       <Footer/>
     </div>
   );
