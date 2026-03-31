@@ -141,6 +141,71 @@ function OrganizationalStructure() {
     </div>
   );
 
+  // Horizontal Water Filling Loading Component that completes in ~5 seconds
+  const WaterFillingLoading = () => {
+    const [waterLevel, setWaterLevel] = useState(0);
+    const [isComplete, setIsComplete] = useState(false);
+
+    useEffect(() => {
+      // Simulate loading progress that completes in ~5 seconds
+      const interval = setInterval(() => {
+        setWaterLevel(prev => {
+          if (prev >= 100) {
+            setIsComplete(true);
+            clearInterval(interval);
+            return 100;
+          }
+          // Slower increment to last about 5 seconds (100 increments * 50ms = 5 seconds)
+          return prev + 1;
+        });
+      }, 35); // 50ms increments = 5 seconds for 100%
+
+      return () => clearInterval(interval);
+    }, []);
+
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center py-58">
+        <div className="w-full max-w-md mx-auto px-4">
+          {/* Horizontal Water Bar */}
+          <div className="relative">
+            {/* Background Bar */}
+            <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+              {/* Water Fill */}
+              <div 
+                className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-100 ease-out relative"
+                style={{ width: `${waterLevel}%` }}
+              >
+                {/* Ripple Effect */}
+                <div className="absolute inset-0 overflow-hidden">
+                  <div className="absolute top-0 bottom-0 w-full">
+                    <div className="absolute top-0 bottom-0 w-20 bg-white/30 transform -skew-x-12 animate-pulse"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Percentage Label */}
+            <div className="absolute -top-6 right-0 text-xs text-blue-600 font-medium">
+              {Math.min(100, Math.floor(waterLevel))}%
+            </div>
+          </div>
+          
+          {/* Loading Text */}
+          <div className="text-center mt-8">
+            <p className="text-gray-600 text-sm font-medium">
+              {waterLevel >= 100 ? 'Loading complete!' : 'Loading organizational structure...'}
+            </p>
+            <div className="flex justify-center space-x-1 mt-2">
+              <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Helper function for grid classes
   const getGridClasses = (count) => {
     const baseClasses = 'grid gap-3 sm:gap-4';
@@ -162,7 +227,32 @@ function OrganizationalStructure() {
       return <DetailView person={selectedPerson} />;
     }
 
-    if (experts?.length === 0 && !loading) {
+    if (loading) {
+      return <WaterFillingLoading />;
+    }
+
+    if (error) {
+      return (
+        <div className="container mx-auto px-4 py-8">
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <p className="text-red-700 font-medium">Error loading team members</p>
+            </div>
+            <p className="text-red-600 text-sm mb-3">{error}</p>
+            <button
+              onClick={() => refresh()}
+              className="inline-flex items-center gap-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (experts?.length === 0) {
       return (
         <div className="text-center py-12">
           <p className="text-gray-500 text-sm sm:text-lg">
@@ -278,7 +368,7 @@ function OrganizationalStructure() {
       
       <div ref={topRef} />
       
-      {/* Hero Section */}
+      {/* Hero Section - Always visible */}
       <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 mt-25">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="max-w-4xl">
@@ -294,37 +384,9 @@ function OrganizationalStructure() {
         </div>
       </section>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="container mx-auto px-4 mt-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading organizational structure...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !loading && (
-        <div className="container mx-auto px-4 mt-8">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <p className="text-red-700 font-medium">Error loading team members</p>
-            </div>
-            <p className="text-red-600 text-sm mb-3">{error}</p>
-            <button
-              onClick={() => refresh()}
-              className="inline-flex items-center gap-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Main Content Area */}
       <div className="flex-grow">
-        {!loading && !error && renderContent()}
+        {renderContent()}
       </div>
       
       <Footer />

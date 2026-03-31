@@ -35,10 +35,13 @@ export const useIECMaterials = () => {
             if (result.success) {
                 setMaterials(result.data || []);
                 setSource(result.source);
-                if (result.source === 'mock' && result.error) {
-                    setError(`Server unavailable. Showing demo content. (${result.error})`);
-                } else if (result.source === 'api') {
+                // Only set error if it's a real error and we couldn't get data
+                if (result.source === 'api') {
                     console.log(`Loaded ${result.data?.length || 0} materials from server`);
+                    setError(null);
+                } else if (result.source === 'mock') {
+                    // Don't set error for demo data, it's working as expected
+                    console.log(`Using demo data (${result.data?.length || 0} materials)`);
                     setError(null);
                 } else if (result.data?.length === 0) {
                     setError('No materials found');

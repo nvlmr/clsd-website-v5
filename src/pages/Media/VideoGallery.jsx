@@ -24,6 +24,67 @@ import {
   Tag
 } from "lucide-react";
 
+// Minimalist Horizontal Water Filling Loading Component
+const WaterFillingLoading = () => {
+  const [waterLevel, setWaterLevel] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWaterLevel(prev => {
+        if (prev >= 100) {
+          setIsComplete(true);
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 37);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center py-50">
+      <div className="w-full max-w-md mx-auto px-4">
+        {/* Horizontal Water Bar */}
+        <div className="relative">
+          <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-100 ease-out relative"
+              style={{ width: `${waterLevel}%` }}
+            >
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-0 bottom-0 w-full">
+                  <div className="absolute top-0 bottom-0 w-20 bg-white/30 transform -skew-x-12 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="absolute -top-6 right-0 text-xs text-blue-600 font-medium">
+            {Math.min(100, Math.floor(waterLevel))}%
+          </div>
+        </div>
+        
+        {/* Loading Text */}
+        <div className="text-center mt-8">
+          <p className="text-gray-600 text-sm font-medium">
+            {isComplete ? "Loading complete!" : "Loading video gallery..."}
+          </p>
+          
+          {/* Dots remain visible regardless of isComplete status */}
+          <div className="flex justify-center space-x-1 mt-2">
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function VideoGallery() {
   const { videos, loading, error, refreshVideos } = useVideoGallery();
   const [currentPage, setCurrentPage] = useState(1);
@@ -384,23 +445,12 @@ function VideoGallery() {
 
     if (filteredVideos.length === 0 && !loading) {
       return (
-        <div className="text-center py-12">
+        <div className="text-center py-40">
           <p className="text-gray-500 text-sm sm:text-lg">
             {searchTerm 
-              ? `No videos found matching "${searchTerm}". Try a different search term.`
+              ? `No videos found.`
               : 'No videos found.'}
           </p>
-          {searchTerm && (
-            <button
-              onClick={() => {
-                handleSearchClear();
-                resetSearch();
-              }}
-              className="mt-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
-            >
-              Clear search
-            </button>
-          )}
         </div>
       );
     }
@@ -483,23 +533,23 @@ function VideoGallery() {
         </div>
       </section>
       
-      {/* Loading State - Moved outside main content container like NewsEvents */}
-      {loading && (
-        <div className="container mx-auto px-4 mt-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading videos...</p>
-        </div>
-      )}
+      {/* Loading State - WaterFillingLoading */}
+      {loading && <WaterFillingLoading />}
 
-      {/* Error State */}
+      {/* Error State - Updated to match other pages */}
       {error && !loading && (
         <div className="container mx-auto px-4 mt-8">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-            <p className="text-red-700">Error: {error}</p>
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <p className="text-red-700 font-medium">Error loading video gallery</p>
+            </div>
+            <p className="text-red-600 text-sm mb-3">{error}</p>
             <button
               onClick={() => refreshVideos()}
-              className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
             >
+              <RefreshCw className="w-4 h-4" />
               Try Again
             </button>
           </div>

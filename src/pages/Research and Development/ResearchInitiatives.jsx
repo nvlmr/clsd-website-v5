@@ -30,6 +30,71 @@ import {
   Maximize2
 } from "lucide-react";
 
+// Horizontal Water Filling Loading Component that completes in ~5 seconds
+const WaterFillingLoading = () => {
+  const [waterLevel, setWaterLevel] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    // Simulate loading progress that completes in ~5 seconds
+    const interval = setInterval(() => {
+      setWaterLevel(prev => {
+        if (prev >= 100) {
+          setIsComplete(true);
+          clearInterval(interval);
+          return 100;
+        }
+        // Slower increment to last about 5 seconds (100 increments * 50ms = 5 seconds)
+        return prev + 1;
+      });
+    }, 35); // 35ms increments = 5 seconds for 100%
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center py-55">
+      <div className="w-full max-w-md mx-auto px-4">
+        {/* Horizontal Water Bar */}
+        <div className="relative">
+          {/* Background Bar */}
+          <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+            {/* Water Fill */}
+            <div 
+              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-100 ease-out relative"
+              style={{ width: `${waterLevel}%` }}
+            >
+              {/* Ripple Effect */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-0 bottom-0 w-full">
+                  <div className="absolute top-0 bottom-0 w-20 bg-white/30 transform -skew-x-12 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Percentage Label */}
+          <div className="absolute -top-6 right-0 text-xs text-blue-600 font-medium">
+            {Math.min(100, Math.floor(waterLevel))}%
+          </div>
+        </div>
+        
+        {/* Loading Text */}
+        <div className="text-center mt-8">
+          <p className="text-gray-600 text-sm font-medium">
+            {waterLevel >= 100 ? 'Loading complete!' : 'Loading research initiatives...'}
+          </p>
+          <div className="flex justify-center space-x-1 mt-2">
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function ResearchInitiatives() {
   const {
     data: researchInitiatives,
@@ -854,12 +919,7 @@ function ResearchInitiatives() {
       </section>
 
       {/* Loading State */}
-      {loading && (
-        <div className="container mx-auto px-4 mt-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading Research Initiatives...</p>
-        </div>
-      )}
+      {loading && <WaterFillingLoading />}
 
       {/* Search Error Display */}
       {searchError && !loading && (
@@ -943,7 +1003,7 @@ function ResearchInitiatives() {
                 )}
                 
                 {filteredAndSearchedProjects.length === 0 ? (
-                  <div className="text-center py-12">
+                  <div className="text-center py-26">
                     <p className="text-gray-500 text-lg">No research projects found.</p>
                   </div>
                 ) : (

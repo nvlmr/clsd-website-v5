@@ -23,8 +23,75 @@ import {
   ChevronRight as ChevronRightIcon,
   Maximize2,
   Image as ImageIcon,
-  Award
+  Award,
+  AlertCircle,
+  RefreshCw
 } from "lucide-react";
+
+// Enhanced Minimalist Horizontal Water Filling Loading Component with 5-second simulation
+const WaterFillingLoading = () => {
+  const [waterLevel, setWaterLevel] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    // Simulate loading progress that completes in ~5 seconds
+    const interval = setInterval(() => {
+      setWaterLevel(prev => {
+        if (prev >= 100) {
+          setIsComplete(true);
+          clearInterval(interval);
+          return 100;
+        }
+        // Slower increment to last about 5 seconds (100 increments * 50ms = 5 seconds)
+        return prev + 1;
+      });
+    }, 35); // 35ms increments = 5 seconds for 100%
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center py-54">
+      <div className="w-full max-w-md mx-auto px-4">
+        {/* Horizontal Water Bar */}
+        <div className="relative">
+          {/* Background Bar */}
+          <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+            {/* Water Fill */}
+            <div 
+              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-100 ease-out relative"
+              style={{ width: `${waterLevel}%` }}
+            >
+              {/* Ripple Effect */}
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-0 bottom-0 w-full">
+                  <div className="absolute top-0 bottom-0 w-20 bg-white/30 transform -skew-x-12 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Percentage Label */}
+          <div className="absolute -top-6 right-0 text-xs text-blue-600 font-medium">
+            {Math.min(100, Math.floor(waterLevel))}%
+          </div>
+        </div>
+        
+        {/* Loading Text */}
+        <div className="text-center mt-8">
+          <p className="text-gray-600 text-sm font-medium">
+            {waterLevel >= 100 ? 'Loading complete!' : 'Loading news and events...'}
+          </p>
+          <div className="flex justify-center space-x-1 mt-2">
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 function NewsEvents() {
   const { 
@@ -232,7 +299,8 @@ function NewsEvents() {
         ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 ring-2 ring-blue-300 ring-offset-2'
         : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50'
     }`;
-    };
+  };
+  
   // Mobile-optimized EventCard - with fixed height title area and underline
   const EventCard = ({ event }) => (
     <div 
@@ -314,6 +382,7 @@ function NewsEvents() {
       </div>
     </div>
   );
+  
   const DetailView = ({ event }) => (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button
@@ -641,30 +710,27 @@ function NewsEvents() {
         </div>
       </section>
 
-      {/* Loading State */}
-      {loading && (
-        <div className="container mx-auto px-4 mt-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading news and events...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !loading && (
+      {/* Main Content - Handle Loading, Error, and Data States */}
+      {loading ? (
+        <WaterFillingLoading />
+      ) : error ? (
         <div className="container mx-auto px-4 mt-8">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-            <p className="text-red-700">Error: {error}</p>
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded max-w-2xl mx-auto">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <p className="text-red-700 font-medium">Error loading news and events</p>
+            </div>
+            <p className="text-red-600 text-sm mb-3">{error}</p>
             <button
               onClick={() => refresh()}
-              className="mt-3 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+              className="inline-flex items-center gap-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
             >
+              <RefreshCw className="w-4 h-4" />
               Try Again
             </button>
           </div>
         </div>
-      )}
-      
-      {!selectedEvent && !loading && !error && (
+      ) : !selectedEvent ? (
         <>
           {/* Search Component with configuration */}
           <Search 
@@ -697,8 +763,8 @@ function NewsEvents() {
             </div>
           </div>
 
-          {/* Search Stats */}
-          {searchTerm && (
+          {/* Search Stats - Only show when there are results */}
+          {searchTerm && filteredAndSearchedEvents.length > 0 && (
             <div className="container mx-auto px-4 mt-4">
               <p className="text-xs sm:text-sm text-gray-600">
                 Found {filteredAndSearchedEvents.length} results for "{searchTerm}"
@@ -706,81 +772,78 @@ function NewsEvents() {
               </p>
             </div>
           )}
-        </>
-      )}
 
-      <div className="flex-grow container mx-auto px-4 mt-8">
-        {selectedEvent ? (
-          <>
-            <DetailView event={selectedEvent} />
-            <GalleryModal />
-          </>
-        ) : (
-          <>
-            {loading ? null : error ? null : (
+          {/* Events Grid */}
+          <div className="flex-grow container mx-auto px-4 mt-8">
+            {filteredAndSearchedEvents.length > 0 ? (
               <>
-                {filteredAndSearchedEvents.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
-                      {currentEvents.map((event) => (
-                        <EventCard key={event.id} event={event} />
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
+                  {currentEvents.map((event) => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
+                    <button
+                      onClick={() => handlePageChange('prev')}
+                      disabled={currentPage === 1}
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                        currentPage === 1
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                      }`}
+                    >
+                      <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+
+                    <div className="flex items-center space-x-1 sm:space-x-2">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => goToPage(page)}
+                          className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
+                            currentPage === page
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          {page}
+                        </button>
                       ))}
                     </div>
 
-                    {totalPages > 1 && (
-                      <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
-                        <button
-                          onClick={() => handlePageChange('prev')}
-                          disabled={currentPage === 1}
-                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                            currentPage === 1
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                          }`}
-                        >
-                          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-
-                        <div className="flex items-center space-x-1 sm:space-x-2">
-                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                            <button
-                              key={page}
-                              onClick={() => goToPage(page)}
-                              className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
-                                currentPage === page
-                                  ? 'bg-blue-600 text-white'
-                                  : 'text-gray-600 hover:bg-gray-100'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                        </div>
-
-                        <button
-                          onClick={() => handlePageChange('next')}
-                          disabled={currentPage === totalPages}
-                          className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-                            currentPage === totalPages
-                              ? 'text-gray-400 cursor-not-allowed'
-                              : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
-                          }`}
-                        >
-                          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-sm sm:text-lg">No news or events found.</p>
+                    <button
+                      onClick={() => handlePageChange('next')}
+                      disabled={currentPage === totalPages}
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                        currentPage === totalPages
+                          ? 'text-gray-400 cursor-not-allowed'
+                          : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
+                      }`}
+                    >
+                      <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
                   </div>
                 )}
               </>
+            ) : (
+              <div className="text-center py-26">
+                <p className="text-gray-500 text-sm sm:text-lg">
+                  {searchTerm ? `No news or events found for "${searchTerm}".` : 'No news or events found.'}
+                </p>
+              </div>
             )}
-          </>
-        )}
-      </div>
+          </div>
+        </>
+      ) : (
+        // Detail View with Gallery Modal
+        <>
+          <DetailView event={selectedEvent} />
+          <GalleryModal />
+        </>
+      )}
+      
       <Footer/>
     </div>
   );

@@ -6,34 +6,41 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_ENDPOINT = import.meta.env.VITE_IEC_MATERIALS_ENDPOINT;
 const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';
 const UPLOADS_BASE_URL = import.meta.env.VITE_UPLOADS_BASE_URL;
-
 /**
  * Process material data by constructing full URLs for images and documents
  */
 const processMaterialData = (material) => {
     const processed = { ...material };
     
-    // Construct full URL for cover_image if it exists
+    // Handle cover_image
     if (processed.cover_image && processed.cover_image !== 'null') {
-        // If it's already a full URL, use it as is
-        if (processed.cover_image.startsWith('http://') || processed.cover_image.startsWith('https://')) {
-            // Keep as is
-        } else {
-            // Otherwise, construct the full path
-            processed.cover_image = `${UPLOADS_BASE_URL}/iec-materials/${processed.cover_image}`;
+        // Check if it's a string URL (from API) or an imported module (from mock data)
+        if (typeof processed.cover_image === 'string') {
+            // If it's already a full URL, use it as is
+            if (processed.cover_image.startsWith('http://') || processed.cover_image.startsWith('https://')) {
+                // Keep as is
+            } else if (processed.cover_image.startsWith('/') || processed.cover_image.startsWith('./') || processed.cover_image.startsWith('../')) {
+                // Local path - keep as is for Vite to handle
+                // Do nothing, Vite will resolve it
+            } else {
+                // Otherwise, construct the full path (for API filenames)
+                processed.cover_image = `${UPLOADS_BASE_URL}/iec-materials/${processed.cover_image}`;
+            }
         }
+        // If it's not a string (like an imported module reference), keep it as is
+        // because Vite/webpack already processed it
     } else {
         processed.cover_image = null;
     }
     
-    // Construct full URL for document if it exists
+    // Handle document similarly
     if (processed.document && processed.document !== 'null') {
-        // If it's already a full URL, use it as is
-        if (processed.document.startsWith('http://') || processed.document.startsWith('https://')) {
-            // Keep as is
-        } else {
-            // Otherwise, construct the full path
-            processed.document = `${UPLOADS_BASE_URL}/iec-materials/${processed.document}`;
+        if (typeof processed.document === 'string') {
+            if (processed.document.startsWith('http://') || processed.document.startsWith('https://')) {
+                // Keep as is
+            } else {
+                processed.document = `${UPLOADS_BASE_URL}/iec-materials/${processed.document}`;
+            }
         }
     } else {
         processed.document = null;
@@ -41,7 +48,6 @@ const processMaterialData = (material) => {
     
     return processed;
 };
-
 /**
  * Fetch IEC materials from API with fallback to mock data
  */
@@ -55,7 +61,7 @@ export const fetchIECMaterials = async () => {
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
         
         const fullUrl = `${API_BASE_URL}${API_ENDPOINT}`;
         console.log('Fetching IEC materials from:', fullUrl);
@@ -73,7 +79,10 @@ export const fetchIECMaterials = async () => {
         clearTimeout(timeoutId);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            console.warn(`HTTP error! status: ${response.status}, falling back to mock data`);
+            // Fall back to mock data without error
+            const processedMockData = mockIECMaterials.map(processMaterialData);
+            return { success: true, data: processedMockData, source: 'mock' };
         }
         
         const result = await response.json();
@@ -83,7 +92,10 @@ export const fetchIECMaterials = async () => {
             console.log(`Successfully fetched ${processedData.length} IEC materials from server`);
             return { success: true, data: processedData, source: 'api' };
         } else {
-            throw new Error('Invalid response format or no data');
+            console.warn('Invalid response format, falling back to mock data');
+            // Fall back to mock data
+            const processedMockData = mockIECMaterials.map(processMaterialData);
+            return { success: true, data: processedMockData, source: 'mock' };
         }
     } catch (error) {
         console.warn('Failed to fetch IEC materials from API, using mock data:', error.message);
@@ -91,8 +103,7 @@ export const fetchIECMaterials = async () => {
         return { 
             success: true, 
             data: processedMockData, 
-            source: 'mock', 
-            error: error.message 
+            source: 'mock'
         };
     }
 };
@@ -138,8 +149,6 @@ export const checkServerHealth = async () => {
 /**
  * Download a file with CORS handling
  */
-// In iec_materials_api.js - update downloadFile function
-
 export const downloadFile = async (fileUrl, fileName) => {
     try {
         // Extract filename from URL

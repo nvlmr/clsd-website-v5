@@ -1,6 +1,6 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\pages\Research and Development\ResearchPaper.jsx
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import NavBar from "../../navigation/NavBar.jsx";
 import Footer from "../../navigation/Footer.jsx";
 import AutoScroll from "../../components/AutoScroll.jsx";
@@ -19,11 +19,72 @@ import {
   GraduationCap, 
   FileText, 
   ArrowLeft, 
-  Award,
   Tag,
   Download,
-  Loader
+  Loader,
+  AlertCircle,
+  RefreshCw,
+  Maximize2,
+  X as XIcon
 } from "lucide-react";
+
+// Horizontal Water Filling Loading Component that completes in ~5 seconds
+const WaterFillingLoading = () => {
+  const [waterLevel, setWaterLevel] = useState(0);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setWaterLevel(prev => {
+        if (prev >= 100) {
+          setIsComplete(true);
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 1;
+      });
+    }, 35);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="min-h-[45vh] flex items-center justify-center py-47">
+      <div className="w-full max-w-md mx-auto px-4">
+        <div className="relative">
+          <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-100 ease-out relative"
+              style={{ width: `${waterLevel}%` }}
+            >
+              <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute top-0 bottom-0 w-full">
+                  <div className="absolute top-0 bottom-0 w-20 bg-white/30 transform -skew-x-12 animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="absolute -top-6 right-0 text-xs text-blue-600 font-medium">
+            {Math.min(100, Math.floor(waterLevel))}%
+          </div>
+        </div>
+        
+        <div className="text-center mt-8">
+          <p className="text-gray-600 text-sm font-medium">
+            {waterLevel >= 100 ? 'Loading complete!' : 'Loading research papers...'}
+          </p>
+          <div className="flex justify-center space-x-1 mt-2">
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 function ResearchPaper() {
   const {
     papers,
@@ -31,13 +92,16 @@ function ResearchPaper() {
     error,
     downloadPaper,
     downloading,
-    getManuscriptTypes
   } = useResearchPapers();
 
   const [selectedPaper, setSelectedPaper] = useState(null);
   const [itemsPerPage, setItemsPerPage] = useState(9);
   const [currentPage, setCurrentPage] = useState(1);
   const [downloadError, setDownloadError] = useState(null);
+  
+  // Modal states for document preview
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
   
   const topRef = useRef(null);
 
@@ -92,35 +156,35 @@ function ResearchPaper() {
   const endIndex = startIndex + itemsPerPage;
   const currentPapers = filteredPapers.slice(startIndex, endIndex);
 
-  const handlePageChange = (direction) => {
+  const handlePageChange = useCallback((direction) => {
     if (direction === 'prev' && currentPage > 1) {
       setCurrentPage(currentPage - 1);
     } else if (direction === 'next' && currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
     }
-  };
+  }, [currentPage, totalPages]);
 
-  const goToPage = (page) => {
+  const goToPage = useCallback((page) => {
     setCurrentPage(page);
-  };
+  }, []);
 
-  const handleCardClick = (paper) => {
+  const handleCardClick = useCallback((paper) => {
     setSelectedPaper(paper);
     setDownloadError(null);
     window.scrollTo(0, 0);
-  };
+  }, []);
 
-  const handleBackClick = () => {
+  const handleBackClick = useCallback(() => {
     setSelectedPaper(null);
     setDownloadError(null);
-  };
+  }, []);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     handleSearchClear();
-  };
+  }, [handleSearchClear]);
 
   // Handle download with error handling
-  const handleDownload = async (paper) => {
+  const handleDownload = useCallback(async (paper) => {
     setDownloadError(null);
     try {
       const result = await downloadPaper(paper);
@@ -132,10 +196,46 @@ function ResearchPaper() {
       setDownloadError(error.message || 'Failed to download document. Please try again later.');
       setTimeout(() => setDownloadError(null), 5000);
     }
-  };
+  }, [downloadPaper]);
+
+  // Format file size
+  const formatFileSize = useCallback((bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }, []);
+
+  // Open document modal for preview
+  const openDocumentModal = useCallback((document) => {
+    setSelectedDocument(document);
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  }, []);
+
+  // Close document modal
+  const closeDocumentModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedDocument(null);
+    document.body.style.overflow = 'unset';
+  }, []);
+
+  // Handle keyboard navigation for modal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isModalOpen) return;
+      
+      if (e.key === 'Escape') {
+        closeDocumentModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, closeDocumentModal]);
 
   // Research Paper Card Component
-  const ResearchPaperCard = ({ paper }) => (
+  const ResearchPaperCard = useCallback(({ paper }) => (
     <div 
       className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
       onClick={() => handleCardClick(paper)}
@@ -179,11 +279,18 @@ function ResearchPaper() {
         </div>
       </div>
     </div>
-  );
+  ), [handleCardClick]);
 
-  // Detail View Component
-  const DetailView = ({ paper }) => {
+  // Detail View Component - Matching ResearchInitiatives style with document section
+  const DetailView = useCallback(({ paper }) => {
     const isDownloading = downloading === paper.id;
+    
+    // Prepare document object for display (matching ResearchInitiatives document structure)
+    const documentItem = paper.document ? {
+      url: paper.document,
+      name: `${paper.title}.pdf`,
+      type: 'application/pdf'
+    } : null;
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -196,58 +303,77 @@ function ResearchPaper() {
         </button>
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{paper.title}</h1>
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-full">
-                <BookOpen className="w-3 h-3 sm:w-4 sm:h-4" />
-                {paper.tags?.split(',').map(tag => tag.trim()).find(tag => tag === 'Thesis' || tag === 'Dissertation') || 'Research'}
-              </span>
-              <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-full">
-                <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                {paper.year}
-              </span>
+          {/* Hero Section - Matching ResearchInitiatives style */}
+          <div className="relative h-48 sm:h-64 md:h-80 overflow-hidden bg-gradient-to-r from-blue-400 to-blue-500">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <BookOpen className="w-16 h-16 sm:w-24 sm:h-24 text-white/20" />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+            
+            <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 md:p-8">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 line-clamp-3">
+                {paper.title}
+              </h1>
             </div>
           </div>
 
           <div className="p-4 sm:p-6 md:p-8 space-y-6">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Student/Author</h2>
+            {/* Student/Author - Matching grid layout from ResearchInitiatives */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Paper Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {/* Student/Author */}
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Student/Author</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{paper.student}</p>
+                  </div>
+                </div>
+
+                {/* Degree Sought */}
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Degree Sought</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{paper.degree}</p>
+                  </div>
+                </div>
+
+                {/* Adviser */}
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Adviser</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{paper.adviser}</p>
+                  </div>
+                </div>
+
+                {/* Year */}
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Year</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{paper.year}</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7 leading-relaxed">{paper.student}</p>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Degree Sought</h2>
-              </div>
-              <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7 leading-relaxed">{paper.degree}</p>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Adviser</h2>
-              </div>
-              <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7 leading-relaxed">{paper.adviser}</p>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Year</h2>
-              </div>
-              <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7 leading-relaxed">{paper.year}</p>
-            </div>
-
+            {/* Tags Section - Matching ResearchInitiatives styling */}
             {paper.tags && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
                   <Tag className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900">Tags</h2>
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Tags</h3>
                 </div>
                 <div className="ml-4 sm:ml-7 flex flex-wrap gap-1.5 sm:gap-2">
                   {paper.tags.split(',').map((tag, index) => (
@@ -262,48 +388,120 @@ function ResearchPaper() {
               </div>
             )}
 
-            {paper.document && (
-              <div className="pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => handleDownload(paper)}
-                  disabled={isDownloading}
-                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm sm:text-base font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isDownloading ? (
-                    <>
-                      <Loader className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                      Downloading...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-                      Download Full Paper (PDF)
-                    </>
-                  )}
-                </button>
-                <p className="text-xs text-gray-500 mt-2 ml-1">
-                  Click to download the complete research paper
-                </p>
-              </div>
-            )}
-
-            {downloadError && (
-              <div className="pt-4">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-sm text-red-700 flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    {downloadError}
-                  </p>
+            {/* Documents Section - Matching ResearchInitiatives document UI exactly */}
+            {documentItem && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Documents</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">(1 file)</span>
                 </div>
+                <div className="space-y-2 sm:space-y-3">
+                  <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300">
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{documentItem.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                      <button
+                        onClick={() => handleDownload(paper)}
+                        disabled={isDownloading}
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Download"
+                      >
+                        {isDownloading ? (
+                          <Loader className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                        ) : (
+                          <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {downloadError && (
+                  <div className="mt-3">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-sm text-red-700 flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        {downloadError}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
     );
-  };
+  }, [handleBackClick, downloading, handleDownload, downloadError]);
+
+  // Document Preview Modal - Matching ResearchInitiatives gallery modal style
+  const DocumentModal = useCallback(() => {
+    if (!isModalOpen || !selectedDocument) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div 
+          className="absolute inset-0 bg-black bg-opacity-90 backdrop-blur-sm"
+          onClick={closeDocumentModal}
+        />
+        
+        <div className="relative z-10 w-full h-full flex items-center justify-center p-2 sm:p-4">
+          <button
+            onClick={closeDocumentModal}
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-1.5 sm:p-2 transition-all z-20"
+          >
+            <XIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+          </button>
+
+          <div className="absolute top-2 sm:top-4 left-2 sm:left-4 text-white bg-black bg-opacity-50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm">
+            Document Preview
+          </div>
+
+          <div className="flex items-center justify-center w-full h-full">
+            {selectedDocument.type === 'application/pdf' ? (
+              <iframe
+                src={selectedDocument.url}
+                title="Document Preview"
+                className="w-full h-[85vh] rounded-lg bg-white"
+                onError={(e) => {
+                  console.error('Failed to load PDF');
+                }}
+              />
+            ) : (
+              <div className="text-center text-white">
+                <FileText className="w-16 h-16 sm:w-24 sm:h-24 mx-auto mb-4" />
+                <p className="text-sm sm:text-base">Preview not available for this file type</p>
+                <button
+                  onClick={() => {
+                    window.open(selectedDocument.url, '_blank');
+                  }}
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Open Document
+                </button>
+              </div>
+            )}
+          </div>
+
+          <a
+            href={selectedDocument.url}
+            download={selectedDocument.name}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 sm:p-3 transition-all z-20"
+            title="Download document"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+          </a>
+        </div>
+      </div>
+    );
+  }, [isModalOpen, selectedDocument, closeDocumentModal]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white">
@@ -328,30 +526,26 @@ function ResearchPaper() {
       </section>
       
       <div className="flex-grow container mx-auto px-4 mt-15">
-        {/* Show loading state in content area */}
-        {loading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-600">Loading research papers...</p>
-          </div>
-        )}
+        {/* Loading State - WaterFillingLoading */}
+        {loading && <WaterFillingLoading />}
 
-        {/* Show error state */}
+        {/* Error State */}
         {error && !loading && (
-          <div className="text-center py-12">
-            <div className="text-red-600 mb-4">
-              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          <div className="container mx-auto px-4 mt-8">
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded max-w-2xl mx-auto">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <p className="text-red-700 font-medium">Error loading research papers</p>
+              </div>
+              <p className="text-red-600 text-sm mb-3">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="inline-flex items-center gap-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </button>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Data</h3>
-            <p className="text-gray-600 mb-4">{error}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Retry
-            </button>
           </div>
         )}
 
@@ -359,40 +553,27 @@ function ResearchPaper() {
         {!loading && !error && (
           <>
             {!selectedPaper && (
-              <>
-                <div className="mb-8">
-                  <Search 
-                    data={papers}
-                    searchKeys={researchPaperSearchConfig.searchKeys}
-                    placeholder={researchPaperSearchConfig.placeholder}
-                    onSearchResults={handleSearchResults}
-                    variant={researchPaperSearchConfig.variant}
-                    size={researchPaperSearchConfig.size}
-                    theme={researchPaperSearchConfig.theme}
-                    showResultCount={researchPaperSearchConfig.showResultCount}
-                    debounceTime={researchPaperSearchConfig.debounceTime}
-                    minChars={researchPaperSearchConfig.minChars}
-                  />
-                </div>
-
-                {searchTerm && !isSearching && (
-                  <div className="mb-4">
-                    <p className="text-xs sm:text-sm text-gray-600">
-                      {researchPaperSearchConfig.resultCountMessage
-                        ? researchPaperSearchConfig.resultCountMessage
-                            .replace('{count}', filteredPapers.length)
-                            .replace('{plural}', filteredPapers.length !== 1 ? 's' : '')
-                            .replace('{query}', searchTerm)
-                        : `Found ${filteredPapers.length} result${filteredPapers.length !== 1 ? 's' : ''} for "${searchTerm}"`
-                      }
-                    </p>
-                  </div>
-                )}
-              </>
+              <div className="mb-8">
+                <Search 
+                  data={papers}
+                  searchKeys={researchPaperSearchConfig.searchKeys}
+                  placeholder={researchPaperSearchConfig.placeholder}
+                  onSearchResults={handleSearchResults}
+                  variant={researchPaperSearchConfig.variant}
+                  size={researchPaperSearchConfig.size}
+                  theme={researchPaperSearchConfig.theme}
+                  showResultCount={researchPaperSearchConfig.showResultCount}
+                  debounceTime={researchPaperSearchConfig.debounceTime}
+                  minChars={researchPaperSearchConfig.minChars}
+                />
+              </div>
             )}
 
             {selectedPaper ? (
-              <DetailView paper={selectedPaper} />
+              <>
+                <DetailView paper={selectedPaper} />
+                <DocumentModal />
+              </>
             ) : (
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 auto-rows-fr">
@@ -411,6 +592,7 @@ function ResearchPaper() {
                           ? 'text-gray-400 cursor-not-allowed'
                           : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                       }`}
+                      aria-label="Previous page"
                     >
                       <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
@@ -425,6 +607,8 @@ function ResearchPaper() {
                               ? 'bg-blue-600 text-white'
                               : 'text-gray-600 hover:bg-gray-100'
                           }`}
+                          aria-label={`Go to page ${page}`}
+                          aria-current={currentPage === page ? 'page' : undefined}
                         >
                           {page}
                         </button>
@@ -439,19 +623,17 @@ function ResearchPaper() {
                           ? 'text-gray-400 cursor-not-allowed'
                           : 'text-blue-600 hover:bg-blue-50 hover:scale-110'
                       }`}
+                      aria-label="Next page"
                     >
                       <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                     </button>
                   </div>
                 )}
+                
                 {filteredPapers.length === 0 && !isSearching && (
-                  <div className="text-center py-12">
+                  <div className="text-center py-40">
                     <p className="text-gray-500 text-sm sm:text-lg">
-                      {searchTerm 
-                        ? (researchPaperSearchConfig.noResultsMessage
-                            ? researchPaperSearchConfig.noResultsMessage.replace('{query}', searchTerm)
-                            : `No papers found for "${searchTerm}".`)
-                        : "No research papers found."}
+                      No research papers found.
                     </p>
                   </div>
                 )}
