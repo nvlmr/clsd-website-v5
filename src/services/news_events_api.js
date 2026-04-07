@@ -29,110 +29,100 @@ class NewsEventsApiService {
     return navigator.onLine;
   }
 
-  processItemUrls(item, isOffline = false) {
-    const processedItem = { ...item };
+// In news_events_api.js, update the processItemUrls method:
 
-    // Normalize the type to match database enum
-    processedItem.type = this.normalizeType(item.type);
+processItemUrls(item, isOffline = false) {
+  const processedItem = { ...item };
 
-    // If we're offline or using mock data, return the imported images as-is
-    if (isOffline || this.useMockData) {
-      // For offline mode, keep the imported images as they are
-      return processedItem;
+  // Normalize the type to match database enum
+  processedItem.type = this.normalizeType(item.type);
+
+  // If we're offline or using mock data, return the imported images as-is
+  if (isOffline || this.useMockData) {
+    return processedItem;
+  }
+
+  // Process featured image - only for online mode
+  if (processedItem.featured_image) {
+    if (!processedItem.featured_image.startsWith('http') && 
+        !processedItem.featured_image.startsWith('data:') &&
+        !processedItem.featured_image.startsWith('blob:')) {
+      processedItem.featured_image = `${UPLOADS_BASE_URL}/news-events/${processedItem.featured_image}`;
     }
+  }
 
-    // Process featured image - only for online mode
-    if (processedItem.featured_image) {
-      if (!processedItem.featured_image.startsWith('http') && 
-          !processedItem.featured_image.startsWith('data:') &&
-          !processedItem.featured_image.startsWith('blob:')) {
-        processedItem.featured_image = `${UPLOADS_BASE_URL}/news-events/${processedItem.featured_image}`;
-      }
-    }
-
-    // Process gallery images - only for online mode
-    if (processedItem.gallery) {
-      if (typeof processedItem.gallery === 'string') {
-        try {
-          const galleryArray = JSON.parse(processedItem.gallery);
-          processedItem.gallery = galleryArray.map(img => {
-            if (img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:')) return img;
-            return `${UPLOADS_BASE_URL}/news-events/gallery/${img}`;
-          });
-        } catch {
-          processedItem.gallery = [];
-        }
-      } else if (Array.isArray(processedItem.gallery)) {
-        processedItem.gallery = processedItem.gallery.map(img => {
+  // Process gallery images - only for online mode
+  if (processedItem.gallery) {
+    if (typeof processedItem.gallery === 'string') {
+      try {
+        const galleryArray = JSON.parse(processedItem.gallery);
+        processedItem.gallery = galleryArray.map(img => {
           if (img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:')) return img;
           return `${UPLOADS_BASE_URL}/news-events/gallery/${img}`;
         });
-      } else {
+      } catch {
         processedItem.gallery = [];
       }
+    } else if (Array.isArray(processedItem.gallery)) {
+      processedItem.gallery = processedItem.gallery.map(img => {
+        if (img.startsWith('http') || img.startsWith('data:') || img.startsWith('blob:')) return img;
+        return `${UPLOADS_BASE_URL}/news-events/gallery/${img}`;
+      });
     } else {
       processedItem.gallery = [];
     }
+  } else {
+    processedItem.gallery = [];
+  }
 
-    // Process attachments - only for online mode
-    if (processedItem.attachments) {
-      if (typeof processedItem.attachments === 'string') {
-        try {
-          const attachmentsArray = JSON.parse(processedItem.attachments);
-          processedItem.attachments = attachmentsArray.map(att => {
-            if (typeof att === 'string') {
-              return {
-                url: att.startsWith('http') || att.startsWith('blob:') ? att : `${UPLOADS_BASE_URL}/news-events/attachments/${att}`,
-                name: att.split('/').pop() || 'Attachment',
-                size: null
-              };
-            } else if (att && typeof att === 'object') {
-              return {
-                ...att,
-                url: att.url && !att.url.startsWith('http') && !att.url.startsWith('data:') && !att.url.startsWith('blob:')
-                  ? `${UPLOADS_BASE_URL}/news-events/attachments/${att.url}`
-                  : att.url,
-                name: att.name || (att.url ? att.url.split('/').pop() : 'Attachment'),
-                size: att.size || null
-              };
-            }
-            return att;
-          });
-        } catch {
-          processedItem.attachments = [];
+// In news_events_api.js, update the processItemUrls method for attachments:
+
+// Process attachments - FIXED VERSION for your data structure
+if (processedItem.attachments) {
+  if (typeof processedItem.attachments === 'string') {
+    try {
+      const attachmentsArray = JSON.parse(processedItem.attachments);
+      processedItem.attachments = attachmentsArray.map(att => {
+        if (typeof att === 'object' && att.file) {
+          // Use the 'file' property for download, 'name' for display
+          const fileName = att.file;
+          return {
+            url: `${API_BASE_URL}/get_news_events.php?download=true&file=${encodeURIComponent(fileName)}`,
+            name: att.name || fileName,  // Use the name field for display
+            size: att.size || null,
+            type: att.type || null
+          };
         }
-      } else if (Array.isArray(processedItem.attachments)) {
-        processedItem.attachments = processedItem.attachments.map(att => {
-          if (typeof att === 'string') {
-            return {
-              url: att.startsWith('http') || att.startsWith('blob:') ? att : `${UPLOADS_BASE_URL}/news-events/attachments/${att}`,
-              name: att.split('/').pop() || 'Attachment',
-              size: null
-            };
-          } else if (att && typeof att === 'object') {
-            return {
-              ...att,
-              url: att.url && !att.url.startsWith('http') && !att.url.startsWith('data:') && !att.url.startsWith('blob:')
-                ? `${UPLOADS_BASE_URL}/news-events/attachments/${att.url}`
-                : att.url,
-              name: att.name || (att.url ? att.url.split('/').pop() : 'Attachment'),
-              size: att.size || null
-            };
-          }
-          return att;
-        });
-      } else {
-        processedItem.attachments = [];
-      }
-    } else {
+        return att;
+      });
+    } catch {
       processedItem.attachments = [];
     }
-
-    processedItem.featured = Boolean(processedItem.featured);
-    processedItem.published = Boolean(processedItem.published);
-
-    return processedItem;
+  } else if (Array.isArray(processedItem.attachments)) {
+    processedItem.attachments = processedItem.attachments.map(att => {
+      if (typeof att === 'object' && att.file) {
+        const fileName = att.file;
+        return {
+          url: `${API_BASE_URL}/get_news_events.php?download=true&file=${encodeURIComponent(fileName)}`,
+          name: att.name || fileName,
+          size: att.size || null,
+          type: att.type || null
+        };
+      }
+      return att;
+    });
+  } else {
+    processedItem.attachments = [];
   }
+} else {
+  processedItem.attachments = [];
+}
+
+  processedItem.featured = Boolean(processedItem.featured);
+  processedItem.published = Boolean(processedItem.published);
+
+  return processedItem;
+}
 
   async fetchNewsEvents() {
     // Check online status

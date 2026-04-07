@@ -1,4 +1,4 @@
-// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\components\chatBot.jsx
+// src/components/chatBot.jsx
 
 import React, { useState, useEffect, useRef } from 'react';
 import logo from "../assets/logo/LSD.png";
@@ -56,25 +56,15 @@ const MarkdownText = ({ text }) => {
   );
 };
 
-const SYSTEM_PROMPT = `You are the CLSD Assistant for the Center for Lake and Sustainable Development. 
-Your role is to provide helpful, accurate information about CLSD's research, projects, water quality monitoring, 
-algal bloom studies, and related environmental topics. Be professional, friendly, and concise. 
-If asked about topics outside CLSD's scope, politely redirect to CLSD's mission.
-
-When answering questions:
-- Provide detailed, educational responses
-- Use markdown formatting for better readability (bold, lists, etc.)
-- If you don't know something, be honest and suggest contacting CLSD directly
-- Keep responses conversational but informative`;
-
 const ChatBot = () => {
   const { isOpen, setIsOpen, messages, setMessages, isTyping, setIsTyping } = useChat();
   
   const [inputMessage, setInputMessage] = useState('');
-  const [apiError, setApiError] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const textareaRef = useRef(null);
@@ -91,9 +81,9 @@ const ChatBot = () => {
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
-      // Clear unread notification when chat is opened
       setHasUnreadMessages(false);
       setLastMessageCount(messages.length);
+      setShowSuggestions(true);
     }
   }, [isOpen, messages.length]);
 
@@ -138,73 +128,71 @@ const ChatBot = () => {
   const handleInputChange = (e) => {
     const value = e.target.value;
     setInputMessage(value);
+    setShowSuggestions(false);
   };
 
-  const callGroqAPI = async (userMessage, conversationHistory) => {
-    try {
-      const apiKey = import.meta.env.VITE_GROQ_AI_API_KEY;
-      
-      if (!apiKey) {
-        setApiError('API key not configured');
-        return null;
-      }
-
-      const messages = [
-        { role: 'system', content: SYSTEM_PROMPT },
-        ...conversationHistory,
-        { role: 'user', content: userMessage }
-      ];
-
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'meta-llama/llama-4-scout-17b-16e-instruct', 
-          messages: messages,
-          temperature: 0.5,
-          max_tokens: 800,
-          top_p: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        throw new Error(`API request failed: ${response.status} - ${errorData}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.choices && data.choices[0] && data.choices[0].message) {
-        return data.choices[0].message.content;
-      } else {
-        throw new Error('Invalid response format');
-      }
-    } catch (error) {
-      console.error('GROQ API Error:', error);
-      setApiError(error.message);
-      return null;
+  const generateResponse = (message) => {
+    const m = message.toLowerCase().trim();
+    
+    // Check for specific keywords
+    if (m.match(/^(hello|hi|hey|greetings|good morning|good afternoon|good evening)/)) {
+      return data.responses.greetings;
     }
-  };
-
-  const generateLocalResponse = (message) => {
-    const m = message.toLowerCase();
-    if (m.match(/^(hello|hi|hey|greetings)/)) return data.responses.greetings;
-    if (m.match(/^(thank|thanks)/)) return data.responses.thankYou;
-    if (m.match(/about|what is|clsd/)) return data.responses.about;
-    if (m.match(/research|initiative|study/)) return data.responses.research;
-    if (m.match(/project|current/)) return data.responses.projects;
-    if (m.match(/contact|email|phone/)) return data.responses.contact;
-    if (m.match(/team|staff|researcher/)) return data.responses.team;
-    if (m.match(/water quality|monitoring/)) return data.responses.waterQuality;
-    if (m.match(/algal bloom|algae/)) return data.responses.algalBloom;
-    if (m.match(/publication|paper/)) return data.responses.publications;
-    if (m.match(/event|workshop/)) return data.responses.events;
-    if (m.match(/volunteer|join/)) return data.responses.volunteer;
-    if (m.match(/donate|support/)) return data.responses.donate;
-    if (m.match(/faq|question/)) return data.responses.faq;
+    if (m.match(/^(thank|thanks|appreciate)/)) {
+      return data.responses.thankYou;
+    }
+    if (m.match(/about|what is clsd|what does clsd do|mission|vision/)) {
+      return data.responses.about;
+    }
+    if (m.match(/research|initiative|study|studies|rd|r&d/)) {
+      return data.responses.research;
+    }
+    if (m.match(/project|current|ongoing|program/)) {
+      return data.responses.projects;
+    }
+    if (m.match(/contact|email|phone|address|location|reach|call/)) {
+      return data.responses.contact;
+    }
+    if (m.match(/team|staff|researcher|who works|personnel/)) {
+      return data.responses.team;
+    }
+    if (m.match(/water quality|quality|parameters|monitoring/)) {
+      return data.responses.waterQuality;
+    }
+    if (m.match(/algal bloom|algae|bloom|cyanobacteria|harmful algae/)) {
+      return data.responses.algalBloom;
+    }
+    if (m.match(/lab|laboratory|facilities|equipment|instrument/)) {
+      return data.responses.laboratories;
+    }
+    if (m.match(/service|offer|provide|testing|analysis/)) {
+      return data.responses.services;
+    }
+    if (m.match(/publication|paper|report|article|journal|output/)) {
+      return data.responses.publications;
+    }
+    if (m.match(/event|workshop|training|seminar|webinar|program/)) {
+      return data.responses.events;
+    }
+    if (m.match(/volunteer|intern|join|participate|get involved/)) {
+      return data.responses.volunteer;
+    }
+    if (m.match(/partner|collaboration|collaborate|institution|stakeholder/)) {
+      return data.responses.partner;
+    }
+    if (m.match(/faq|question|common question|frequently asked/)) {
+      return data.responses.faq;
+    }
+    if (m.match(/equipment|device|machine|tool|apparatus/)) {
+      return data.responses.equipment;
+    }
+    if (m.match(/aquaculture|fish farming|fisheries/)) {
+      return data.responses.aquaculture;
+    }
+    if (m.match(/food innovation|product development|fisheries product/)) {
+      return data.responses.foodInnovation;
+    }
+    
     return data.responses.default;
   };
 
@@ -215,42 +203,32 @@ const ChatBot = () => {
     setMessages((prev) => [...prev, userMessage]);
     const currentMessage = inputMessage;
     setInputMessage('');
-    setApiError(null);
+    setShowSuggestions(false);
     
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
+    
     setIsTyping(true);
 
-    const conversationHistory = messages.slice(-6).map(msg => ({
-      role: msg.isUser ? 'user' : 'assistant',
-      content: msg.text
-    }));
-
-    try {
-      const aiResponse = await callGroqAPI(currentMessage, conversationHistory);
-      
-      if (aiResponse) {
-        setMessages((prev) => [
-          ...prev,
-          { text: aiResponse, isUser: false, timestamp: new Date() },
-        ]);
-      } else {
-        const localResponse = generateLocalResponse(currentMessage);
-        setMessages((prev) => [
-          ...prev,
-          { text: localResponse, isUser: false, timestamp: new Date() },
-        ]);
-      }
-    } catch (error) {
-      const localResponse = generateLocalResponse(currentMessage);
+    // Simulate typing delay for natural feel
+    setTimeout(() => {
+      const response = generateResponse(currentMessage);
       setMessages((prev) => [
         ...prev,
-        { text: localResponse, isUser: false, timestamp: new Date() },
+        { text: response, isUser: false, timestamp: new Date() },
       ]);
-    } finally {
       setIsTyping(false);
-    }
+    }, 500 + Math.random() * 500);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setInputMessage(suggestion);
+    setShowSuggestions(false);
+    // Auto-send after a short delay
+    setTimeout(() => {
+      handleSendMessage();
+    }, 100);
   };
 
   const handleKeyPress = (e) => {
@@ -265,6 +243,16 @@ const ChatBot = () => {
 
   const toggleExpand = () => {
     setIsExpanded(!isExpanded);
+  };
+
+  const clearChat = () => {
+    setMessages([
+      {
+        text: data.welcomeMessage,
+        isUser: false,
+        timestamp: new Date(),
+      },
+    ]);
   };
 
   const chatHeight = isExpanded ? 'h-[80vh] max-h-[800px]' : 'h-[600px]';
@@ -283,18 +271,24 @@ const ChatBot = () => {
               <div className="flex items-center space-x-3">
                 <div className="relative">
                   <img src={logo} alt="CLSD Logo" className="w-10 h-10 rounded-full object-cover ring-2 ring-white/30" />
-                  {/* Green dot when chat is open */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full ring-2 ring-white"></div>
                 </div>
                 <div>
                   <h3 className="text-white font-bold text-lg">CLSD Assistant</h3>
                   <p className="text-white/80 text-xs flex items-center gap-1">
                     <Bot className="w-3 h-3" />
-                    <span>Powered by AI</span>
+                    <span>Knowledge Base</span>
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
+                <button 
+                  onClick={clearChat}
+                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-all text-xs"
+                  title="Clear Chat"
+                >
+                  Clear
+                </button>
                 <button 
                   onClick={toggleExpand} 
                   className="text-white hover:bg-white/20 p-2 rounded-lg transition-all"
@@ -365,17 +359,30 @@ const ChatBot = () => {
                   </div>
                 </div>
               )}
-              {apiError && (
-                <div className="text-center text-red-500 text-xs mt-2">
-                  Error: {apiError}
+              
+              {/* Quick Suggestions */}
+              {showSuggestions && messages.length === 1 && (
+                <div className="mt-4">
+                  <p className="text-xs text-gray-500 mb-2">Quick questions you can ask:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {data.quickSuggestions.map((suggestion, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
+              
               <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
             <div className="border-t p-4 bg-white flex-shrink-0">
-              {/* Changed items-end to items-center */}
               <div className="flex gap-2 items-center"> 
                 <div className="flex-1 relative">
                   <textarea
@@ -386,21 +393,20 @@ const ChatBot = () => {
                     value={inputMessage}
                     onChange={handleInputChange}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type your message..."
+                    placeholder={data.inputPlaceholder}
                     className="w-full resize-none border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-400"
                     rows={1}
                     style={{ 
                       minHeight: '44px',
                       maxHeight: '84px',
                       overflowY: 'auto',
-                      display: 'block' // Ensures better vertical alignment
+                      display: 'block'
                     }}
                   />
                 </div>
                 <button 
                   onClick={handleSendMessage} 
                   disabled={!inputMessage.trim() || isTyping}
-                  // Added flex-shrink-0 to ensure the button doesn't squash
                   className={`p-2.5 rounded-xl transition-all flex-shrink-0 ${
                     inputMessage.trim() && !isTyping
                       ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
@@ -421,7 +427,6 @@ const ChatBot = () => {
           className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-600 to-cyan-500 text-white p-4 rounded-full shadow-lg hover:scale-110 transition-all duration-300 group z-50"
         >
           <MessageCircle className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-          {/* Notification dot - red when unread, green when open */}
           <span className={`absolute -top-0.5 right-1 w-3 h-3 rounded-full ring-2 ring-white transition-colors duration-300 ${
             hasUnreadMessages ? 'bg-red-500' : 'bg-green-400'
           }`}></span>
@@ -444,14 +449,23 @@ const ChatBot = () => {
           animation: fadeIn 0.3s ease-out;
         }
         
+        @keyframes bounce {
+          0%, 60%, 100% {
+            transform: translateY(0);
+          }
+          30% {
+            transform: translateY(-8px);
+          }
+        }
+        
+        .animate-bounce {
+          animation: bounce 1.4s ease-in-out infinite;
+        }
+        
         .break-words {
           word-wrap: break-word;
           word-break: break-word;
           overflow-wrap: break-word;
-        }
-        
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
         }
         
         /* Custom scrollbar for messages */

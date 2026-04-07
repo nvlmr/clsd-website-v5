@@ -1,3 +1,5 @@
+// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\services\video_gallery_api.js
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_ENDPOINT = import.meta.env.VITE_VIDEO_GALLERY_ENDPOINT;
 const USE_MOCK_DATA = import.meta.env.VITE_USE_MOCK_DATA === 'true';

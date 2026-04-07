@@ -326,7 +326,24 @@ function VideoGallery() {
     
     // Check if there's a document to display as attachment
     const hasAttachment = documentUrl && video.document;
-    const attachmentName = video.document ? video.document.split('/').pop() : 'document';
+    // Extract the original filename from the download URL or use the video document field
+    let attachmentName = 'document';
+    if (video.document) {
+      // If it's a download URL with parameter, extract the filename from the 'file' parameter
+      if (video.document.includes('download=true')) {
+        const urlParams = new URLSearchParams(video.document.split('?')[1]);
+        const fileParam = urlParams.get('file');
+        if (fileParam) {
+          // The file parameter contains the original server filename (e.g., 1775522746_69d453ba816a3.pdf)
+          // You might want to keep this or map it to a display name
+          attachmentName = fileParam;
+        } else {
+          attachmentName = video.document.split('/').pop();
+        }
+      } else {
+        attachmentName = video.document.split('/').pop();
+      }
+    }
     
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">

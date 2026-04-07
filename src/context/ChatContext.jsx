@@ -1,4 +1,4 @@
-// C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\context\ChatContext.jsx
+// src/context/ChatContext.jsx
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import data from "../data/chatBot.js";

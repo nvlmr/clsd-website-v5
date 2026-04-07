@@ -1,7 +1,8 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\services\research_initiatives_api.js
+
 import axios from 'axios';
 
-// Get environment variables - NO FALLBACKS
+// Get environment variables
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT);
 const RESEARCH_INITIATIVES_ENDPOINT = import.meta.env.VITE_RESEARCH_INITIATIVES_ENDPOINT;
@@ -58,6 +59,42 @@ export const checkServerAvailability = async () => {
   }
 };
 
+// Helper function to process document URLs for download
+const processDocumentUrl = (doc, API_BASE_URL) => {
+  if (typeof doc === 'string') {
+    // If it's just a string, assume it's the original filename
+    const originalFile = doc.split('/').pop();
+    const displayName = originalFile; // Fallback to original if no name provided
+    return {
+      url: `${API_BASE_URL}/get_research_initiatives.php?download=true&file=${encodeURIComponent(originalFile)}`,
+      name: displayName,
+      originalFile: originalFile
+    };
+  } else if (typeof doc === 'object') {
+    // Get the original filename (for server download)
+    let originalFile = '';
+    if (doc.originalFile) {
+      // If originalFile exists, use it directly
+      originalFile = doc.originalFile;
+    } else if (doc.url) {
+      // Extract from url as fallback
+      originalFile = doc.url.split('/').pop();
+    }
+    
+    // Use the 'name' field for display, fallback to originalFile
+    const displayName = doc.name || originalFile || 'Document';
+    
+    return {
+      ...doc,
+      // Download URL uses originalFile (server filename)
+      url: `${API_BASE_URL}/get_research_initiatives.php?download=true&file=${encodeURIComponent(originalFile)}`,
+      name: displayName,  // Display name (user-friendly)
+      originalFile: originalFile  // Server filename for download
+    };
+  }
+  return doc;
+};
+
 // Get all research initiatives with optional filters
 export const getResearchInitiatives = async (filters = {}) => {
   try {
@@ -66,17 +103,33 @@ export const getResearchInitiatives = async (filters = {}) => {
     });
     
     if (response.data && response.data.success && response.data.data) {
+      // Process documents to use download endpoint
+      const processedData = response.data.data.map(item => {
+        if (item.documents && Array.isArray(item.documents)) {
+          item.documents = item.documents.map(doc => processDocumentUrl(doc, API_BASE_URL));
+        }
+        return item;
+      });
+      
       return {
         success: true,
-        data: response.data.data,
+        data: processedData,
         source: 'database',
         message: response.data.message || 'Success',
         timestamp: response.data.timestamp
       };
     } else if (response.data && response.data.data) {
+      // Process documents even if success flag is missing but data exists
+      const processedData = response.data.data.map(item => {
+        if (item.documents && Array.isArray(item.documents)) {
+          item.documents = item.documents.map(doc => processDocumentUrl(doc, API_BASE_URL));
+        }
+        return item;
+      });
+      
       return {
         success: true,
-        data: response.data.data,
+        data: processedData,
         source: 'database',
         count: response.data.count || response.data.data.length
       };
@@ -101,9 +154,14 @@ export const getResearchInitiativeById = async (id) => {
     });
     
     if (response.data && response.data.success && response.data.data) {
-      const item = Array.isArray(response.data.data) 
+      let item = Array.isArray(response.data.data) 
         ? response.data.data.find(item => item.id === parseInt(id))
         : response.data.data;
+      
+      // Process documents if they exist
+      if (item && item.documents && Array.isArray(item.documents)) {
+        item.documents = item.documents.map(doc => processDocumentUrl(doc, API_BASE_URL));
+      }
       
       return {
         success: true,

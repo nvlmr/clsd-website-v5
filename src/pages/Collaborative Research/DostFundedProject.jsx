@@ -26,7 +26,13 @@ import {
   AlertCircle,
   Clock,
   Tag,
-  RefreshCw
+  RefreshCw,
+  Download,
+  X as XIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Maximize2,
+  Image as ImageIcon
 } from "lucide-react";
 
 // Horizontal Water Filling Loading Component that completes in ~5 seconds
@@ -35,7 +41,6 @@ const WaterFillingLoading = () => {
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
-    // Simulate loading progress that completes in ~5 seconds
     const interval = setInterval(() => {
       setWaterLevel(prev => {
         if (prev >= 100) {
@@ -43,10 +48,9 @@ const WaterFillingLoading = () => {
           clearInterval(interval);
           return 100;
         }
-        // Slower increment to last about 5 seconds (100 increments * 50ms = 5 seconds)
         return prev + 1;
       });
-    }, 38); // 38ms increments = 5 seconds for 100%
+    }, 38);
 
     return () => clearInterval(interval);
   }, []);
@@ -54,16 +58,12 @@ const WaterFillingLoading = () => {
   return (
     <div className="min-h-[50vh] flex items-center justify-center py-50">
       <div className="w-full max-w-md mx-auto px-4">
-        {/* Horizontal Water Bar */}
         <div className="relative">
-          {/* Background Bar */}
           <div className="h-1 bg-gray-200 rounded-full overflow-hidden">
-            {/* Water Fill */}
             <div 
               className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full transition-all duration-100 ease-out relative"
               style={{ width: `${waterLevel}%` }}
             >
-              {/* Ripple Effect */}
               <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 bottom-0 w-full">
                   <div className="absolute top-0 bottom-0 w-20 bg-white/30 transform -skew-x-12 animate-pulse"></div>
@@ -72,16 +72,14 @@ const WaterFillingLoading = () => {
             </div>
           </div>
           
-          {/* Percentage Label */}
           <div className="absolute -top-6 right-0 text-xs text-blue-600 font-medium">
             {Math.min(100, Math.floor(waterLevel))}%
           </div>
         </div>
         
-        {/* Loading Text */}
         <div className="text-center mt-8">
           <p className="text-gray-600 text-sm font-medium">
-            {waterLevel >= 100 ? 'Loading complete!' : 'Loading news and events...'}
+            {waterLevel >= 100 ? 'Loading complete!' : 'Loading DOST funded projects...'}
           </p>
           <div className="flex justify-center space-x-1 mt-2">
             <div className="w-1 h-1 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -100,6 +98,11 @@ function DostFundedProjectPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [itemsPerPage, setItemsPerPage] = useState(9);
   
+  // Gallery/Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
   const topRef = useRef(null);
 
   // Use the custom hook for projects
@@ -114,11 +117,11 @@ function DostFundedProjectPage() {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 640) {
-        setItemsPerPage(6); // Mobile: 6 items
+        setItemsPerPage(6);
       } else if (window.innerWidth < 1024) {
-        setItemsPerPage(8); // Tablet: 8 items
+        setItemsPerPage(8);
       } else {
-        setItemsPerPage(9); // Desktop: 9 items
+        setItemsPerPage(9);
       }
     };
     
@@ -127,7 +130,7 @@ function DostFundedProjectPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Use the search config from searchConfigs but only for search fields and placeholder
+  // Use the search config from searchConfigs
   const searchConfig = useMemo(() => {
     return {
       searchFields: searchConfigs.dostFundedProjects?.searchKeys || ['title', 'project_lead', 'implementing_agency', 'cooperating_agency', 'status', 'description'],
@@ -146,6 +149,11 @@ function DostFundedProjectPage() {
     resetSearch
   } = useSearch(dostProjects, searchConfig);
 
+  // Add a handler for search results
+  const onSearchResultsHandler = useCallback((results, query) => {
+    handleSearchResults(results, query);
+  }, [handleSearchResults]);
+
   // Apply status filter to searched results
   const filteredAndSearchedProjects = useMemo(() => {
     try {
@@ -155,19 +163,16 @@ function DostFundedProjectPage() {
       
       let result = [...filteredData];
 
-      // Apply Status Filter
       if (statusFilter !== 'all') {
         result = result.filter(project => 
           project?.status?.toLowerCase() === statusFilter.toLowerCase()
         );
       }
 
-      // Sort by featured (featured projects first)
       result.sort((a, b) => {
         if (a.featured && !b.featured) return -1;
         if (!a.featured && b.featured) return 1;
         
-        // If both have same featured status, sort by date (newest first) if available
         if (a.start_date && b.start_date) {
           return new Date(b.start_date) - new Date(a.start_date);
         }
@@ -228,18 +233,47 @@ function DostFundedProjectPage() {
     setStatusFilter(status);
   }, []);
 
-  // Wrapper for search handlers
-  const handleSearchResultsWrapper = useCallback((results) => {
-    handleSearchResults(results);
-  }, [handleSearchResults]);
+  // Gallery modal functions
+  const openGalleryModal = (images, index) => {
+    setSelectedImage(images);
+    setCurrentImageIndex(index);
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  };
 
-  const handleSearchStartWrapper = useCallback(() => {
-    handleSearchStart();
-  }, [handleSearchStart]);
+  const closeGalleryModal = () => {
+    setIsModalOpen(false);
+    setSelectedImage(null);
+    document.body.style.overflow = 'unset';
+  };
 
-  const handleSearchClearWrapper = useCallback(() => {
-    handleSearchClear();
-  }, [handleSearchClear]);
+  const navigateGallery = (direction) => {
+    if (!selectedImage) return;
+    
+    if (direction === 'next' && currentImageIndex < selectedImage.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+    } else if (direction === 'prev' && currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+    }
+  };
+
+  // Handle keyboard navigation for gallery
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!isModalOpen) return;
+      
+      if (e.key === 'Escape') {
+        closeGalleryModal();
+      } else if (e.key === 'ArrowRight') {
+        navigateGallery('next');
+      } else if (e.key === 'ArrowLeft') {
+        navigateGallery('prev');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, currentImageIndex, selectedImage]);
 
   // Helper functions
   const formatDate = useCallback((dateString) => {
@@ -276,6 +310,90 @@ function DostFundedProjectPage() {
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
   }, []);
 
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+const handleDocumentDownload = async (document) => {
+  // Show a subtle loading indicator if needed
+  const button = document.activeElement;
+  const originalHTML = button?.innerHTML;
+  
+  try {
+    const url = document.download_url || document.url;
+    
+    if (!url) {
+      console.error('No download URL available');
+      return;
+    }
+
+    // Use fetch for authenticated/CORS requests
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = document.file_name || document.name;
+    
+    // Prevent any visual feedback that causes blinking
+    link.style.position = 'fixed';
+    link.style.opacity = '0';
+    link.style.pointerEvents = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+    }, 100);
+    
+  } catch (error) {
+    console.error('Download failed:', error);
+    // Fallback
+    window.open(document.download_url || document.url, '_blank');
+  }
+};
+
+  // Parse gallery
+  const parseGallery = useCallback((gallery) => {
+    if (!gallery) return [];
+    if (Array.isArray(gallery)) return gallery;
+    if (typeof gallery === 'string') {
+      try {
+        const parsed = JSON.parse(gallery);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [gallery];
+      }
+    }
+    return [];
+  }, []);
+
+  // Parse documents
+  const parseDocuments = useCallback((documents) => {
+    if (!documents) return [];
+    if (Array.isArray(documents)) return documents;
+    if (typeof documents === 'string') {
+      try {
+        const parsed = JSON.parse(documents);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  }, []);
+
   // Filter button style
   const getStatusFilterButtonStyle = useCallback((status) => {
     const isActive = statusFilter === status;
@@ -288,16 +406,14 @@ function DostFundedProjectPage() {
     }`;
   }, [statusFilter]);
 
-  // Mobile-optimized Project Card with fixed height title and underline
+  // Mobile-optimized Project Card
   const ProjectCard = useCallback(({ project }) => (
     <div 
       className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
       onClick={() => handleCardClick(project)}
     >
-      {/* Blue line at the bottom on hover */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
       
-      {/* Image Container - with aspect ratio */}
       <div className="relative pt-[60%] sm:pt-[56.25%] bg-gray-200 overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
           {project.image ? (
@@ -317,7 +433,6 @@ function DostFundedProjectPage() {
           )}
         </div>
         
-        {/* Featured indicator */}
         {project.featured && (
           <div className="absolute top-2 right-2">
             <div className="bg-blue-500 rounded-full p-1.5 shadow-lg">
@@ -328,7 +443,6 @@ function DostFundedProjectPage() {
       </div>
 
       <div className="p-3 sm:p-4 flex flex-col flex-grow">
-        {/* Fixed height title area with underline */}
         <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
           <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
             {project.title || "Untitled Project"}
@@ -336,7 +450,6 @@ function DostFundedProjectPage() {
         </div>
         
         <div className="space-y-1.5 sm:space-y-2 mt-1">
-          {/* Mobile: Show only Project Leader and Implementing Agency with icons */}
           <div className="flex sm:hidden flex-col space-y-1.5">
             <p className="text-gray-600 flex items-start gap-1.5">
               <UserCircle className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
@@ -349,7 +462,6 @@ function DostFundedProjectPage() {
             </p>
           </div>
 
-          {/* Desktop: Show only Project Leader and Implementing Agency with icons */}
           <div className="hidden sm:block space-y-2">
             <p className="text-gray-600 flex items-start gap-2">
               <UserCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
@@ -366,209 +478,365 @@ function DostFundedProjectPage() {
     </div>
   ), [handleCardClick]);
 
-  // Detail View Component
-  const DetailView = useCallback(({ project }) => (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <button
-        onClick={handleBackClick}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
-      >
-        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-        <span className="text-sm sm:text-base">Back to DOST Funded Projects</span>
-      </button>
+  // Detail View Component with Gallery and Documents
+  const DetailView = useCallback(({ project }) => {
+    const galleryImages = parseGallery(project.gallery);
+    const documents = parseDocuments(project.documents);
 
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Hero Image */}
-        {project.image && (
-          <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
-            <img 
-              src={project.image} 
-              alt={project.title}
-              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => window.open(project.image, '_blank')}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-            
-            {/* Featured indicator */}
-            {project.featured && (
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <button
+          onClick={handleBackClick}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
+        >
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+          <span className="text-sm sm:text-base">Back to DOST Funded Projects</span>
+        </button>
+
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+          {/* Hero Image */}
+          {project.image && (
+            <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
+              <img 
+                src={project.image} 
+                alt={project.title}
+                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => window.open(project.image, '_blank')}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+              
+              <button
+                onClick={() => window.open(project.image, '_blank')}
+                className="absolute top-4 right-4 bg-black bg-opacity-60 text-white p-1.5 sm:p-2 rounded-full hover:bg-opacity-80 transition-all"
+              >
+                <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+              
+              {project.featured && (
+                <div className="absolute top-4 left-4">
+                  <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5">
+                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                    <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!project.image && project.featured && (
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white relative">
               <div className="absolute top-4 left-4">
                 <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5">
                   <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
                 </div>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* If no hero image, put featured indicator in the colored header */}
-        {!project.image && project.featured && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white relative">
-            <div className="absolute top-4 left-4">
-              <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5">
-                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
-              </div>
-            </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 pl-24 sm:pl-32">{project.title || "Untitled Project"}</h1>
-          </div>
-        )}
-
-        {/* If there is a hero image, title is in the gradient overlay */}
-        {project.image && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
-          </div>
-        )}
-
-        {/* If no hero image and not featured, just show title in blue header */}
-        {!project.image && !project.featured && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
-          </div>
-        )}
-
-        <div className="p-4 sm:p-6 md:p-8 space-y-6">
-          {/* Description */}
-          {project.description && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h2 className="text-base sm:text-lg font-bold text-gray-900">Project Description</h2>
-              </div>
-              <div 
-                className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700"
-              >
-                <p className="leading-relaxed">{project.description}</p>
-              </div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 pl-24 sm:pl-32">{project.title || "Untitled Project"}</h1>
             </div>
           )}
 
-          {/* Project Details Grid */}
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {/* Status */}
-              <div className="flex items-start gap-2 sm:gap-3">
-                <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                  <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-gray-500">Status</p>
-                  <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
-                </div>
-              </div>
-
-              {/* Project Leader */}
-              {project.project_lead && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Project Leader</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{project.project_lead}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Funding Source */}
-              {project.funding_amount && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Funding Source</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">DOST</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Budget */}
-              {project.funding_amount && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Budget</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.funding_amount)}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Duration */}
-              {project.start_date && project.end_date && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Duration</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDuration(project.start_date, project.end_date)}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Implementing Agency */}
-              {project.implementing_agency && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{project.implementing_agency}</p>
-                  </div>
-                </div>
-              )}
+          {project.image && (
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
             </div>
-          </div>
+          )}
 
-          {/* Cooperating Agency */}
-          {project.cooperating_agency && (
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agency</h3>
+          {!project.image && !project.featured && (
+            <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
+            </div>
+          )}
+
+          <div className="p-4 sm:p-6 md:p-8 space-y-6">
+            {/* Description */}
+            {project.description && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900">Project Description</h2>
+                </div>
+                <div className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700">
+                  <p className="leading-relaxed">{project.description}</p>
+                </div>
               </div>
-              {project.cooperating_agency.includes(',') ? (
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 ml-4 sm:ml-7">
-                  {project.cooperating_agency.split(',').map((agency, index) => (
-                    <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
-                      {agency.trim()}
-                    </span>
+            )}
+
+            {/* Project Details Grid */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Status</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
+                  </div>
+                </div>
+
+                {project.project_lead && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Project Leader</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{project.project_lead}</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.funding_amount && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Funding Source</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">DOST</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.funding_amount && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Budget</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.funding_amount)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.start_date && project.end_date && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Duration</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatDuration(project.start_date, project.end_date)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.implementing_agency && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{project.implementing_agency}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Cooperating Agency */}
+            {project.cooperating_agency && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agency</h3>
+                </div>
+                {project.cooperating_agency.includes(',') ? (
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 ml-4 sm:ml-7">
+                    {project.cooperating_agency.split(',').map((agency, index) => (
+                      <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
+                        {agency.trim()}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7">{project.cooperating_agency}</p>
+                )}
+              </div>
+            )}
+
+            {/* Gallery Section */}
+            {galleryImages.length > 0 && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Gallery</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({galleryImages.length} images)</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+                  {galleryImages.map((image, index) => (
+                    <div
+                      key={index}
+                      className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
+                      style={{ height: '120px' }}
+                      onClick={() => openGalleryModal(galleryImages, index)}
+                    >
+                      <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
+                        <img
+                          src={image}
+                          alt={`Gallery ${index + 1}`}
+                          className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 flex items-center gap-1 sm:gap-2">
+                          <span className="bg-black/60 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full backdrop-blur-sm">
+                            {index + 1}/{galleryImages.length}
+                          </span>
+                          <div className="bg-blue-600 text-white p-1 sm:p-1.5 rounded-full">
+                            <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7">{project.cooperating_agency}</p>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+
+            {/* Documents Section */}
+            {documents.length > 0 && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Documents</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({documents.length} files)</span>
+                </div>
+                <div className="space-y-2 sm:space-y-3">
+                  {documents.map((document, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                    >
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm sm:text-base text-gray-900 font-medium truncate">
+                            {document.name || document.file_name || `Document ${index + 1}`}
+                          </p>
+                          {document.size && (
+                            <p className="text-xs sm:text-sm text-gray-500">{formatFileSize(document.size)}</p>
+                          )}
+                          {document.extension && (
+                            <p className="text-xs text-gray-400 uppercase mt-0.5">{document.extension}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                        {/* Download button only */}
+                        <button
+                          onClick={() => handleDocumentDownload(document)}
+                          className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                          title="Download"
+                        >
+                          <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  ), [handleBackClick, formatDuration, formatCurrency, formatStatus]);
-  
+    );
+  }, [handleBackClick, formatDuration, formatCurrency, formatStatus, parseGallery, parseDocuments, openGalleryModal, handleDocumentDownload]);
+
+  // Gallery Modal Component
+  const GalleryModal = () => {
+    if (!isModalOpen || !selectedImage) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div 
+          className="absolute inset-0 bg-black bg-opacity-90 backdrop-blur-sm"
+          onClick={closeGalleryModal}
+        />
+        
+        <div className="relative z-10 w-full h-full flex items-center justify-center p-2 sm:p-4">
+          <button
+            onClick={closeGalleryModal}
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-1.5 sm:p-2 transition-all z-20"
+          >
+            <XIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+          </button>
+
+          <div className="absolute top-2 sm:top-4 left-2 sm:left-4 text-white bg-black bg-opacity-50 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm">
+            {currentImageIndex + 1} / {selectedImage.length}
+          </div>
+
+          {selectedImage.length > 1 && (
+            <>
+              <button
+                onClick={() => navigateGallery('prev')}
+                disabled={currentImageIndex === 0}
+                className={`absolute left-2 sm:left-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 sm:p-3 transition-all z-20 ${
+                  currentImageIndex === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <ChevronLeftIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+              </button>
+              <button
+                onClick={() => navigateGallery('next')}
+                disabled={currentImageIndex === selectedImage.length - 1}
+                className={`absolute right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 sm:p-3 transition-all z-20 ${
+                  currentImageIndex === selectedImage.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
+                <ChevronRightIcon className="w-4 h-4 sm:w-6 sm:h-6" />
+              </button>
+            </>
+          )}
+
+          <div className="flex items-center justify-center w-full h-full">
+            <img
+              src={selectedImage[currentImageIndex]}
+              alt={`Gallery ${currentImageIndex + 1}`}
+              className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-lg"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/800x600?text=Image+Not+Found";
+              }}
+            />
+          </div>
+
+          <a
+            href={selectedImage[currentImageIndex]}
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-2 sm:p-3 transition-all z-20"
+            title="Download image"
+          >
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+          </a>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     if (selectedProject) {
       return <DetailView project={selectedProject} />;
     }
 
-    // Check if there are no projects after filtering AND we have a search term
     if (filteredAndSearchedProjects.length === 0 && !loading) {
-      // Determine which message to show based on search term and status filter
       let message = '';
       
       if (searchTerm && searchTerm.trim() !== '') {
-        // Priority 1: Show search-specific message
         message = `No DOST funded projects found matching "${searchTerm}".`;
       } else if (statusFilter !== 'all') {
-        // Priority 2: Show status-specific message
         message = `No ${statusFilter} DOST funded projects found.`;
       } else {
-        // Priority 3: Show generic message
         message = 'No DOST funded projects found.';
       }
       
@@ -589,7 +857,6 @@ function DostFundedProjectPage() {
           ))}
         </div>
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center space-x-4 mt-8 mb-8">
             <button
@@ -648,7 +915,6 @@ function DostFundedProjectPage() {
       
       <div ref={topRef} />
       
-      {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-50 via-white to-blue-50 mt-25">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="max-w-4xl">
@@ -664,41 +930,18 @@ function DostFundedProjectPage() {
         </div>
       </section>
 
-      {/* Loading State - WaterFillingLoading */}
       {loading && <WaterFillingLoading />}
 
-      {/* Error State - Updated to match other pages */}
-      {error && !loading && (
-        <div className="container mx-auto px-4 mt-8">
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded max-w-2xl mx-auto">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <p className="text-red-700 font-medium">Error loading DOST funded projects</p>
-            </div>
-            <p className="text-red-600 text-sm mb-3">{error}</p>
-            <button
-              onClick={() => refresh()}
-              className="inline-flex items-center gap-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-4 py-2 rounded-lg transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </button>
-          </div>
-        </div>
-      )}
-      
-      {/* Search and Filter Section - Only show when not in detail view, not loading, and no errors */}
-      {!selectedProject && !loading && !error && (
+      {!selectedProject && !loading && (
         <>
-          {/* Search Component */}
           <div className="mt-15">
             <Search 
               data={dostProjects}
               searchKeys={searchConfig.searchFields}
               placeholder={searchConfig.placeholder}
-              onSearchResults={handleSearchResultsWrapper}
-              onSearchStart={handleSearchStartWrapper}
-              onSearchClear={handleSearchClearWrapper}
+              onSearchResults={onSearchResultsHandler}  // ← THIS IS CRITICAL
+              onSearchStart={handleSearchStart}
+              onSearchClear={handleSearchClear}
               showResultCount={searchConfigs.dostFundedProjects?.showResultCount}
               debounceTime={searchConfigs.dostFundedProjects?.debounceTime}
               minChars={searchConfigs.dostFundedProjects?.minChars}
@@ -708,7 +951,6 @@ function DostFundedProjectPage() {
             />
           </div>
           
-          {/* Status Filter Buttons */}
           <div className="container mx-auto px-4 mt-8">
             <div className="flex flex-col items-center">
               <div className="flex items-center gap-2 mb-4">
@@ -716,7 +958,7 @@ function DostFundedProjectPage() {
                 <span className="text-xs sm:text-sm font-medium text-gray-700">Filter by status:</span>
               </div>
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                {['all', 'ongoing', 'completed', 'proposed'].map((status) => (
+                {['all', 'ongoing', 'completed', 'upcoming'].map((status) => (
                   <button
                     key={status}
                     onClick={() => handleStatusFilterClick(status)}
@@ -729,7 +971,6 @@ function DostFundedProjectPage() {
             </div>
           </div>
 
-          {/* Search Stats */}
           {searchTerm && (
             <div className="container mx-auto px-4 mt-4">
               <p className="text-xs sm:text-sm text-gray-600 text-center">
@@ -745,10 +986,11 @@ function DostFundedProjectPage() {
         </>
       )}
 
-      {/* Main Content Area */}
       <div className="flex-grow container mx-auto px-4 mt-8">
-        {!loading && !error && renderContent()}
+        {!loading && renderContent()}
       </div>
+      
+      <GalleryModal />
       
       <Footer/>
     </div>

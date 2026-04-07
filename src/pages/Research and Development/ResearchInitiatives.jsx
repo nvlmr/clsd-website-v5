@@ -362,26 +362,40 @@ function ResearchInitiatives() {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
-
-  // Download attachment
-  const downloadAttachment = async (url, filename) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (error) {
-      console.error('Download failed:', error);
-      window.open(url, '_blank');
+// In ResearchInitiatives.jsx, replace the downloadAttachment function:
+// Download attachment - Downloads original file but saves with display name
+const downloadAttachment = async (url, displayName) => {
+  try {
+    // Fetch the file from the server using the original file URL
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.status}`);
     }
-  };
-
+    
+    // Get the file as a blob
+    const blob = await response.blob();
+    
+    // Create a blob URL
+    const blobUrl = window.URL.createObjectURL(blob);
+    
+    // Create temporary anchor element
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    // Use the display name for the downloaded file
+    link.download = displayName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up the blob URL
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error('Download failed:', error);
+    // Fallback: open in new tab (will use server filename)
+    window.open(url, '_blank');
+  }
+};
   // Updated filter button style with proper centering
   const getStatusFilterButtonStyle = useCallback((status) => {
     const isActive = statusFilter === status;

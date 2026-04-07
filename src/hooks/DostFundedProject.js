@@ -8,6 +8,7 @@ export const useDostFundedProjects = () => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isUsingMockData, setIsUsingMockData] = useState(false);
 
   // Process API data to match local data structure
   const processApiData = useCallback((apiData) => {
@@ -24,38 +25,49 @@ export const useDostFundedProjects = () => {
       implementing_agency: project.implementing_agency || '',
       cooperating_agency: project.cooperating_agency || '',
       project_lead: project.project_lead || '',
-      // Use image_url if available, otherwise fallback to local image path
       image: project.image_url || project.image || '',
+      gallery: project.gallery_urls || project.gallery || null,
+      documents: project.documents_data || project.documents || null,
       published: project.published === 1 || project.published === true,
-      featured: project.featured === 1 || project.featured === true
+      featured: project.featured === 1 || project.featured === true,
+      created_by: project.created_by || null,
+      updated_by: project.updated_by || null,
+      created_at: project.created_at || null,
+      updated_at: project.updated_at || null
     }));
   }, []);
 
-  // Fetch all projects
+  // Fetch all projects with fallback to mock data
   const fetchProjects = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     try {
-      // Try to get data from API first
       const apiResponse = await dostFundedProjectApi.getAllProjects();
       
-      if (apiResponse.success && apiResponse.data && apiResponse.data.data) {
+      if (apiResponse.success && apiResponse.data && apiResponse.data.data && apiResponse.data.data.length > 0) {
         const processedData = processApiData(apiResponse.data);
-        setProjects(processedData.length > 0 ? processedData : localProjects);
+        setProjects(processedData);
+        setIsUsingMockData(false);
+        setError(null);
+        console.log('✅ Using database data -', processedData.length, 'projects loaded');
       } else {
-        // Fallback to local data silently
+        console.log('⚠️ Using mock data - no data from API');
         setProjects(localProjects);
+        setIsUsingMockData(true);
+        setError(null);
       }
     } catch (err) {
-      // Silently fallback to local data on error
+      console.warn('❌ API error, using mock data:', err.message);
       setProjects(localProjects);
+      setIsUsingMockData(true);
+      setError(null);
     } finally {
       setLoading(false);
     }
   }, [processApiData]);
 
-  // Fetch single project by ID
+  // Fetch single project by ID with fallback
   const fetchProjectById = useCallback(async (id) => {
     setLoading(true);
     setError(null);
@@ -63,25 +75,26 @@ export const useDostFundedProjects = () => {
     try {
       const apiResponse = await dostFundedProjectApi.getProjectById(id);
       
-      if (apiResponse.success && apiResponse.data && apiResponse.data.data) {
+      if (apiResponse.success && apiResponse.data && apiResponse.data.data && apiResponse.data.data.length > 0) {
         const processedData = processApiData(apiResponse.data);
         setLoading(false);
+        setIsUsingMockData(false);
         return processedData[0] || null;
       } else {
-        // Find in local data
         const localProject = localProjects.find(p => p.id === parseInt(id));
         setLoading(false);
+        setIsUsingMockData(true);
         return localProject || null;
       }
     } catch (err) {
-      // Fallback to local data
       const localProject = localProjects.find(p => p.id === parseInt(id));
       setLoading(false);
+      setIsUsingMockData(true);
       return localProject || null;
     }
   }, [processApiData]);
 
-  // Get projects by status
+  // Get projects by status with fallback
   const getProjectsByStatus = useCallback(async (status) => {
     setLoading(true);
     setError(null);
@@ -89,29 +102,29 @@ export const useDostFundedProjects = () => {
     try {
       const apiResponse = await dostFundedProjectApi.getProjectsByStatus(status);
       
-      if (apiResponse.success && apiResponse.data && apiResponse.data.data) {
+      if (apiResponse.success && apiResponse.data && apiResponse.data.data && apiResponse.data.data.length > 0) {
         const processedData = processApiData(apiResponse.data);
-        setProjects(processedData.length > 0 ? processedData : 
-          localProjects.filter(p => p.status.toLowerCase() === status.toLowerCase()));
+        setProjects(processedData);
+        setIsUsingMockData(false);
       } else {
-        // Filter local data
         const filtered = localProjects.filter(p => 
-          p.status.toLowerCase() === status.toLowerCase()
+          p.status && p.status.toLowerCase() === status.toLowerCase()
         );
         setProjects(filtered);
+        setIsUsingMockData(true);
       }
     } catch (err) {
-      // Filter local data on error
       const filtered = localProjects.filter(p => 
-        p.status.toLowerCase() === status.toLowerCase()
+        p.status && p.status.toLowerCase() === status.toLowerCase()
       );
       setProjects(filtered);
+      setIsUsingMockData(true);
     } finally {
       setLoading(false);
     }
   }, [processApiData]);
 
-  // Get featured projects
+  // Get featured projects with fallback
   const getFeaturedProjects = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -119,19 +132,19 @@ export const useDostFundedProjects = () => {
     try {
       const apiResponse = await dostFundedProjectApi.getFeaturedProjects();
       
-      if (apiResponse.success && apiResponse.data && apiResponse.data.data) {
+      if (apiResponse.success && apiResponse.data && apiResponse.data.data && apiResponse.data.data.length > 0) {
         const processedData = processApiData(apiResponse.data);
-        setProjects(processedData.length > 0 ? processedData : 
-          localProjects.filter(p => p.featured));
+        setProjects(processedData);
+        setIsUsingMockData(false);
       } else {
-        // Filter local data
         const featured = localProjects.filter(p => p.featured);
         setProjects(featured);
+        setIsUsingMockData(true);
       }
     } catch (err) {
-      // Filter local data on error
       const featured = localProjects.filter(p => p.featured);
       setProjects(featured);
+      setIsUsingMockData(true);
     } finally {
       setLoading(false);
     }
@@ -151,10 +164,12 @@ export const useDostFundedProjects = () => {
     projects,
     loading,
     error,
+    isUsingMockData,
     fetchProjectById,
     getProjectsByStatus,
     getFeaturedProjects,
-    refreshData
+    refreshData,
+    refresh: refreshData // Alias for compatibility
   };
 };
 

@@ -2,8 +2,8 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 10000;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/clsd-backend/public';
+const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT) || 8000;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -17,6 +17,26 @@ const api = axios.create({
 api.interceptors.response.use(
   response => response,
   error => {
+    if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      return Promise.resolve({
+        data: {
+          status: 'error',
+          message: 'Request timeout',
+          data: [],
+          count: 0
+        }
+      });
+    }
+    if (error.message === 'Network Error') {
+      return Promise.resolve({
+        data: {
+          status: 'error',
+          message: 'Network error - server unreachable',
+          data: [],
+          count: 0
+        }
+      });
+    }
     return Promise.reject(error);
   }
 );
@@ -27,13 +47,15 @@ export const dostFundedProjectApi = {
     try {
       const response = await api.get('/get_dost_funded_project.php');
       return {
-        success: true,
+        success: response.data && response.data.status === 'success',
         data: response.data
       };
     } catch (error) {
+      console.warn('API getAllProjects error:', error.message);
       return {
         success: false,
-        data: []
+        data: null,
+        error: error.message
       };
     }
   },
@@ -43,13 +65,15 @@ export const dostFundedProjectApi = {
     try {
       const response = await api.get(`/get_dost_funded_project.php?id=${id}`);
       return {
-        success: true,
+        success: response.data && response.data.status === 'success',
         data: response.data
       };
     } catch (error) {
+      console.warn('API getProjectById error:', error.message);
       return {
         success: false,
-        data: null
+        data: null,
+        error: error.message
       };
     }
   },
@@ -57,15 +81,17 @@ export const dostFundedProjectApi = {
   // Get projects by status
   getProjectsByStatus: async (status) => {
     try {
-      const response = await api.get(`/get_dost_funded_project.php?status=${status}`);
+      const response = await api.get(`/get_dost_funded_project.php?status=${encodeURIComponent(status)}`);
       return {
-        success: true,
+        success: response.data && response.data.status === 'success',
         data: response.data
       };
     } catch (error) {
+      console.warn('API getProjectsByStatus error:', error.message);
       return {
         success: false,
-        data: []
+        data: null,
+        error: error.message
       };
     }
   },
@@ -75,13 +101,15 @@ export const dostFundedProjectApi = {
     try {
       const response = await api.get('/get_dost_funded_project.php?featured=1');
       return {
-        success: true,
+        success: response.data && response.data.status === 'success',
         data: response.data
       };
     } catch (error) {
+      console.warn('API getFeaturedProjects error:', error.message);
       return {
         success: false,
-        data: []
+        data: null,
+        error: error.message
       };
     }
   },
@@ -92,7 +120,7 @@ export const dostFundedProjectApi = {
       const response = await api.get('/get_dost_funded_project.php', {
         timeout: 3000
       });
-      return response.status === 200;
+      return response.status === 200 && response.data && response.data.status === 'success';
     } catch (error) {
       return false;
     }
