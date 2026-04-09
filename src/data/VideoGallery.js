@@ -4,8 +4,6 @@ const VideoGallery = [
     title: "Introduction to Philippine Lakes: A Virtual Tour",
     year: 2024,
     description: "Take a virtual journey across the most beautiful lakes in the Philippines. This documentary-style video showcases the unique biodiversity, cultural significance, and ecological importance of major lakes including Laguna de Bay, Taal Lake, and Lake Lanao. Features stunning aerial footage and interviews with local communities and researchers.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
     document: null,
     published: 1,
     created_by: 1,

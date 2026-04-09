@@ -6,7 +6,7 @@ const IECMaterials = [
     title: "Lake Conservation: A Community Guide",
     year: 2024,
     description: "A comprehensive guide for communities on how to protect and conserve local lakes. Includes practical tips on waste management, water conservation, and biodiversity protection. Available in English and Tagalog.",
-    cover_image: "/src/assets/images/IEC Materials/event1.jpg",
+    cover_image: null,
     document: null,
     published: 1,
     created_by: 1,

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import logo from "../assets/logo/LSD.png";
-import { MessageCircle, X, Send, Minimize2, Maximize2, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
 import data from "../data/chatBot.js";
 import { useChat } from '../context/ChatContext.jsx';
 
@@ -60,7 +60,6 @@ const ChatBot = () => {
   const { isOpen, setIsOpen, messages, setMessages, isTyping, setIsTyping } = useChat();
   
   const [inputMessage, setInputMessage] = useState('');
-  const [isExpanded, setIsExpanded] = useState(false);
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [lastMessageCount, setLastMessageCount] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -241,10 +240,6 @@ const ChatBot = () => {
   const formatTime = (date) =>
     new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  const toggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   const clearChat = () => {
     setMessages([
       {
@@ -255,8 +250,9 @@ const ChatBot = () => {
     ]);
   };
 
-  const chatHeight = isExpanded ? 'h-[80vh] max-h-[800px]' : 'h-[600px]';
-  const chatWidth = isExpanded ? 'w-[95vw] sm:w-[90vw] md:w-[800px]' : 'w-[90vw] sm:w-[420px] md:w-[480px]';
+  // Responsive sizing - 500px height and 350px width on mobile
+  const chatHeight = 'h-[550px] sm:h-[600px]';
+  const chatWidth = 'w-[320px] sm:w-[420px] md:w-[480px]';
 
   return (
     <>
@@ -288,13 +284,6 @@ const ChatBot = () => {
                   title="Clear Chat"
                 >
                   Clear
-                </button>
-                <button 
-                  onClick={toggleExpand} 
-                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-all"
-                  title={isExpanded ? "Minimize" : "Expand"}
-                >
-                  {isExpanded ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
                 </button>
                 <button 
                   onClick={() => setIsOpen(false)} 

@@ -1,5 +1,7 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\data\ResearchPaper.js
 
+import sampleDocument from "../assets/documents/Research Paper/Testing Document.pdf";
+
 const researchPapersData = [
   {
     id: 1,
@@ -9,7 +11,15 @@ const researchPapersData = [
     adviser: "CHRISTIAN PAUL P. DELA CRUZ MSc",
     year: "2022",
     tags: "Thesis, Fisheries, Bio-Physical Assessment, Lake Ecology",
-    document: "gunao-lake-assessment.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -24,7 +34,15 @@ const researchPapersData = [
     adviser: "DR. FELIPE C. REYES",
     year: "2023",
     tags: "Thesis, Environmental Science, Heavy Metals, Marine Pollution",
-    document: "heavy-metal-assessment.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -39,7 +57,15 @@ const researchPapersData = [
     adviser: "DR. ANNA MARIE L. VILLANUEVA",
     year: "2021",
     tags: "Dissertation, Marine Biology, Mangrove, Socio-Economic",
-    document: "mangrove-rehabilitation.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -54,7 +80,15 @@ const researchPapersData = [
     adviser: "ENGR. ROBERTO S. LIM",
     year: "2023",
     tags: "Thesis, IoT, Aquaculture, Water Quality",
-    document: "iot-water-quality.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -69,7 +103,15 @@ const researchPapersData = [
     adviser: "DR. VICTORINO C. SANTOS",
     year: "2022",
     tags: "Thesis, Animal Science, Genetics, Native Breeds",
-    document: "genetic-diversity-chicken.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -84,7 +126,15 @@ const researchPapersData = [
     adviser: "DR. MA. TERESA C. GARCIA",
     year: "2021",
     tags: "Dissertation, Climate Change, Socio-Economic, Fisheries",
-    document: "climate-change-fisherfolk.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -99,7 +149,15 @@ const researchPapersData = [
     adviser: "DR. RICARDO M. SANTIAGO",
     year: "2023",
     tags: "Thesis, Microbiology, Bacteria, Composting",
-    document: "cellulolytic-bacteria.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -114,7 +172,15 @@ const researchPapersData = [
     adviser: "DR. LOURDES S. MENDOZA",
     year: "2022",
     tags: "Thesis, Botany, Ethnobotany, Medicinal Plants",
-    document: "ethnobotanical-study.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -129,7 +195,15 @@ const researchPapersData = [
     adviser: "DR. DANILO C. REYES",
     year: "2023",
     tags: "Thesis, Environmental Science, Microplastics, Freshwater",
-    document: "microplastic-pollution.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -144,7 +218,15 @@ const researchPapersData = [
     adviser: "DR. CARMELITA N. AQUINO",
     year: "2022",
     tags: "Thesis, Agricultural Economics, Value Chain, Organic Rice",
-    document: "value-chain-analysis.pdf",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,

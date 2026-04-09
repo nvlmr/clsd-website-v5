@@ -478,93 +478,94 @@ const handleDocumentDownload = async (document) => {
     </div>
   ), [handleCardClick]);
 
-  // Detail View Component with Gallery and Documents
-  const DetailView = useCallback(({ project }) => {
-    const galleryImages = parseGallery(project.gallery);
-    const documents = parseDocuments(project.documents);
+// Detail View Component with Gallery and Documents
+const DetailView = useCallback(({ project }) => {
+  const galleryImages = parseGallery(project.gallery);
+  const documents = parseDocuments(project.documents);
+  const [heroImgError, setHeroImgError] = useState(false);
 
-    return (
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-        <button
-          onClick={handleBackClick}
-          className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
-        >
-          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-          <span className="text-sm sm:text-base">Back to DOST Funded Projects</span>
-        </button>
+  return (
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <button
+        onClick={handleBackClick}
+        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
+      >
+        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+        <span className="text-sm sm:text-base">Back to DOST Funded Projects</span>
+      </button>
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-          {/* Hero Image */}
-          {project.image && (
-            <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
-              <img 
-                src={project.image} 
-                alt={project.title}
-                className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(project.image, '_blank')}
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+        {/* Hero Section with Blended Title */}
+        <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
+          {/* Background Image */}
+          {project.image && !heroImgError ? (
+            <>
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${project.image})` }}
+              >
+                {/* Dark Overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+              </div>
               
+              {/* Expand button */}
               <button
                 onClick={() => window.open(project.image, '_blank')}
-                className="absolute top-4 right-4 bg-black bg-opacity-60 text-white p-1.5 sm:p-2 rounded-full hover:bg-opacity-80 transition-all"
+                className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
               >
                 <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
               </button>
-              
-              {project.featured && (
-                <div className="absolute top-4 left-4">
-                  <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5">
-                    <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                    <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {!project.image && project.featured && (
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white relative">
-              <div className="absolute top-4 left-4">
-                <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5">
-                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
-                </div>
+            </>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 opacity-50">
+                <Building2 className="w-16 h-16 sm:w-24 sm:h-24 text-blue-400" />
               </div>
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 pl-24 sm:pl-32">{project.title || "Untitled Project"}</h1>
             </div>
           )}
-
-          {project.image && (
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
-            </div>
-          )}
-
-          {!project.image && !project.featured && (
-            <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
-            </div>
-          )}
-
-          <div className="p-4 sm:p-6 md:p-8 space-y-6">
-            {/* Description */}
-            {project.description && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  <h2 className="text-base sm:text-lg font-bold text-gray-900">Project Description</h2>
-                </div>
-                <div className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700">
-                  <p className="leading-relaxed">{project.description}</p>
-                </div>
+          
+          {/* Featured Badge */}
+          {project.featured && (
+            <div className="absolute top-4 left-4 z-10">
+              <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5 backdrop-blur-sm">
+                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured Project</span>
               </div>
-            )}
+            </div>
+          )}
+          
+          {/* Title Overlay - Blended with Image */}
+          <div className="absolute inset-0 flex items-end">
+            <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
+              <div className="max-w-3xl">
+                <h1 className="text-lg sm:text-3xl md:text-4xl lg:text-3xl font-bold text-white drop-shadow-lg leading-tight">
+                  {project.title || "Untitled Project"}
+                </h1>
+              </div>
+            </div>
+          </div>
+        </div>
 
-            {/* Project Details Grid */}
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <div className="p-4 sm:p-6 md:p-8">
+          {/* Full Content - Description with icon and header */}
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">Description</h2>
+            </div>
+            <div 
+              className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700"
+              dangerouslySetInnerHTML={{ 
+                __html: project.description || 'No description available.' 
+              }}
+            />
+          </div>
+
+          {/* Project Details */}
+          <div className="border-t border-gray-200 pt-6 mt-6">
+            <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {project.status && (
                 <div className="flex items-start gap-2 sm:gap-3">
                   <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
                     <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
@@ -574,100 +575,104 @@ const handleDocumentDownload = async (document) => {
                     <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
                   </div>
                 </div>
+              )}
 
-                {project.project_lead && (
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                      <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Project Leader</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900">{project.project_lead}</p>
-                    </div>
+              {project.project_lead && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                )}
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Project Leader</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{project.project_lead}</p>
+                  </div>
+                </div>
+              )}
 
-                {project.funding_amount && (
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                      <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Funding Source</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900">DOST</p>
-                    </div>
+              {project.funding_amount && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                )}
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Budget</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.funding_amount)}</p>
+                  </div>
+                </div>
+              )}
 
-                {project.funding_amount && (
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Budget</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.funding_amount)}</p>
-                    </div>
+              {project.start_date && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                )}
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Start Date</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.start_date)}</p>
+                  </div>
+                </div>
+              )}
 
-                {project.start_date && project.end_date && (
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Duration</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatDuration(project.start_date, project.end_date)}</p>
-                    </div>
+              {project.end_date && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                )}
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">End Date</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.end_date)}</p>
+                  </div>
+                </div>
+              )}
 
-                {project.implementing_agency && (
-                  <div className="flex items-start gap-2 sm:gap-3">
-                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                      <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
-                      <p className="text-sm sm:text-base font-medium text-gray-900">{project.implementing_agency}</p>
-                    </div>
+              {project.implementing_agency && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                )}
-              </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{project.implementing_agency}</p>
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Cooperating Agency */}
-            {project.cooperating_agency && (
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agency</h3>
-                </div>
-                {project.cooperating_agency.includes(',') ? (
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2 ml-4 sm:ml-7">
-                    {project.cooperating_agency.split(',').map((agency, index) => (
-                      <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
-                        {agency.trim()}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7">{project.cooperating_agency}</p>
-                )}
+          {/* Cooperating Agency */}
+          {project.cooperating_agency && (
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agency</h3>
               </div>
-            )}
-
-            {/* Gallery Section */}
-            {galleryImages.length > 0 && (
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Gallery</h3>
-                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({galleryImages.length} images)</span>
+              {project.cooperating_agency.includes(',') ? (
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 ml-4 sm:ml-7">
+                  {project.cooperating_agency.split(',').map((agency, index) => (
+                    <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
+                      {agency.trim()}
+                    </span>
+                  ))}
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-                  {galleryImages.map((image, index) => (
+              ) : (
+                <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7">{project.cooperating_agency}</p>
+              )}
+            </div>
+          )}
+
+          {/* Gallery Section */}
+          {galleryImages.length > 0 && (
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Gallery</h3>
+                <span className="text-xs sm:text-sm text-gray-500 ml-2">({galleryImages.length} images)</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+                {galleryImages.map((image, index) => {
+                  const [galleryImgError, setGalleryImgError] = useState(false);
+                  
+                  return (
                     <div
                       key={index}
                       className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
@@ -675,15 +680,18 @@ const handleDocumentDownload = async (document) => {
                       onClick={() => openGalleryModal(galleryImages, index)}
                     >
                       <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
-                        <img
-                          src={image}
-                          alt={`Gallery ${index + 1}`}
-                          className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
-                          }}
-                        />
+                        {!galleryImgError ? (
+                          <img
+                            src={image}
+                            alt={`Gallery ${index + 1}`}
+                            className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                            onError={() => setGalleryImgError(true)}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                            <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                          </div>
+                        )}
                       </div>
                       
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -697,61 +705,58 @@ const handleDocumentDownload = async (document) => {
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Documents Section */}
-            {documents.length > 0 && (
-              <div className="border-t border-gray-200 pt-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Documents</h3>
-                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({documents.length} files)</span>
-                </div>
-                <div className="space-y-2 sm:space-y-3">
-                  {documents.map((document, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
-                    >
-                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm sm:text-base text-gray-900 font-medium truncate">
-                            {document.name || document.file_name || `Document ${index + 1}`}
-                          </p>
-                          {document.size && (
-                            <p className="text-xs sm:text-sm text-gray-500">{formatFileSize(document.size)}</p>
-                          )}
-                          {document.extension && (
-                            <p className="text-xs text-gray-400 uppercase mt-0.5">{document.extension}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
-                        {/* Download button only */}
-                        <button
-                          onClick={() => handleDocumentDownload(document)}
-                          className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                          title="Download"
-                        >
-                          <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
+          {/* Documents Section */}
+          {documents.length > 0 && (
+            <div className="border-t border-gray-200 pt-6 mt-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Documents</h3>
+                <span className="text-xs sm:text-sm text-gray-500 ml-2">({documents.length} files)</span>
+              </div>
+              <div className="space-y-2 sm:space-y-3">
+                {documents.map((document, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                  >
+                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm sm:text-base text-gray-900 font-medium truncate">
+                          {document.name || document.file_name || `Document ${index + 1}`}
+                        </p>
+                        {document.size && (
+                          <p className="text-xs sm:text-sm text-gray-500">{formatFileSize(document.size)}</p>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                      <button
+                        onClick={() => handleDocumentDownload(document)}
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                        title="Download"
+                      >
+                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
-    );
-  }, [handleBackClick, formatDuration, formatCurrency, formatStatus, parseGallery, parseDocuments, openGalleryModal, handleDocumentDownload]);
+    </div>
+  );
+}, [handleBackClick, formatDate, formatCurrency, formatStatus, parseGallery, parseDocuments, openGalleryModal, handleDocumentDownload]);
 
-  // Gallery Modal Component
+// Gallery Modal Component
   const GalleryModal = () => {
     if (!isModalOpen || !selectedImage) return null;
 
@@ -833,7 +838,7 @@ const handleDocumentDownload = async (document) => {
       let message = '';
       
       if (searchTerm && searchTerm.trim() !== '') {
-        message = `No DOST funded projects found matching "${searchTerm}".`;
+        message = `No DOST funded projects found.`;
       } else if (statusFilter !== 'all') {
         message = `No ${statusFilter} DOST funded projects found.`;
       } else {
@@ -970,19 +975,6 @@ const handleDocumentDownload = async (document) => {
               </div>
             </div>
           </div>
-
-          {searchTerm && (
-            <div className="container mx-auto px-4 mt-4">
-              <p className="text-xs sm:text-sm text-gray-600 text-center">
-                Found {searchResults.filtered} result{searchResults.filtered !== 1 ? 's' : ''} 
-                {searchTerm && ` matching "${searchTerm}"`}
-                {statusFilter !== 'all' && ` in ${statusFilter} status`}
-                {searchResults.total !== searchResults.filtered && 
-                  ` out of ${searchResults.total} total projects`
-                }
-              </p>
-            </div>
-          )}
         </>
       )}
 

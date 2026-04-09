@@ -84,7 +84,7 @@ const mockEquipmentData = [
     description: "Efficient solvent removal system that uses vacuum distillation to gently concentrate or purify chemical samples at reduced pressures.",
     model: "RE-2000",
     year_acquired: 2021,
-    status: "maintenance",
+    status: "Available",
     applications: ["Solvent removal", "Sample concentration", "Chemical synthesis"],
     published: 1
   },
@@ -194,7 +194,7 @@ const mockEquipmentData = [
     description: "Sterilization equipment using high-pressure steam to eliminate microorganisms from laboratory instruments and media.",
     model: "CL-40M",
     year_acquired: 2019,
-    status: "maintenance",
+    status: "available",
     applications: ["Media sterilization", "Waste decontamination", "Instrument sterilization"],
     published: 1
   },

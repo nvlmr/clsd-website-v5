@@ -21,8 +21,16 @@ import {
   Download,
   Maximize2,
   Image as ImageIcon,
-  Tag
+  Tag,
+  VideoOff
 } from "lucide-react";
+
+// Video Not Available Placeholder Component
+const VideoNotAvailablePlaceholder = () => (
+  <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-blue-300 to-blue-400">
+    <VideoOff className="w-8 h-8 sm:w-12 sm:h-12 text-white mb-1 sm:mb-2" />
+  </div>
+);
 
 // Minimalist Horizontal Water Filling Loading Component
 const WaterFillingLoading = () => {
@@ -208,8 +216,8 @@ function VideoGallery() {
     const youtubeId = getYouTubeId(video.video_url);
     if (youtubeId) return `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
     
-    // Default placeholder
-    return "https://via.placeholder.com/400x225?text=Video+Thumbnail";
+    // Return null to indicate no thumbnail available
+    return null;
   };
 
   // Get document URL with proper handling
@@ -264,65 +272,74 @@ function VideoGallery() {
   };
 
   // Video Card Component
-  const VideoCard = ({ video }) => (
-    <div 
-      className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
-      onClick={() => handleCardClick(video)}
-    >
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
-      
-      <div className="relative pt-[56.25%] bg-gray-900 overflow-hidden">
-        <div className="absolute inset-0">
-          <img 
-            src={getThumbnail(video)}
-            alt={video.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = "https://via.placeholder.com/400x225?text=Video+Thumbnail";
-            }}
-          />
-        </div>
-        
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors duration-300">
-          <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-red-600 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
-            <Play className="w-4 h-4 sm:w-6 sm:h-6 text-white fill-current" />
-          </div>
-        </div>
-      </div>
-      
-      <div className="p-3 sm:p-4 flex flex-col flex-grow">
-        <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
-          <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
-            {video.title}
-          </h3>
-        </div>
-        
-        <div className="space-y-1.5 sm:space-y-2 mt-1">
-          <div className="flex sm:hidden flex-col space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0" />
-              <span className="text-xs text-gray-600">{video.year}</span>
-            </div>
-          </div>
+  const VideoCard = ({ video }) => {
+    const [thumbnailError, setThumbnailError] = useState(false);
+    const thumbnailUrl = getThumbnail(video);
+    const hasValidThumbnail = thumbnailUrl && !thumbnailError;
 
-          <div className="hidden sm:block space-y-2">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-blue-500" />
-              <span className="text-sm text-gray-500">
-                {video.year}
-              </span>
+    return (
+      <div 
+        className="group relative bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-all duration-300 cursor-pointer h-full flex flex-col"
+        onClick={() => handleCardClick(video)}
+      >
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-bottom"></div>
+        
+        <div className="relative pt-[56.25%] bg-gray-900 overflow-hidden">
+          <div className="absolute inset-0">
+            {hasValidThumbnail ? (
+              <img 
+                src={thumbnailUrl}
+                alt={video.title}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={() => setThumbnailError(true)}
+              />
+            ) : (
+              <VideoNotAvailablePlaceholder />
+            )}
+          </div>
+          
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors duration-300">
+            <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-red-600 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
+              <Play className="w-4 h-4 sm:w-6 sm:h-6 text-white fill-current" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-3 sm:p-4 flex flex-col flex-grow">
+          <div className="min-h-[3rem] sm:min-h-[3.5rem] mb-2 border-b border-gray-200 pb-2">
+            <h3 className="text-sm sm:text-base font-semibold text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+              {video.title}
+            </h3>
+          </div>
+          
+          <div className="space-y-1.5 sm:space-y-2 mt-1">
+            <div className="flex sm:hidden flex-col space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                <span className="text-xs text-gray-600">{video.year}</span>
+              </div>
+            </div>
+
+            <div className="hidden sm:block space-y-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-500" />
+                <span className="text-sm text-gray-500">
+                  {video.year}
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const DetailView = ({ video }) => {
     const youtubeId = getYouTubeId(video.video_url);
     const documentUrl = getDocumentUrl(video.document);
     const thumbnailUrl = getThumbnail(video);
+    const [thumbnailError, setThumbnailError] = useState(false);
+    const hasValidThumbnail = thumbnailUrl && !thumbnailError;
     
     // Check if there's a document to display as attachment
     const hasAttachment = documentUrl && video.document;
@@ -334,8 +351,6 @@ function VideoGallery() {
         const urlParams = new URLSearchParams(video.document.split('?')[1]);
         const fileParam = urlParams.get('file');
         if (fileParam) {
-          // The file parameter contains the original server filename (e.g., 1775522746_69d453ba816a3.pdf)
-          // You might want to keep this or map it to a display name
           attachmentName = fileParam;
         } else {
           attachmentName = video.document.split('/').pop();
@@ -373,15 +388,13 @@ function VideoGallery() {
               <video
                 controls
                 className="absolute inset-0 w-full h-full"
-                poster={thumbnailUrl}
+                poster={hasValidThumbnail ? thumbnailUrl : undefined}
               >
                 <source src={video.video_url} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                <p className="text-white">Video not available</p>
-              </div>
+              <VideoNotAvailablePlaceholder />
             )}
           </div>
 
@@ -438,7 +451,7 @@ function VideoGallery() {
                     <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
                       <button
                         onClick={() => downloadAttachment(documentUrl, attachmentName)}
-                        className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
                         title="Download"
                       >
                         <Download className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -591,21 +604,6 @@ function VideoGallery() {
           minChars={videoSearchConfig.minChars}
           noResultsMessage={videoSearchConfig.noResultsMessage}
         />
-      )}
-
-      {/* Search Stats - Show when searching and not in detail view */}
-      {!selectedVideo && searchTerm && filteredVideos.length > 0 && !loading && !error && (
-        <div className="container mx-auto px-4 mt-4">
-          <div className="text-center">
-            <p className="text-sm text-gray-600">
-              Found {searchResults.filtered} video{searchResults.filtered !== 1 ? 's' : ''} 
-              {searchTerm && ` matching "${searchTerm}"`}
-              {searchResults.total !== searchResults.filtered && 
-                ` out of ${searchResults.total} total videos`
-              }
-            </p>
-          </div>
-        </div>
       )}
 
       {/* Main Content Area */}

@@ -486,8 +486,16 @@ const downloadAttachment = async (url, displayName) => {
     </div>
   ), [handleCardClick]);
 
-  // UPDATED DetailView - Status removed from hero image and made consistent with other details
-  const DetailView = useCallback(({ project }) => (
+// UPDATED DetailView - Dark overlay only when image exists
+const DetailView = useCallback(({ project }) => {
+  const [heroImgError, setHeroImgError] = useState(false);
+  const [galleryImgErrors, setGalleryImgErrors] = useState({});
+
+  const handleGalleryImgError = (index) => {
+    setGalleryImgErrors(prev => ({ ...prev, [index]: true }));
+  };
+
+  return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
       <button
         onClick={handleBackClick}
@@ -498,65 +506,57 @@ const downloadAttachment = async (url, displayName) => {
       </button>
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Hero Image */}
-        {project.image && (
-          <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
-            <img 
-              src={project.image} 
-              alt={project.title}
-              className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => window.open(project.image, '_blank')}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-            
-            {/* Status badge removed from hero image */}
-            
-            {/* Expand button */}
-            <button
-              onClick={() => window.open(project.image, '_blank')}
-              className="absolute top-4 right-4 bg-black bg-opacity-60 text-white p-1.5 sm:p-2 rounded-full hover:bg-opacity-80 transition-all"
-            >
-              <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
-            </button>
-
-            {/* Featured indicator */}
-            {project.featured === 1 && (
-              <div className="absolute top-4 left-4">
-                <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5">
-                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                  <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
-                </div>
+        {/* Hero Section with Blended Title */}
+        <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
+          {/* Background Image with Dark Overlay (only when image exists) */}
+          {project.image && !heroImgError ? (
+            <>
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${project.image})` }}
+              >
+                {/* Dark Overlay for better text readability - only for actual images */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* If no hero image, put featured indicator in the colored header */}
-        {!project.image && project.featured === 1 && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white relative">
-            <div className="absolute top-4 right-4">
-              <div className="bg-white/20 backdrop-blur-sm rounded-full p-1.5 flex items-center gap-1 sm:gap-1.5">
+              
+              {/* Expand button */}
+              <button
+                onClick={() => window.open(project.image, '_blank')}
+                className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
+              >
+                <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+            </>
+          ) : (
+            /* Placeholder - NO dark overlay */
+            <div className="absolute inset-0 bg-blue-400">
+              <div className="absolute inset-0 bg-black opacity-10 w-full h-full flex items-center justify-center">
+                <Building2 className="w-16 h-16 sm:w-24 sm:h-24 text-white/30" />
+              </div>
+            </div>
+          )}
+          
+          {/* Featured Badge */}
+          {project.featured === 1 && (
+            <div className="absolute top-4 left-4 z-10">
+              <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5 backdrop-blur-sm">
                 <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
               </div>
             </div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4 pr-24 sm:pr-32">{project.title || "Untitled Project"}</h1>
+          )}
+          
+          {/* Title Overlay - Blended with Image */}
+          <div className="absolute inset-0 flex items-end">
+            <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
+              <div className="max-w-3xl">
+                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg leading-tight">
+                  {project.title || "Untitled Project"}
+                </h1>
+              </div>
+            </div>
           </div>
-        )}
-
-        {/* If there is a hero image, title is in the gradient overlay */}
-        {project.image && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
-          </div>
-        )}
-
-        {/* If no hero image and not featured, just show title in blue header */}
-        {!project.image && project.featured !== 1 && (
-          <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-4">{project.title || "Untitled Project"}</h1>
-          </div>
-        )}
+        </div>
 
         <div className="p-4 sm:p-6 md:p-8 space-y-6">
           {/* Description */}
@@ -597,16 +597,18 @@ const downloadAttachment = async (url, displayName) => {
           <div className="border-t border-gray-200 pt-6">
             <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {/* Status - Now consistent with other details (no colored badge) */}
-              <div className="flex items-start gap-2 sm:gap-3">
-                <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              {/* Status */}
+              {project.status && (
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Status</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs sm:text-sm text-gray-500">Status</p>
-                  <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
-                </div>
-              </div>
+              )}
 
               {/* Project Lead */}
               {project.project_lead && (
@@ -766,15 +768,18 @@ const downloadAttachment = async (url, displayName) => {
                     onClick={() => openGalleryModal(project.gallery, index)}
                   >
                     <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
-                      <img
-                        src={image}
-                        alt={`Gallery ${index + 1}`}
-                        className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://via.placeholder.com/300x200?text=Image+Not+Available";
-                        }}
-                      />
+                      {!galleryImgErrors[index] ? (
+                        <img
+                          src={image}
+                          alt={`Gallery ${index + 1}`}
+                          className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                          onError={() => handleGalleryImgError(index)}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                          <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                        </div>
+                      )}
                     </div>
                     
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -835,9 +840,11 @@ const downloadAttachment = async (url, displayName) => {
         </div>
       </div>
     </div>
-  ), [handleBackClick, formatDate, formatCurrency, formatStatus, openGalleryModal, downloadAttachment]);
+  );
+}, [handleBackClick, formatDate, formatCurrency, formatStatus, openGalleryModal, downloadAttachment]);
 
-  // Gallery Modal - from NewsEvents
+
+// Gallery Modal - from NewsEvents
   const GalleryModal = () => {
     if (!isModalOpen || !selectedImage) return null;
 

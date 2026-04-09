@@ -167,7 +167,6 @@ const MaterialCard = ({ material, onClick }) => (
     </div>
   </div>
 );
-
 const DetailView = ({ material, onBack, onDownload, downloading }) => {
   const getFileName = () => material.document?.split('/').pop() || 'iec-material';
   const hasAttachment = !!material.document;
@@ -183,7 +182,7 @@ const DetailView = ({ material, onBack, onDownload, downloading }) => {
       </button>
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {material.cover_image && (
+        {material.cover_image ? (
           <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
             <img 
               src={material.cover_image} 
@@ -193,13 +192,14 @@ const DetailView = ({ material, onBack, onDownload, downloading }) => {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
           </div>
+        ) : (
+          <div className="relative h-48 sm:h-64 md:h-96 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+            <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-blue-400" />
+          </div>
         )}
 
-        <div className={material.cover_image 
-          ? "bg-gradient-to-r from-blue-600 to-blue-800 px-4 sm:px-6 py-6 sm:py-8 text-white"
-          : "px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200"
-        }>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{material.title}</h1>
+        <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{material.title}</h1>
         </div>
 
         <div className="p-4 sm:p-6 md:p-8">
@@ -566,21 +566,6 @@ function IEC_Materials() {
               theme={searchConfigs.iecMaterials.theme}
             />
           </div>
-
-          {/* Search Stats */}
-          {searchTerm && filteredMaterials.length > 0 && (
-            <div className="container mx-auto px-4 mt-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Found {searchResults.filtered} material{searchResults.filtered !== 1 ? 's' : ''} 
-                  {searchTerm && ` matching "${searchTerm}"`}
-                  {searchResults.total !== searchResults.filtered && 
-                    ` out of ${searchResults.total} total materials`
-                  }
-                </p>
-              </div>
-            </div>
-          )}
         </>
       )}
 

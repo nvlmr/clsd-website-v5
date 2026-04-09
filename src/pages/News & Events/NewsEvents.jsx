@@ -430,7 +430,7 @@ function NewsEvents() {
               <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
                 <div className="max-w-3xl">
                   {/* Title Only - No Type Badge */}
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg leading-tight">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-white drop-shadow-lg leading-tight">
                     {event.title}
                   </h1>
                 </div>
@@ -594,20 +594,6 @@ function NewsEvents() {
                 </div>
               </div>
             )}
-
-            {/* Registration Link */}
-            {event.event_registration_link && (
-              <div className="border-t border-gray-200 pt-6 mt-6">
-                <a
-                  href={event.event_registration_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <span>Register for this event</span>
-                </a>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -766,15 +752,6 @@ function NewsEvents() {
             </div>
           </div>
 
-          {searchTerm && filteredAndSearchedEvents.length > 0 && (
-            <div className="container mx-auto px-4 mt-4">
-              <p className="text-xs sm:text-sm text-gray-600">
-                Found {filteredAndSearchedEvents.length} results for "{searchTerm}"
-                {activeFilter !== 'all' && ` in ${activeFilter} category`}
-              </p>
-            </div>
-          )}
-
           <div className="flex-grow container mx-auto px-4 mt-8">
             {filteredAndSearchedEvents.length > 0 ? (
               <>
@@ -831,7 +808,7 @@ function NewsEvents() {
             ) : (
               <div className="text-center py-26">
                 <p className="text-gray-500 text-sm sm:text-lg">
-                  {searchTerm ? `No news or events found for "${searchTerm}".` : 'No news or events found.'}
+                  No news or events found.
                 </p>
               </div>
             )}

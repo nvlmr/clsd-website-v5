@@ -25,7 +25,8 @@ import {
   AlertCircle,
   RefreshCw,
   Maximize2,
-  X as XIcon
+  X as XIcon,
+  Image as ImageIcon
 } from "lucide-react";
 
 // Horizontal Water Filling Loading Component that completes in ~5 seconds
@@ -103,6 +104,9 @@ function ResearchPaper() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState(null);
   
+  // State for cover image error
+  const [coverImgError, setCoverImgError] = useState(false);
+  
   const topRef = useRef(null);
 
   // Use the reusable search hook with search configuration
@@ -150,6 +154,11 @@ function ResearchPaper() {
     }
   }, [currentPage, selectedPaper]);
 
+  // Reset cover image error when selected paper changes
+  useEffect(() => {
+    setCoverImgError(false);
+  }, [selectedPaper]);
+
   // Calculate pagination
   const totalPages = Math.ceil(filteredPapers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -183,21 +192,6 @@ function ResearchPaper() {
     handleSearchClear();
   }, [handleSearchClear]);
 
-  // Handle download with error handling
-  const handleDownload = useCallback(async (paper) => {
-    setDownloadError(null);
-    try {
-      const result = await downloadPaper(paper);
-      if (result.success) {
-        console.log('Download started successfully');
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      setDownloadError(error.message || 'Failed to download document. Please try again later.');
-      setTimeout(() => setDownloadError(null), 5000);
-    }
-  }, [downloadPaper]);
-
   // Format file size
   const formatFileSize = useCallback((bytes) => {
     if (!bytes) return '';
@@ -205,6 +199,109 @@ function ResearchPaper() {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }, []);
+
+  // Helper function to get document item from various data structures
+  const getDocumentItem = useCallback((paper) => {
+    if (!paper.document) return null;
+    
+    // Handle array format (current local data)
+    if (Array.isArray(paper.document) && paper.document.length > 0) {
+      const doc = paper.document[0];
+      return {
+        url: doc.url || doc.download_url,
+        name: doc.name || doc.file_name || `${paper.title}.pdf`,
+        type: 'application/pdf',
+        size: doc.size
+      };
+    }
+    
+    // Handle object format (potential future server data)
+    if (typeof paper.document === 'object' && !Array.isArray(paper.document)) {
+      return {
+        url: paper.document.url || paper.document.download_url,
+        name: paper.document.name || paper.document.file_name || `${paper.title}.pdf`,
+        type: paper.document.type || 'application/pdf',
+        size: paper.document.size
+      };
+    }
+    
+    // Handle string URL (simplest case)
+    if (typeof paper.document === 'string') {
+      return {
+        url: paper.document,
+        name: `${paper.title}.pdf`,
+        type: 'application/pdf'
+      };
+    }
+    
+    return null;
+  }, []);
+
+  // Handle download with error handling - supports both hook and direct download
+  const handleDownload = useCallback(async (paper) => {
+    setDownloadError(null);
+    
+    const documentItem = getDocumentItem(paper);
+    
+    // If downloadPaper hook is available and it's a function (server ready)
+    if (downloadPaper && typeof downloadPaper === 'function') {
+      try {
+        const result = await downloadPaper(paper);
+        if (result && result.success) {
+          console.log('Download started successfully via hook');
+        } else if (result && result.url) {
+          // Fallback if hook returns URL but doesn't trigger download
+          const link = document.createElement('a');
+          link.href = result.url;
+          link.download = documentItem?.name || `${paper.title}.pdf`;
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      } catch (error) {
+        console.error('Download error with hook:', error);
+        // Fallback to direct download if hook fails
+        if (documentItem && documentItem.url) {
+          try {
+            const link = document.createElement('a');
+            link.href = documentItem.url;
+            link.download = documentItem.name;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } catch (fallbackError) {
+            setDownloadError(error.message || 'Failed to download document. Please try again later.');
+            setTimeout(() => setDownloadError(null), 5000);
+          }
+        } else {
+          setDownloadError(error.message || 'Failed to download document. Please try again later.');
+          setTimeout(() => setDownloadError(null), 5000);
+        }
+      }
+    } 
+    // Direct download for local development (no server)
+    else if (documentItem && documentItem.url) {
+      try {
+        const link = document.createElement('a');
+        link.href = documentItem.url;
+        link.download = documentItem.name;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        console.log('Download started directly:', documentItem.name);
+      } catch (error) {
+        console.error('Direct download error:', error);
+        setDownloadError('Failed to download document');
+        setTimeout(() => setDownloadError(null), 5000);
+      }
+    } else {
+      setDownloadError('No document available for download');
+      setTimeout(() => setDownloadError(null), 5000);
+    }
+  }, [downloadPaper, getDocumentItem]);
 
   // Open document modal for preview
   const openDocumentModal = useCallback((document) => {
@@ -244,7 +341,19 @@ function ResearchPaper() {
       
       <div className="relative pt-[60%] sm:pt-[56.25%] bg-gradient-to-br from-blue-100 to-blue-200 overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
-          <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
+          {paper.cover_image ? (
+            <img 
+              src={paper.cover_image} 
+              alt={paper.title}
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/400x200?text=Research+Paper";
+              }}
+            />
+          ) : (
+            <BookOpen className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400" />
+          )}
         </div>
       </div>
 
@@ -281,16 +390,15 @@ function ResearchPaper() {
     </div>
   ), [handleCardClick]);
 
-  // Detail View Component - Matching ResearchInitiatives style with document section
+  // Detail View Component - With blended title and image support
   const DetailView = useCallback(({ paper }) => {
     const isDownloading = downloading === paper.id;
     
-    // Prepare document object for display (matching ResearchInitiatives document structure)
-    const documentItem = paper.document ? {
-      url: paper.document,
-      name: `${paper.title}.pdf`,
-      type: 'application/pdf'
-    } : null;
+    // Get document item using the helper function
+    const documentItem = getDocumentItem(paper);
+    
+    // Determine cover image URL (use cover_image if available, otherwise fallback to null)
+    const coverImageUrl = paper.cover_image || null;
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -303,22 +411,63 @@ function ResearchPaper() {
         </button>
 
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-          {/* Hero Section - Matching ResearchInitiatives style */}
-          <div className="relative h-48 sm:h-64 md:h-80 overflow-hidden bg-gradient-to-r from-blue-400 to-blue-500">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <BookOpen className="w-16 h-16 sm:w-24 sm:h-24 text-white/20" />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+          {/* Hero Section with Blended Title */}
+          <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
+            {/* Background Image with Dark Overlay (only when image exists) */}
+            {coverImageUrl && !coverImgError ? (
+              <>
+                <div 
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${coverImageUrl})` }}
+                >
+                  {/* Dark Overlay for better text readability - only for actual images */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+                </div>
+                
+                {/* Expand button */}
+                <button
+                  onClick={() => window.open(coverImageUrl, '_blank')}
+                  className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
+                >
+                  <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+              </>
+            ) : (
+              /* Placeholder - NO dark overlay */
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500">
+                <div className="absolute inset-0 bg-black opacity-10 w-full h-full flex items-center justify-center">
+                  <BookOpen className="w-16 h-16 sm:w-24 sm:h-24 text-white/30" />
+                </div>
+              </div>
+            )}
             
-            <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 md:p-8">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 sm:mb-3 line-clamp-3">
-                {paper.title}
-              </h1>
+            {/* Title Overlay - Blended with Image */}
+            <div className="absolute inset-0 flex items-end">
+              <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
+                <div className="max-w-3xl">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-white drop-shadow-lg leading-tight">
+                    {paper.title}
+                  </h1>
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="p-4 sm:p-6 md:p-8 space-y-6">
-            {/* Student/Author - Matching grid layout from ResearchInitiatives */}
+            {/* Abstract/Description if available */}
+            {paper.abstract && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h2 className="text-sm sm:text-lg font-bold text-gray-900">Abstract</h2>
+                </div>
+                <div className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700">
+                  <p className="leading-relaxed">{paper.abstract}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Paper Details */}
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Paper Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -368,7 +517,7 @@ function ResearchPaper() {
               </div>
             </div>
 
-            {/* Tags Section - Matching ResearchInitiatives styling */}
+            {/* Tags Section */}
             {paper.tags && (
               <div className="border-t border-gray-200 pt-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -388,7 +537,7 @@ function ResearchPaper() {
               </div>
             )}
 
-            {/* Documents Section - Matching ResearchInitiatives document UI exactly */}
+            {/* Documents Section - Fixed to handle array structure */}
             {documentItem && (
               <div className="border-t border-gray-200 pt-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -402,13 +551,16 @@ function ResearchPaper() {
                       <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{documentItem.name}</p>
+                        {documentItem.size && (
+                          <p className="text-xs text-gray-500 mt-0.5">{formatFileSize(documentItem.size)}</p>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
                       <button
                         onClick={() => handleDownload(paper)}
                         disabled={isDownloading}
-                        className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Download"
                       >
                         {isDownloading ? (
@@ -436,9 +588,9 @@ function ResearchPaper() {
         </div>
       </div>
     );
-  }, [handleBackClick, downloading, handleDownload, downloadError]);
+  }, [handleBackClick, downloading, handleDownload, downloadError, coverImgError, getDocumentItem, formatFileSize]);
 
-  // Document Preview Modal - Matching ResearchInitiatives gallery modal style
+  // Document Preview Modal
   const DocumentModal = useCallback(() => {
     if (!isModalOpen || !selectedDocument) return null;
 
