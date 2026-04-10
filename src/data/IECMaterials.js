@@ -1,161 +1,29 @@
 // C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\data\IECMaterials.js
 
+import sampleDocument from "../assets/documents/IEC Materials/Program-FB-Pagbabago-workshop-December-7-8-2023.pdf";
+// import sampleImage from "../assets/images/IEC Materials/Sample.jpg";
+
 const IECMaterials = [
   {
     id: 1,
-    title: "Lake Conservation: A Community Guide",
-    year: 2024,
-    description: "A comprehensive guide for communities on how to protect and conserve local lakes. Includes practical tips on waste management, water conservation, and biodiversity protection. Available in English and Tagalog.",
+    title: "Seminar-Workshop on Research Methodology for Socio-Economic Impact Evaluation of Livelihood Programs",
+    year: 2023,
+    description: "This two-day seminar-workshop trained participants on research methods for evaluating livelihood programs' socio-economic impacts. Held at LSPU Los Baños in partnership with BFAR, the event covered survey design, sampling, and statistical analysis through lectures and hands-on sessions. It concluded with a project inception meeting for the F/B Pagbabago Livelihood Program evaluation.",
     cover_image: null,
-    document: null,
+    document: [
+      {
+        name: "Program-FB-Pagbabago-workshop-December-7-8-2023.pdf",
+        file_name: "Program-FB-Pagbabago-workshop-December-7-8-2023.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
     created_at: "2024-01-15 00:00:00",
     updated_at: "2024-01-15 00:00:00"
-  },
-  {
-    id: 2,
-    title: "Water Quality Monitoring for Beginners",
-    year: 2024,
-    description: "Step-by-step manual on basic water quality monitoring techniques for community volunteers. Covers sampling methods, use of test kits, and interpretation of results. Includes data recording sheets and troubleshooting tips.",
-    cover_image: "/src/assets/images/IEC Materials/event2.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-02-20 00:00:00",
-    updated_at: "2024-02-20 00:00:00"
-  },
-  {
-    id: 3,
-    title: "Poster: Protect Our Lakes",
-    year: 2024,
-    description: "An educational poster highlighting the importance of lakes and the actions individuals can take to protect them. Features vibrant illustrations of lake biodiversity and simple call-to-action messages. Suitable for schools and community centers.",
-    cover_image: "/src/assets/images/IEC Materials/event3.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-03-10 00:00:00",
-    updated_at: "2024-03-10 00:00:00"
-  },
-  {
-    id: 4,
-    title: "Infographic: Lake Ecosystem Food Web",
-    year: 2024,
-    description: "Visual representation of the complex food web in lake ecosystems, from microscopic plankton to top predators. Helps students and community members understand ecological relationships and the importance of each species.",
-    cover_image: "/src/assets/images/IEC Materials/event4.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-04-05 00:00:00",
-    updated_at: "2024-04-05 00:00:00"
-  },
-  {
-    id: 5,
-    title: "Video: Introduction to Philippine Lakes",
-    year: 2024,
-    description: "A 15-minute documentary-style video showcasing the beauty and diversity of Philippine lakes. Features interviews with researchers, stunning aerial footage, and explanations of lake formation and ecology. Available with English and Tagalog subtitles.",
-    cover_image: "/src/assets/images/IEC Materials/event5.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-05-12 00:00:00",
-    updated_at: "2024-05-12 00:00:00"
-  },
-  {
-    id: 6,
-    title: "Fact Sheet: Laguna de Bay",
-    year: 2024,
-    description: "Quick reference fact sheet about the largest lake in the Philippines. Includes key statistics, biodiversity highlights, major threats, and ongoing conservation efforts. Ideal for students, policymakers, and media practitioners.",
-    cover_image: "/src/assets/images/IEC Materials/event6.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-06-18 00:00:00",
-    updated_at: "2024-06-18 00:00:00"
-  },
-  {
-    id: 7,
-    title: "Activity Book: Lake Explorers",
-    year: 2024,
-    description: "An interactive activity book for children aged 7-12, featuring puzzles, coloring pages, and simple experiments related to lake ecosystems. Designed to foster environmental awareness and curiosity about lakes.",
-    cover_image: "/src/assets/images/IEC Materials/event7.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-07-22 00:00:00",
-    updated_at: "2024-07-22 00:00:00"
-  },
-  {
-    id: 8,
-    title: "Flip Chart: Lake Conservation Topics",
-    year: 2024,
-    description: "A flip chart for educators and extension workers covering key lake conservation topics. Each page features illustrations and talking points on subjects like water pollution, invasive species, and sustainable livelihoods.",
-    cover_image: "/src/assets/images/IEC Materials/event8.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-08-30 00:00:00",
-    updated_at: "2024-08-30 00:00:00"
-  },
-  {
-    id: 9,
-    title: "Social Media Cards: Lake Facts",
-    year: 2024,
-    description: "A set of 20 social media-ready graphics with interesting facts about Philippine lakes. Perfect for Facebook, Instagram, and Twitter campaigns to raise awareness about lake conservation. Includes suggested captions and hashtags.",
-    cover_image: "/src/assets/images/IEC Materials/event9.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-09-14 00:00:00",
-    updated_at: "2024-09-14 00:00:00"
-  },
-  {
-    id: 10,
-    title: "Handbook: Sustainable Livelihoods around Lakes",
-    year: 2024,
-    description: "A practical handbook for communities on developing sustainable livelihoods that don't harm lake ecosystems. Covers eco-tourism, sustainable fishing, and alternative income sources. Includes case studies from successful community projects.",
-    cover_image: "/src/assets/images/IEC Materials/event1.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-10-03 00:00:00",
-    updated_at: "2024-10-03 00:00:00"
-  },
-  {
-    id: 11,
-    title: "Poster: Native vs. Invasive Species",
-    year: 2024,
-    description: "An identification poster helping communities distinguish between native and invasive aquatic species. Features common fish, plants, and invertebrates found in Philippine lakes with clear illustrations and key characteristics.",
-    cover_image: "/src/assets/images/IEC Materials/event2.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-11-19 00:00:00",
-    updated_at: "2024-11-19 00:00:00"
-  },
-  {
-    id: 12,
-    title: "Brochure: Lake-Friendly Farming",
-    year: 2024,
-    description: "A guide for farmers on agricultural practices that protect lake water quality. Covers buffer zones, responsible fertilizer use, and soil conservation techniques. Part of the 'Sustainable Agriculture for Healthy Lakes' series.",
-    cover_image: "/src/assets/images/IEC Materials/event3.jpg",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-12-08 00:00:00",
-    updated_at: "2024-12-08 00:00:00"
   }
 ];
 

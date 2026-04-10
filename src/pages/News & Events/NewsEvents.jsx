@@ -373,10 +373,33 @@ function NewsEvents() {
       </div>
     );
   };
-  
-  const DetailView = ({ event }) => {
+
+const DetailView = ({ event }) => {
     const [heroImgError, setHeroImgError] = useState(false);
     
+    // Helper function to format content with proper paragraphs
+    const formatContent = (content) => {
+      if (!content) return 'No description available.';
+      
+      // Split by \r\n\r\n or \n\n (double line breaks)
+      const paragraphs = content.split(/\r?\n\r?\n/);
+      
+      return paragraphs.map((paragraph, index) => {
+        // Clean up the paragraph - replace single line breaks with spaces
+        let cleanParagraph = paragraph.replace(/\r?\n/g, ' ').trim();
+        
+        // Skip empty paragraphs
+        if (!cleanParagraph) return null;
+        
+        // Return as paragraph element
+        return (
+          <p key={index} className="mb-4 leading-relaxed text-gray-700">
+            {cleanParagraph}
+          </p>
+        );
+      }).filter(Boolean); // Remove null values
+    };
+
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
         <button
@@ -393,13 +416,14 @@ function NewsEvents() {
             {/* Background Image */}
             {event.featured_image && !heroImgError ? (
               <>
-                <div 
-                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                  style={{ backgroundImage: `url(${event.featured_image})` }}
-                >
-                  {/* Dark Overlay for better text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
-                </div>
+                <img 
+                  src={event.featured_image} 
+                  alt={event.title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={() => setHeroImgError(true)}
+                />
+                {/* Dark Overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
                 
                 {/* Expand button */}
                 <button
@@ -410,9 +434,7 @@ function NewsEvents() {
                 </button>
               </>
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800">
-                <ImagePlaceholder type={event.type} className="w-full h-full opacity-50" />
-              </div>
+              <div className="absolute inset-0 bg-blue-500"></div>
             )}
             
             {/* Featured Badge */}
@@ -425,11 +447,10 @@ function NewsEvents() {
               </div>
             )}
             
-            {/* Title Overlay - Blended with Image (Type Badge Removed) */}
+            {/* Title Overlay - Blended with Image */}
             <div className="absolute inset-0 flex items-end">
               <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
                 <div className="max-w-3xl">
-                  {/* Title Only - No Type Badge */}
                   <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl font-bold text-white drop-shadow-lg leading-tight">
                     {event.title}
                   </h1>
@@ -442,22 +463,19 @@ function NewsEvents() {
             {/* Excerpt */}
             {event.excerpt && (
               <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600">
-                <p className="text-sm sm:text-base text-gray-700 italic">{event.excerpt}</p>
+                <p className="text-sm sm:text-base text-gray-700 italic leading-relaxed">{event.excerpt}</p>
               </div>
             )}
 
-            {/* Full Content */}
+            {/* Full Content with proper paragraph formatting */}
             <div className="mb-6 sm:mb-8">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 <h2 className="text-base sm:text-lg font-bold text-gray-900">Description</h2>
               </div>
-              <div 
-                className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700"
-                dangerouslySetInnerHTML={{ 
-                  __html: event.content || event.description || 'No description available.' 
-                }}
-              />
+              <div className="ml-4 sm:ml-7">
+                {formatContent(event.content || event.description)}
+              </div>
             </div>
 
             {/* Event Details */}
@@ -470,7 +488,7 @@ function NewsEvents() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-gray-500">Type</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 capitalize truncate">{event.type}</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 capitalize break-words">{event.type}</p>
                   </div>
                 </div>
                 
@@ -480,7 +498,7 @@ function NewsEvents() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-gray-500">Category</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{event.category || 'General'}</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 break-words">{event.category || 'General'}</p>
                   </div>
                 </div>
                 
@@ -490,7 +508,7 @@ function NewsEvents() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-gray-500">Date</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">
+                    <p className="text-sm sm:text-base font-medium text-gray-900 break-words">
                       {formatEventDate(event.event_start_date, event.event_end_date)}
                     </p>
                   </div>
@@ -502,7 +520,7 @@ function NewsEvents() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs sm:text-sm text-gray-500">Location</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{event.event_location || 'TBA'}</p>
+                    <p className="text-sm sm:text-base font-medium text-gray-900 break-words">{event.event_location || 'TBA'}</p>
                   </div>
                 </div>
               </div>
@@ -574,7 +592,7 @@ function NewsEvents() {
                       <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                         <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{attachment.name}</p>
+                          <p className="text-sm sm:text-base text-gray-900 font-medium break-words">{attachment.name}</p>
                           {attachment.size && (
                             <p className="text-xs sm:text-sm text-gray-500">{formatFileSize(attachment.size)}</p>
                           )}
@@ -599,7 +617,7 @@ function NewsEvents() {
       </div>
     );
   };
-
+  
   const GalleryModal = () => {
     const [modalImgError, setModalImgError] = useState(false);
     

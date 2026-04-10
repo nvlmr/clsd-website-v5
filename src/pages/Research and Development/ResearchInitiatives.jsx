@@ -486,365 +486,359 @@ const downloadAttachment = async (url, displayName) => {
     </div>
   ), [handleCardClick]);
 
-// UPDATED DetailView - Dark overlay only when image exists
-const DetailView = useCallback(({ project }) => {
-  const [heroImgError, setHeroImgError] = useState(false);
-  const [galleryImgErrors, setGalleryImgErrors] = useState({});
+  // UPDATED DetailView - Dark overlay only when image exists
+  const DetailView = useCallback(({ project }) => {
+    const [heroImgError, setHeroImgError] = useState(false);
+    const [galleryImgErrors, setGalleryImgErrors] = useState({});
 
-  const handleGalleryImgError = (index) => {
-    setGalleryImgErrors(prev => ({ ...prev, [index]: true }));
-  };
+    const handleGalleryImgError = (index) => {
+      setGalleryImgErrors(prev => ({ ...prev, [index]: true }));
+    };
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <button
-        onClick={handleBackClick}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
-      >
-        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-        <span className="text-sm sm:text-base">Back to Research Initiatives</span>
-      </button>
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <button
+          onClick={handleBackClick}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
+        >
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+          <span className="text-sm sm:text-base">Back to Research Initiatives</span>
+        </button>
 
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Hero Section with Blended Title */}
-        <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
-          {/* Background Image with Dark Overlay (only when image exists) */}
-          {project.image && !heroImgError ? (
-            <>
-              <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url(${project.image})` }}
-              >
-                {/* Dark Overlay for better text readability - only for actual images */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+          {/* Hero Section with Blended Title */}
+          <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
+            {/* Background Image with Dark Overlay (only when image exists) */}
+            {project.image && !heroImgError ? (
+              <>
+                <div 
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${project.image})` }}
+                >
+                  {/* Dark Overlay for better text readability - only for actual images */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+                </div>
+                
+                {/* Expand button */}
+                <button
+                  onClick={() => window.open(project.image, '_blank')}
+                  className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
+                >
+                  <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+              </>
+            ) : (
+              /* Placeholder - Solid blue background, no gradient, no icon */
+              <div className="absolute inset-0 bg-blue-500"></div>
+            )}
+            
+            {/* Featured Badge */}
+            {project.featured === 1 && (
+              <div className="absolute top-4 left-4 z-10">
+                <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5 backdrop-blur-sm">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
+                </div>
               </div>
-              
-              {/* Expand button */}
-              <button
-                onClick={() => window.open(project.image, '_blank')}
-                className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
-              >
-                <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              </button>
-            </>
-          ) : (
-            /* Placeholder - NO dark overlay */
-            <div className="absolute inset-0 bg-blue-400">
-              <div className="absolute inset-0 bg-black opacity-10 w-full h-full flex items-center justify-center">
-                <Building2 className="w-16 h-16 sm:w-24 sm:h-24 text-white/30" />
-              </div>
-            </div>
-          )}
-          
-          {/* Featured Badge */}
-          {project.featured === 1 && (
-            <div className="absolute top-4 left-4 z-10">
-              <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5 backdrop-blur-sm">
-                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured</span>
-              </div>
-            </div>
-          )}
-          
-          {/* Title Overlay - Blended with Image */}
-          <div className="absolute inset-0 flex items-end">
-            <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
-              <div className="max-w-3xl">
-                <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg leading-tight">
-                  {project.title || "Untitled Project"}
-                </h1>
+            )}
+            
+            {/* Title Overlay - Blended with Image */}
+            <div className="absolute inset-0 flex items-end">
+              <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
+                <div className="max-w-3xl">
+                  <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg leading-tight">
+                    {project.title || "Untitled Project"}
+                  </h1>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="p-4 sm:p-6 md:p-8 space-y-6">
-          {/* Description */}
-          {project.description && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h2 className="text-sm sm:text-lg font-bold text-gray-900">Project Description</h2>
+          <div className="p-4 sm:p-6 md:p-8 space-y-6">
+            {/* Description */}
+            {project.description && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h2 className="text-sm sm:text-lg font-bold text-gray-900">Project Description</h2>
+                </div>
+                <div className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700">
+                  <p className="leading-relaxed">{project.description}</p>
+                </div>
               </div>
-              <div className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700">
-                <p className="leading-relaxed">{project.description}</p>
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Objectives */}
-          {project.objectives && (
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h2 className="text-sm sm:text-lg font-bold text-gray-900">Objectives</h2>
+            {/* Objectives */}
+            {project.objectives && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h2 className="text-sm sm:text-lg font-bold text-gray-900">Objectives</h2>
+                </div>
+                <div className="ml-4 sm:ml-7">
+                  {typeof project.objectives === 'string' && project.objectives.includes(';') ? (
+                    <ul className="list-disc list-inside space-y-2">
+                      {project.objectives.split(';').map((objective, index) => (
+                        <li key={index} className="text-sm sm:text-base text-gray-700">{objective.trim()}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm sm:text-base text-gray-700">{project.objectives}</p>
+                  )}
+                </div>
               </div>
-              <div className="ml-4 sm:ml-7">
-                {typeof project.objectives === 'string' && project.objectives.includes(';') ? (
-                  <ul className="list-disc list-inside space-y-2">
-                    {project.objectives.split(';').map((objective, index) => (
-                      <li key={index} className="text-sm sm:text-base text-gray-700">{objective.trim()}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm sm:text-base text-gray-700">{project.objectives}</p>
+            )}
+
+            {/* Project Details Grid */}
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {/* Status */}
+                {project.status && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Status</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Project Lead */}
+                {project.project_lead && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Project Lead</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.project_lead}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Start Date */}
+                {project.start_date && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Start Date</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.start_date)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* End Date */}
+                {project.end_date && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">End Date</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.end_date)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Funding Source */}
+                {project.funding_source && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Funding Source</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.funding_source}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Budget */}
+                {project.budget && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Budget</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.budget)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Location */}
+                {project.location && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Location</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.location}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Implementing Agency */}
+                {project.implementing_agency && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.implementing_agency}</p>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
-          )}
 
-          {/* Project Details Grid */}
-          <div className="border-t border-gray-200 pt-6">
-            <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {/* Status */}
-              {project.status && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Status</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
-                  </div>
+            {/* Team Members */}
+            {project.team_members && project.team_members.length > 0 && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Team Members</h3>
                 </div>
-              )}
-
-              {/* Project Lead */}
-              {project.project_lead && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Project Lead</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.project_lead}</p>
-                  </div>
+                <div className="flex flex-wrap gap-2 ml-4 sm:ml-7">
+                  {Array.isArray(project.team_members) ? (
+                    project.team_members.map((member, index) => (
+                      <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
+                        {member}
+                      </span>
+                    ))
+                  ) : typeof project.team_members === 'string' ? (
+                    project.team_members.split(',').map((member, index) => (
+                      <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
+                        {member.trim()}
+                      </span>
+                    ))
+                  ) : null}
                 </div>
-              )}
-
-              {/* Start Date */}
-              {project.start_date && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Start Date</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.start_date)}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* End Date */}
-              {project.end_date && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">End Date</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.end_date)}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Funding Source */}
-              {project.funding_source && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Landmark className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Funding Source</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.funding_source}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Budget */}
-              {project.budget && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Budget</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.budget)}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Location */}
-              {project.location && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Location</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.location}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Implementing Agency */}
-              {project.implementing_agency && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{project.implementing_agency}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Team Members */}
-          {project.team_members && project.team_members.length > 0 && (
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Team Members</h3>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.team_members.length} members)</span>
               </div>
-              <div className="flex flex-wrap gap-2 ml-4 sm:ml-7">
-                {Array.isArray(project.team_members) ? (
-                  project.team_members.map((member, index) => (
-                    <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
-                      {member}
-                    </span>
-                  ))
-                ) : typeof project.team_members === 'string' ? (
-                  project.team_members.split(',').map((member, index) => (
-                    <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
-                      {member.trim()}
-                    </span>
-                  ))
-                ) : null}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Cooperating Agencies */}
-          {project.cooperating_agency && project.cooperating_agency.length > 0 && (
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agencies</h3>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.cooperating_agency.length} agencies)</span>
+            {/* Cooperating Agencies */}
+            {project.cooperating_agency && project.cooperating_agency.length > 0 && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agencies</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.cooperating_agency.length} agencies)</span>
+                </div>
+                <div className="ml-4 sm:ml-7 space-y-1">
+                  {Array.isArray(project.cooperating_agency) ? (
+                    project.cooperating_agency.map((agency, index) => (
+                      <p key={index} className="text-sm sm:text-base text-gray-700">• {agency}</p>
+                    ))
+                  ) : typeof project.cooperating_agency === 'string' ? (
+                    project.cooperating_agency.split(',').map((agency, index) => (
+                      <p key={index} className="text-sm sm:text-base text-gray-700">• {agency.trim()}</p>
+                    ))
+                  ) : null}
+                </div>
               </div>
-              <div className="ml-4 sm:ml-7 space-y-1">
-                {Array.isArray(project.cooperating_agency) ? (
-                  project.cooperating_agency.map((agency, index) => (
-                    <p key={index} className="text-sm sm:text-base text-gray-700">• {agency}</p>
-                  ))
-                ) : typeof project.cooperating_agency === 'string' ? (
-                  project.cooperating_agency.split(',').map((agency, index) => (
-                    <p key={index} className="text-sm sm:text-base text-gray-700">• {agency.trim()}</p>
-                  ))
-                ) : null}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Gallery */}
-          {project.gallery && project.gallery.length > 0 && (
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Gallery</h3>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.gallery.length} images)</span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
-                {project.gallery.map((image, index) => (
-                  <div
-                    key={index}
-                    className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
-                    style={{ height: '120px' }}
-                    onClick={() => openGalleryModal(project.gallery, index)}
-                  >
-                    <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
-                      {!galleryImgErrors[index] ? (
-                        <img
-                          src={image}
-                          alt={`Gallery ${index + 1}`}
-                          className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
-                          onError={() => handleGalleryImgError(index)}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                          <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 flex items-center gap-1 sm:gap-2">
-                        <span className="bg-black/60 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full backdrop-blur-sm">
-                          {index + 1}/{project.gallery.length}
-                        </span>
-                        <div className="bg-blue-600 text-white p-1 sm:p-1.5 rounded-full">
-                          <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Documents */}
-          {project.documents && project.documents.length > 0 && (
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Documents</h3>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.documents.length} files)</span>
-              </div>
-              <div className="space-y-2 sm:space-y-3">
-                {project.documents.map((doc, index) => {
-                  const docUrl = typeof doc === 'string' ? doc : doc.url;
-                  const docName = typeof doc === 'string' ? `Document ${index + 1}` : (doc.name || `Document ${index + 1}`);
-                  
-                  return (
+            {/* Gallery */}
+            {project.gallery && project.gallery.length > 0 && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Gallery</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.gallery.length} images)</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 sm:gap-4">
+                  {project.gallery.map((image, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                      className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
+                      style={{ height: '120px' }}
+                      onClick={() => openGalleryModal(project.gallery, index)}
                     >
-                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{docName}</p>
+                      <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
+                        {!galleryImgErrors[index] ? (
+                          <img
+                            src={image}
+                            alt={`Gallery ${index + 1}`}
+                            className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                            onError={() => handleGalleryImgError(index)}
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                            <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 flex items-center gap-1 sm:gap-2">
+                          <span className="bg-black/60 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full backdrop-blur-sm">
+                            {index + 1}/{project.gallery.length}
+                          </span>
+                          <div className="bg-blue-600 text-white p-1 sm:p-1.5 rounded-full">
+                            <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
-                        <button
-                          onClick={() => downloadAttachment(docUrl, docName)}
-                          className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors"
-                          title="Download"
-                        >
-                          <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                      </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {/* Documents */}
+            {project.documents && project.documents.length > 0 && (
+              <div className="border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Documents</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({project.documents.length} files)</span>
+                </div>
+                <div className="space-y-2 sm:space-y-3">
+                  {project.documents.map((doc, index) => {
+                    const docUrl = typeof doc === 'string' ? doc : doc.url;
+                    const docName = typeof doc === 'string' ? `Document ${index + 1}` : (doc.name || `Document ${index + 1}`);
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{docName}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                          <button
+                            onClick={() => downloadAttachment(docUrl, docName)}
+                            className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            title="Download"
+                          >
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}, [handleBackClick, formatDate, formatCurrency, formatStatus, openGalleryModal, downloadAttachment]);
+    );
+  }, [handleBackClick, formatDate, formatCurrency, formatStatus, openGalleryModal, downloadAttachment]);
 
-
-// Gallery Modal - from NewsEvents
+  // Gallery Modal - from NewsEvents
   const GalleryModal = () => {
     if (!isModalOpen || !selectedImage) return null;
 

@@ -365,24 +365,51 @@ function ResearchPaper() {
         </div>
         
         <div className="space-y-1.5 sm:space-y-2 mt-1">
+          {/* Mobile view - Show all student names with proper wrapping */}
           <div className="flex sm:hidden flex-col space-y-1.5">
-            <p className="text-gray-600 flex items-start gap-1.5">
+            <div className="text-gray-600 flex items-start gap-1.5">
               <User className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span className="text-xs line-clamp-1">{paper.student}</span>
-            </p>
+              <div className="flex-1">
+                <span className="text-xs block">
+                  {paper.student.split(',').map((name, idx, arr) => (
+                    <React.Fragment key={idx}>
+                      {name.trim()}
+                      {idx < arr.length - 1 && ', '}
+                      {idx === 1 && arr.length > 3 && <span className="block text-xs text-gray-400 italic ml-0">+{arr.length - 2} more</span>}
+                    </React.Fragment>
+                  ))}
+                </span>
+              </div>
+            </div>
             <p className="text-gray-600 flex items-start gap-1.5">
               <Calendar className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-              <span className="text-xs line-clamp-1">{paper.year}</span>
+              <span className="text-xs">{paper.year}</span>
             </p>
           </div>
+          
+          {/* Desktop view - Show all student names with proper wrapping */}
           <div className="hidden sm:block space-y-2">
-            <p className="text-gray-600 flex items-start gap-2">
+            <div className="text-gray-600 flex items-start gap-2">
               <User className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">{paper.student}</span>
-            </p>
+              <div className="flex-1">
+                <span className="text-sm">
+                  {paper.student.split(',').map((name, idx, arr) => (
+                    <React.Fragment key={idx}>
+                      {name.trim()}
+                      {idx < arr.length - 1 && ', '}
+                      {idx === 1 && arr.length > 3 && (
+                        <span className="text-sm text-gray-400 italic">
+                          +{arr.length - 2} more
+                        </span>
+                      )}
+                    </React.Fragment>
+                  ))}
+                </span>
+              </div>
+            </div>
             <p className="text-gray-600 flex items-start gap-2">
               <Calendar className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <span className="text-sm line-clamp-1">{paper.year}</span>
+              <span className="text-sm">{paper.year}</span>
             </p>
           </div>
         </div>
@@ -390,7 +417,7 @@ function ResearchPaper() {
     </div>
   ), [handleCardClick]);
 
-  // Detail View Component - With blended title and image support
+  // Detail View Component - With proper student names display
   const DetailView = useCallback(({ paper }) => {
     const isDownloading = downloading === paper.id;
     
@@ -399,6 +426,25 @@ function ResearchPaper() {
     
     // Determine cover image URL (use cover_image if available, otherwise fallback to null)
     const coverImageUrl = paper.cover_image || null;
+
+    // Helper function to split and display student names
+    const renderStudentNames = (studentString) => {
+      const names = studentString.split(',').map(name => name.trim());
+      
+      if (names.length === 1) {
+        return <span className="text-sm sm:text-base font-medium text-gray-900">{names[0]}</span>;
+      }
+      
+      return (
+        <div className="space-y-1">
+          {names.map((name, idx) => (
+            <div key={idx} className="text-sm sm:text-base font-medium text-gray-900">
+              {name}
+            </div>
+          ))}
+        </div>
+      );
+    };
 
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -434,10 +480,7 @@ function ResearchPaper() {
               </>
             ) : (
               /* Placeholder - NO dark overlay */
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500">
-                <div className="absolute inset-0 bg-black opacity-10 w-full h-full flex items-center justify-center">
-                  <BookOpen className="w-16 h-16 sm:w-24 sm:h-24 text-white/30" />
-                </div>
+              <div className="absolute inset-0 bg-blue-500">
               </div>
             )}
             
@@ -471,14 +514,22 @@ function ResearchPaper() {
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Paper Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {/* Student/Author */}
+                {/* Student/Author - FIXED: Show all names with proper layout */}
                 <div className="flex items-start gap-2 sm:gap-3">
                   <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
                     <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Student/Author</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900 truncate">{paper.student}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      {paper.student.split(',').length > 1 ? 'Students/Authors' : 'Student/Author'}
+                    </p>
+                    <div className="text-sm sm:text-base font-medium text-gray-900">
+                      {paper.student.split(',').map((name, idx) => (
+                        <div key={idx} className="mb-1 last:mb-0">
+                          {name.trim()}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -590,6 +641,7 @@ function ResearchPaper() {
     );
   }, [handleBackClick, downloading, handleDownload, downloadError, coverImgError, getDocumentItem, formatFileSize]);
 
+  
   // Document Preview Modal
   const DocumentModal = useCallback(() => {
     if (!isModalOpen || !selectedDocument) return null;

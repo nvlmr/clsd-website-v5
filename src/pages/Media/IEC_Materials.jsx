@@ -9,7 +9,8 @@ import {
   ArrowLeft,
   RefreshCw,
   Download,
-  AlertCircle
+  AlertCircle,
+  Maximize2
 } from "lucide-react";
 
 import NavBar from "../../navigation/NavBar.jsx";
@@ -167,9 +168,11 @@ const MaterialCard = ({ material, onClick }) => (
     </div>
   </div>
 );
+
 const DetailView = ({ material, onBack, onDownload, downloading }) => {
   const getFileName = () => material.document?.split('/').pop() || 'iec-material';
   const hasAttachment = !!material.document;
+  const [heroImgError, setHeroImgError] = useState(false);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -182,24 +185,42 @@ const DetailView = ({ material, onBack, onDownload, downloading }) => {
       </button>
 
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {material.cover_image ? (
-          <div className="relative h-48 sm:h-64 md:h-96 overflow-hidden">
-            <img 
-              src={material.cover_image} 
-              alt={material.title}
-              className="w-full h-full object-cover"
-              onError={(e) => e.target.style.display = 'none'}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+        {/* Hero Section with Blended Title */}
+        <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
+          {/* Background Image */}
+          {material.cover_image && !heroImgError ? (
+            <>
+              <div 
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{ backgroundImage: `url(${material.cover_image})` }}
+              >
+                {/* Dark Overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+              </div>
+              
+              {/* Expand button */}
+              <button
+                onClick={() => window.open(material.cover_image, '_blank')}
+                className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
+              >
+                <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+            </>
+          ) : (
+            /* Placeholder - Solid blue gradient background */
+            <div className="absolute inset-0 bg-blue-500"></div>
+          )}
+          
+          {/* Title Overlay - Blended with Image */}
+          <div className="absolute inset-0 flex items-end">
+            <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
+              <div className="max-w-3xl">
+                <h1 className="text-lg sm:text-3xl md:text-4xl lg:text-3xl font-bold text-white drop-shadow-lg leading-tight">
+                  {material.title || "Untitled Material"}
+                </h1>
+              </div>
+            </div>
           </div>
-        ) : (
-          <div className="relative h-48 sm:h-64 md:h-96 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-            <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-blue-400" />
-          </div>
-        )}
-
-        <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-200">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">{material.title}</h1>
         </div>
 
         <div className="p-4 sm:p-6 md:p-8">
@@ -235,31 +256,41 @@ const DetailView = ({ material, onBack, onDownload, downloading }) => {
               <div className="flex items-center gap-2 mb-4">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                 <h3 className="text-sm sm:text-md font-semibold text-gray-900">Attachments</h3>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">(1 file)</span>
               </div>
               <div className="space-y-2 sm:space-y-3">
-                <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300">
-                  <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                    <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{getFileName()}</p>
+                {/* Handle both array and single document formats */}
+                {(Array.isArray(material.document) ? material.document : [material.document]).map((doc, idx) => {
+                  const docName = doc.name || doc.file_name || (typeof doc === 'string' ? doc.split('/').pop() : 'iec-material');
+                  const docUrl = doc.url || doc.download_url || (typeof doc === 'string' ? doc : null);
+                  
+                  return (
+                    <div key={idx} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300">
+                      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{docName}</p>
+                          {doc.size && (
+                            <p className="text-xs text-gray-500">{formatFileSize(doc.size)}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                        <button
+                          onClick={() => onDownload(material.document, docName)}
+                          disabled={downloading}
+                          className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Download"
+                        >
+                          {downloading ? (
+                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-blue-600"></div>
+                          ) : (
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
-                    <button
-                      onClick={() => onDownload(material.document, getFileName())}
-                      disabled={downloading}
-                      className="p-1.5 sm:p-2 text-gray-600 hover:text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Download"
-                    >
-                      {downloading ? (
-                        <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-blue-600"></div>
-                      ) : (
-                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -426,12 +457,34 @@ function IEC_Materials() {
     setSelectedMaterial(null);
   };
 
-  const downloadAttachment = async (url, filename) => {
+  const downloadAttachment = async (documentData, filename) => {
     setDownloading(true);
     try {
-      const result = await downloadFile(url, filename);
-      if (!result.success) {
-        alert(result.error || 'Failed to download file. Please try again.');
+      // Check if we're in static mode (document is an array with local files)
+      if (Array.isArray(documentData) && documentData.length > 0) {
+        // Static mode - handle local file download
+        const file = documentData[0];
+        const fileUrl = file.url || file.download_url;
+        const fileName = filename || file.name || file.file_name || 'download';
+        
+        // Create an anchor element and trigger download
+        const link = document.createElement('a');
+        link.href = fileUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Success message (optional)
+        console.log(`Downloading: ${fileName}`);
+      } else if (typeof documentData === 'string') {
+        // API mode - use existing downloadFile service
+        const result = await downloadFile(documentData, filename);
+        if (!result.success) {
+          alert(result.error || 'Failed to download file. Please try again.');
+        }
+      } else {
+        alert('Invalid file format. Unable to download.');
       }
     } catch (error) {
       console.error('Download error:', error);

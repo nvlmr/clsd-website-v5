@@ -1,24 +1,24 @@
+//C:\Users\neall\Pending Task\GitHub\clsd-website-v5\src\data\VideoGallery.js
+
+import sampleDocument from "../assets/documents/Video Gallery/Testing Document.pdf";
+
 const VideoGallery = [
   {
     id: 1,
-    title: "Introduction to Philippine Lakes: A Virtual Tour",
-    year: 2024,
-    description: "Take a virtual journey across the most beautiful lakes in the Philippines. This documentary-style video showcases the unique biodiversity, cultural significance, and ecological importance of major lakes including Laguna de Bay, Taal Lake, and Lake Lanao. Features stunning aerial footage and interviews with local communities and researchers.",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-10-15 00:00:00",
-    updated_at: "2024-10-15 00:00:00"
-  },
-  {
-    id: 2,
-    title: "Water Quality Monitoring: Field Techniques",
-    year: 2024,
-    description: "Learn the essential techniques for monitoring water quality in lakes and freshwater ecosystems. This educational video demonstrates proper sampling methods, use of monitoring equipment, and on-site testing procedures. Perfect for students, researchers, and community volunteers involved in water quality assessment programs.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
+    title: "Top 20 Largest Lakes in the Philippines",
+    year: 2023,
+    description: "No description available.",
+    cover_image: "https://img.youtube.com/vi/8KK-HxW26EI/maxresdefault.jpg", // https://img.youtube.com/vi/YOUTUBE_ID/maxresdefault.jpg
+    video_url: "https://youtu.be/8KK-HxW26EI?si=gEQZ5s61A-TkyUnn", // EXAMPLE: https://youtu.be/YOUTUBE_ID?si=gEQZ5s61A-TkyUnn
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
@@ -26,116 +26,26 @@ const VideoGallery = [
     updated_at: "2024-09-22 00:00:00"
   },
   {
-    id: 3,
-    title: "Lake Conservation Success Stories",
-    year: 2024,
-    description: "Discover inspiring success stories of lake conservation from around the Philippines. This video highlights community-led initiatives that have successfully restored degraded lakes, protected endangered species, and developed sustainable livelihoods. Learn from the experiences of local communities and the lessons they've learned.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
+    id: 1,
+    title: "Center for Lakes Sustainable Development | NICER",
+    year: 2022,
+    description: "No description available.",
+    cover_image: "https://img.youtube.com/vi/vErBTHQQM1Y/maxresdefault.jpg",
+    video_url: "https://youtu.be/vErBTHQQM1Y?si=jV9tMQxiw6KQZ98x",
+    document: [
+      {
+        name: "Testing Document.pdf",
+        file_name: "Testing Document.pdf",
+        url: sampleDocument,
+        download_url: sampleDocument,
+        size: 15 * 1024
+      }
+    ],
     published: 1,
     created_by: 1,
     updated_by: null,
-    created_at: "2024-08-05 00:00:00",
-    updated_at: "2024-08-05 00:00:00"
-  },
-  {
-    id: 4,
-    title: "Biodiversity of Laguna de Bay",
-    year: 2024,
-    description: "Explore the rich biodiversity of the Philippines' largest lake, Laguna de Bay. This video documents the various fish species, aquatic plants, and migratory birds that call the lake home. Learn about the ecological relationships that sustain this vital ecosystem and the threats it faces from human activities.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-07-12 00:00:00",
-    updated_at: "2024-07-12 00:00:00"
-  },
-  {
-    id: 5,
-    title: "Sustainable Fishing Practices for Lake Communities",
-    year: 2024,
-    description: "This instructional video demonstrates sustainable fishing practices that help maintain healthy fish populations while supporting local livelihoods. Topics include proper fishing gear, size limits, seasonal closures, and alternative livelihood options. Developed in collaboration with fishing communities and fisheries experts.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-06-08 00:00:00",
-    updated_at: "2024-06-08 00:00:00"
-  },
-  {
-    id: 6,
-    title: "Wetland Restoration: Techniques and Best Practices",
-    year: 2024,
-    description: "A comprehensive guide to wetland restoration techniques applicable to lake ecosystems. This video covers site assessment, native species planting, hydrological restoration, and long-term monitoring. Includes case studies from successful restoration projects in the Philippines and Southeast Asia.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-05-20 00:00:00",
-    updated_at: "2024-05-20 00:00:00"
-  },
-  {
-    id: 7,
-    title: "Climate Change Impacts on Freshwater Lakes",
-    year: 2024,
-    description: "Scientists discuss the observed and projected impacts of climate change on Philippine lakes. Topics include rising water temperatures, altered rainfall patterns, increased algal blooms, and effects on aquatic biodiversity. The video also presents adaptation strategies for lake-dependent communities.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-04-15 00:00:00",
-    updated_at: "2024-04-15 00:00:00"
-  },
-  {
-    id: 8,
-    title: "Citizen Science: Engaging Communities in Lake Monitoring",
-    year: 2024,
-    description: "Learn how citizen science programs are engaging local communities in lake monitoring and conservation. This video showcases successful programs where volunteers collect valuable data on water quality, biodiversity, and environmental changes. Includes training tips and best practices for program coordinators.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-03-03 00:00:00",
-    updated_at: "2024-03-03 00:00:00"
-  },
-  {
-    id: 9,
-    title: "Invasive Species in Philippine Lakes: Identification and Management",
-    year: 2024,
-    description: "An informative video on invasive species threatening Philippine lake ecosystems. Learn to identify common invasive plants, fish, and invertebrates, understand their ecological impacts, and explore management strategies being implemented to control their spread.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-02-18 00:00:00",
-    updated_at: "2024-02-18 00:00:00"
-  },
-  {
-    id: 10,
-    title: "Lake Lanao: Cultural Heritage and Conservation Challenges",
-    year: 2024,
-    description: "Explore Lake Lanao, one of the Philippines' most culturally significant lakes. This video delves into the lake's importance to the Maranao people, its unique endemic species, and the conservation challenges it faces. Features interviews with local elders, researchers, and conservation practitioners.",
-    cover_image: "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
-    video_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    document: null,
-    published: 1,
-    created_by: 1,
-    updated_by: null,
-    created_at: "2024-01-25 00:00:00",
-    updated_at: "2024-01-25 00:00:00"
+    created_at: "2024-04-22 00:00:00",
+    updated_at: "2024-04-22 00:00:00"
   }
 ];
 

@@ -220,42 +220,136 @@ function VideoGallery() {
     return null;
   };
 
-  // Get document URL with proper handling
+  // Get document URL with proper handling for both mock data and server data
   const getDocumentUrl = (document) => {
     if (!document) return null;
     
-    // If it's already a full URL, return it
-    if (document.startsWith('http://') || document.startsWith('https://')) {
-      return document;
+    // Handle mock data structure (array of objects)
+    if (Array.isArray(document) && document.length > 0) {
+      const firstDoc = document[0];
+      if (firstDoc.url) {
+        return firstDoc.url;
+      }
+      if (firstDoc.download_url) {
+        return firstDoc.download_url;
+      }
+      return null;
     }
     
-    // Clean up the path (remove leading/trailing slashes)
-    const cleanPath = document.replace(/^\/+|\/+$/g, '');
-    
-    // Get uploads base URL from environment variable
-    const uploadsBaseUrl = import.meta.env.VITE_UPLOADS_BASE_URL;
-    
-    // If uploadsBaseUrl is not configured, use relative path
-    if (!uploadsBaseUrl) {
-      return `/${cleanPath}`;
+    // Handle string URL (including PHP endpoints)
+    if (typeof document === 'string') {
+      // If it's already a full URL (including PHP endpoints), return it as is
+      if (document.startsWith('http://') || document.startsWith('https://')) {
+        return document;
+      }
+      
+      // If it's a relative PHP endpoint or path
+      if (document.startsWith('get_video_gallery.php') || document.includes('.php')) {
+        // Get the API base URL from environment variable or use relative path
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+        return `${apiBaseUrl}/${document}`;
+      }
+      
+      // Clean up the path (remove leading/trailing slashes)
+      const cleanPath = document.replace(/^\/+|\/+$/g, '');
+      
+      // Get uploads base URL from environment variable
+      const uploadsBaseUrl = import.meta.env.VITE_UPLOADS_BASE_URL;
+      
+      // If uploadsBaseUrl is not configured, use relative path
+      if (!uploadsBaseUrl) {
+        return `/${cleanPath}`;
+      }
+      
+      // Combine base URL with document path
+      return `${uploadsBaseUrl}/${cleanPath}`;
     }
     
-    // Combine base URL with document path
-    return `${uploadsBaseUrl}/${cleanPath}`;
+    // Handle object structure (single object)
+    if (typeof document === 'object') {
+      return document.url || document.download_url || null;
+    }
+    
+    return null;
   };
 
-  // Format file size
+  // Get document name from the document object/array or PHP URL
+  const getDocumentName = (document) => {
+    if (!document) return 'document';
+    
+    // Handle mock data structure (array of objects)
+    if (Array.isArray(document) && document.length > 0) {
+      const firstDoc = document[0];
+      return firstDoc.name || firstDoc.file_name || 'document.pdf';
+    }
+    
+    // Handle string URL (including PHP endpoints)
+    if (typeof document === 'string') {
+      // Extract filename from PHP URL if possible
+      if (document.includes('get_video_gallery.php') && document.includes('file=')) {
+        const match = document.match(/file=([^&]+)/);
+        if (match && match[1]) {
+          // Decode the filename if it's URL encoded
+          return decodeURIComponent(match[1]);
+        }
+      }
+      // Extract from regular URL
+      return document.split('/').pop() || 'document.pdf';
+    }
+    
+    // Handle object structure
+    if (typeof document === 'object') {
+      return document.name || document.file_name || 'document.pdf';
+    }
+    
+    return 'document.pdf';
+  };
+
+  // Check if video has attachment
+  const hasAttachment = (video) => {
+    if (!video.document) return false;
+    if (Array.isArray(video.document) && video.document.length > 0) return true;
+    if (typeof video.document === 'string' && video.document.trim() !== '') return true;
+    if (typeof video.document === 'object' && Object.keys(video.document).length > 0) return true;
+    return false;
+  };
+
+  // Format file size - handle both number and string sizes
   const formatFileSize = (bytes) => {
     if (!bytes) return '';
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    
+    // If bytes is a string, try to parse it
+    let sizeInBytes = bytes;
+    if (typeof bytes === 'string') {
+      sizeInBytes = parseInt(bytes, 10);
+      if (isNaN(sizeInBytes)) return '';
+    }
+    
+    if (sizeInBytes < 1024) return sizeInBytes + ' B';
+    if (sizeInBytes < 1024 * 1024) return (sizeInBytes / 1024).toFixed(1) + ' KB';
+    return (sizeInBytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  // Download attachment - same as NewsEvents
+  // Download attachment - works for both mock data and server data (including PHP endpoints)
   const downloadAttachment = async (url, filename) => {
+    if (!url) {
+      console.error('No URL provided for download');
+      return;
+    }
+    
     try {
+      // For PHP endpoints that return files, we need to handle them specially
+      if (url.includes('get_video_gallery.php') || url.includes('.php')) {
+        // Open in new tab as fallback for PHP files
+        window.open(url, '_blank');
+        return;
+      }
+      
+      // For direct file URLs, try to fetch and download
       const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -267,6 +361,7 @@ function VideoGallery() {
       window.URL.revokeObjectURL(downloadUrl);
     } catch (error) {
       console.error('Download failed:', error);
+      // Fallback: open in new tab
       window.open(url, '_blank');
     }
   };
@@ -342,23 +437,12 @@ function VideoGallery() {
     const hasValidThumbnail = thumbnailUrl && !thumbnailError;
     
     // Check if there's a document to display as attachment
-    const hasAttachment = documentUrl && video.document;
-    // Extract the original filename from the download URL or use the video document field
-    let attachmentName = 'document';
-    if (video.document) {
-      // If it's a download URL with parameter, extract the filename from the 'file' parameter
-      if (video.document.includes('download=true')) {
-        const urlParams = new URLSearchParams(video.document.split('?')[1]);
-        const fileParam = urlParams.get('file');
-        if (fileParam) {
-          attachmentName = fileParam;
-        } else {
-          attachmentName = video.document.split('/').pop();
-        }
-      } else {
-        attachmentName = video.document.split('/').pop();
-      }
-    }
+    const hasDocument = hasAttachment(video);
+    // Get the attachment name
+    const attachmentName = getDocumentName(video.document);
+    
+    // Determine if the document is a PHP endpoint
+    const isPhpEndpoint = documentUrl && (documentUrl.includes('.php') || documentUrl.includes('get_video_gallery'));
     
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
@@ -433,7 +517,7 @@ function VideoGallery() {
             </div>
 
             {/* Attachments - Styled like NewsEvents attachments section */}
-            {hasAttachment && (
+            {hasDocument && documentUrl && (
               <div className="border-t border-gray-200 pt-6 mt-6">
                 <div className="flex items-center gap-2 mb-4">
                   <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
@@ -445,7 +529,9 @@ function VideoGallery() {
                     <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                       <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm sm:text-base text-gray-900 font-medium truncate">{attachmentName}</p>
+                        <p className="text-sm sm:text-base text-gray-900 font-medium truncate">
+                          {attachmentName}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">

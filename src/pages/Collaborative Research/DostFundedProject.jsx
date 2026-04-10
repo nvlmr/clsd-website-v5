@@ -287,14 +287,23 @@ function DostFundedProjectPage() {
   }, []);
 
   const formatCurrency = useCallback((amount) => {
+    // Handle "N/A" string specifically
+    if (amount === "N/A") return "N/A";
+    
+    // Handle falsy values (null, undefined, 0, empty string)
     if (!amount) return "N/A";
+    
+    // Rest of your function...
+    const num = parseFloat(amount);
+    if (isNaN(num)) return "N/A";
+    
     try {
       return new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-      }).format(amount);
+      }).format(num);
     } catch (e) {
       return amount.toString();
     }
@@ -317,52 +326,125 @@ function DostFundedProjectPage() {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
-const handleDocumentDownload = async (document) => {
-  // Show a subtle loading indicator if needed
-  const button = document.activeElement;
-  const originalHTML = button?.innerHTML;
-  
-  try {
-    const url = document.download_url || document.url;
-    
-    if (!url) {
-      console.error('No download URL available');
-      return;
-    }
 
-    // Use fetch for authenticated/CORS requests
-    const response = await fetch(url);
+  const handleDocumentDownload = async (doc) => {
+    // Show loading indicator
+    const button = document.activeElement;
+    const originalContent = button?.innerHTML;
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (button) {
+      button.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>';
+      button.disabled = true;
     }
     
-    const blob = await response.blob();
-    const downloadUrl = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = document.file_name || document.name;
-    
-    // Prevent any visual feedback that causes blinking
-    link.style.position = 'fixed';
-    link.style.opacity = '0';
-    link.style.pointerEvents = 'none';
-    
-    document.body.appendChild(link);
-    link.click();
-    
-    // Clean up
-    setTimeout(() => {
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(downloadUrl);
-    }, 100);
-    
-  } catch (error) {
-    console.error('Download failed:', error);
-    // Fallback
-    window.open(document.download_url || document.url, '_blank');
-  }
-};
+    try {
+      const url = doc.download_url || doc.url;
+      
+      if (!url) {
+        console.error('No download URL available');
+        alert('Download URL not available');
+        return;
+      }
+      
+      console.log('Attempting to download from:', url);
+      
+      // Check if this is a server URL or local file
+      const isServerUrl = url.includes('/get_dost_funded_project_document.php') || 
+                          url.includes('api/') || 
+                          !url.startsWith('/documents/');
+      
+      if (isServerUrl) {
+        // For server files, try direct download first (may open in new tab)
+        try {
+          // Create a temporary anchor element
+          const link = window.document.createElement('a');
+          link.href = url;
+          
+          // Try to force download with download attribute
+          let filename = doc.file_name || doc.name;
+          if (filename) {
+            link.download = filename;
+          }
+          
+          window.document.body.appendChild(link);
+          link.click();
+          window.document.body.removeChild(link);
+          
+          console.log('Direct download triggered for server file');
+          return;
+        } catch (directError) {
+          console.warn('Direct download failed, trying window.open:', directError);
+          // Fallback: Open in new tab (user can save from there)
+          window.open(url, '_blank');
+          return;
+        }
+      }
+      
+      // For local static files (in /documents folder)
+      // Use fetch with blob to force download
+      const response = await fetch(url, {
+        mode: 'cors', // Try CORS
+        credentials: 'omit', // Don't send credentials for static files
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = window.document.createElement('a');
+      link.href = blobUrl;
+      
+      // Set filename
+      let filename = doc.file_name || doc.name;
+      if (!filename) {
+        filename = url.split('/').pop() || 'download';
+      }
+      
+      // Add extension if missing
+      if (!filename.includes('.')) {
+        const extension = blob.type.split('/')[1];
+        if (extension && extension !== 'octet-stream') {
+          filename += `.${extension}`;
+        }
+      }
+      
+      link.download = filename;
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
+      
+      // Cleanup
+      setTimeout(() => {
+        window.URL.revokeObjectURL(blobUrl);
+      }, 100);
+      
+      console.log('Download started for local file:', filename);
+      
+    } catch (error) {
+      console.error('Download failed:', error);
+      
+      // Last resort: Try opening in new tab
+      try {
+        const url = doc.download_url || doc.url;
+        if (url) {
+          window.open(url, '_blank');
+          alert('File opened in new tab. Please save it manually if needed.');
+        }
+      } catch (finalError) {
+        alert('Unable to download file. Please check your connection and try again.');
+      }
+    } finally {
+      // Restore button
+      if (button && originalContent) {
+        setTimeout(() => {
+          button.innerHTML = originalContent;
+          button.disabled = false;
+        }, 500);
+      }
+    }
+  };
 
   // Parse gallery
   const parseGallery = useCallback((gallery) => {
@@ -478,283 +560,280 @@ const handleDocumentDownload = async (document) => {
     </div>
   ), [handleCardClick]);
 
-// Detail View Component with Gallery and Documents
-const DetailView = useCallback(({ project }) => {
-  const galleryImages = parseGallery(project.gallery);
-  const documents = parseDocuments(project.documents);
-  const [heroImgError, setHeroImgError] = useState(false);
+  // Detail View Component with Gallery and Documents
+  const DetailView = useCallback(({ project }) => {
+    const galleryImages = parseGallery(project.gallery);
+    const documents = parseDocuments(project.documents);
+    const [heroImgError, setHeroImgError] = useState(false);
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
-      <button
-        onClick={handleBackClick}
-        className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
-      >
-        <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
-        <span className="text-sm sm:text-base">Back to DOST Funded Projects</span>
-      </button>
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <button
+          onClick={handleBackClick}
+          className="flex items-center text-blue-600 hover:text-blue-800 mb-6 transition-colors duration-300 group"
+        >
+          <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 mr-2 transition-transform duration-300 group-hover:-translate-x-1" />
+          <span className="text-sm sm:text-base">Back to DOST Funded Projects</span>
+        </button>
 
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
-        {/* Hero Section with Blended Title */}
-        <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
-          {/* Background Image */}
-          {project.image && !heroImgError ? (
-            <>
+        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-blue-100">
+          {/* Hero Section with Blended Title */}
+          <div className="relative h-[50vh] min-h-[400px] max-h-[600px] overflow-hidden">
+            {/* Background Image */}
+            {project.image && !heroImgError ? (
+              <>
+                <div 
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                  style={{ backgroundImage: `url(${project.image})` }}
+                >
+                  {/* Dark Overlay for better text readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
+                </div>
+                
+                {/* Expand button */}
+                <button
+                  onClick={() => window.open(project.image, '_blank')}
+                  className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
+                >
+                  <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                </button>
+              </>
+            ) : (
+              /* Placeholder - Solid blue background, no gradient, no icon */
+              <div className="absolute inset-0 bg-blue-500"></div>
+            )}
+            
+            {/* Featured Badge */}
+            {project.featured && (
+              <div className="absolute top-4 left-4 z-10">
+                <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5 backdrop-blur-sm">
+                  <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                  <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured Project</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Title Overlay - Blended with Image */}
+            <div className="absolute inset-0 flex items-end">
+              <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
+                <div className="max-w-3xl">
+                  <h1 className="text-lg sm:text-3xl md:text-4xl lg:text-3xl font-bold text-white drop-shadow-lg leading-tight">
+                    {project.title || "Untitled Project"}
+                  </h1>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-6 md:p-8">
+            {/* Full Content - Description with icon and header */}
+            <div className="mb-6 sm:mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                <h2 className="text-base sm:text-lg font-bold text-gray-900">Description</h2>
+              </div>
               <div 
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                style={{ backgroundImage: `url(${project.image})` }}
-              >
-                {/* Dark Overlay for better text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/20"></div>
-              </div>
-              
-              {/* Expand button */}
-              <button
-                onClick={() => window.open(project.image, '_blank')}
-                className="absolute top-4 right-4 bg-black/60 text-white p-1.5 sm:p-2 rounded-full hover:bg-black/80 transition-all z-10 backdrop-blur-sm"
-              >
-                <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              </button>
-            </>
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-800">
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 opacity-50">
-                <Building2 className="w-16 h-16 sm:w-24 sm:h-24 text-blue-400" />
-              </div>
+                className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700"
+                dangerouslySetInnerHTML={{ 
+                  __html: project.description || 'No description available.' 
+                }}
+              />
             </div>
-          )}
-          
-          {/* Featured Badge */}
-          {project.featured && (
-            <div className="absolute top-4 left-4 z-10">
-              <div className="bg-blue-500 rounded-full p-1.5 sm:p-2 shadow-lg flex items-center gap-1 sm:gap-1.5 backdrop-blur-sm">
-                <Award className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                <span className="text-white text-xs sm:text-sm font-medium pr-1">Featured Project</span>
-              </div>
-            </div>
-          )}
-          
-          {/* Title Overlay - Blended with Image */}
-          <div className="absolute inset-0 flex items-end">
-            <div className="w-full px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16">
-              <div className="max-w-3xl">
-                <h1 className="text-lg sm:text-3xl md:text-4xl lg:text-3xl font-bold text-white drop-shadow-lg leading-tight">
-                  {project.title || "Untitled Project"}
-                </h1>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="p-4 sm:p-6 md:p-8">
-          {/* Full Content - Description with icon and header */}
-          <div className="mb-6 sm:mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">Description</h2>
-            </div>
-            <div 
-              className="ml-4 sm:ml-7 prose prose-blue max-w-none text-sm sm:text-base text-gray-700"
-              dangerouslySetInnerHTML={{ 
-                __html: project.description || 'No description available.' 
-              }}
-            />
-          </div>
-
-          {/* Project Details */}
-          <div className="border-t border-gray-200 pt-6 mt-6">
-            <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {project.status && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Status</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
-                  </div>
-                </div>
-              )}
-
-              {project.project_lead && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Project Leader</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{project.project_lead}</p>
-                  </div>
-                </div>
-              )}
-
-              {project.funding_amount && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Budget</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.funding_amount)}</p>
-                  </div>
-                </div>
-              )}
-
-              {project.start_date && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Start Date</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.start_date)}</p>
-                  </div>
-                </div>
-              )}
-
-              {project.end_date && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">End Date</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.end_date)}</p>
-                  </div>
-                </div>
-              )}
-
-              {project.implementing_agency && (
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
-                    <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
-                    <p className="text-sm sm:text-base font-medium text-gray-900">{project.implementing_agency}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Cooperating Agency */}
-          {project.cooperating_agency && (
+            {/* Project Details */}
             <div className="border-t border-gray-200 pt-6 mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agency</h3>
-              </div>
-              {project.cooperating_agency.includes(',') ? (
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 ml-4 sm:ml-7">
-                  {project.cooperating_agency.split(',').map((agency, index) => (
-                    <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
-                      {agency.trim()}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7">{project.cooperating_agency}</p>
-              )}
-            </div>
-          )}
+              <h3 className="text-sm sm:text-md font-semibold text-gray-900 mb-4">Project Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {project.status && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Status</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatStatus(project.status)}</p>
+                    </div>
+                  </div>
+                )}
 
-          {/* Gallery Section */}
-          {galleryImages.length > 0 && (
-            <div className="border-t border-gray-200 pt-6 mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Gallery</h3>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">({galleryImages.length} images)</span>
+                {project.project_lead && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <UserCircle className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Project Leader</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{project.project_lead}</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.funding_amount && project.funding_amount !== "N/A" && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Budget</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatCurrency(project.funding_amount)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.start_date && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Start Date</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.start_date)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.end_date && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">End Date</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{formatDate(project.end_date)}</p>
+                    </div>
+                  </div>
+                )}
+
+                {project.implementing_agency && (
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <div className="bg-blue-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                      <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm text-gray-500">Implementing Agency</p>
+                      <p className="text-sm sm:text-base font-medium text-gray-900">{project.implementing_agency}</p>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-                {galleryImages.map((image, index) => {
-                  const [galleryImgError, setGalleryImgError] = useState(false);
-                  
-                  return (
-                    <div
-                      key={index}
-                      className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
-                      style={{ height: '120px' }}
-                      onClick={() => openGalleryModal(galleryImages, index)}
-                    >
-                      <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
-                        {!galleryImgError ? (
-                          <img
-                            src={image}
-                            alt={`Gallery ${index + 1}`}
-                            className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
-                            onError={() => setGalleryImgError(true)}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-                            <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 flex items-center gap-1 sm:gap-2">
-                          <span className="bg-black/60 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full backdrop-blur-sm">
-                            {index + 1}/{galleryImages.length}
-                          </span>
-                          <div className="bg-blue-600 text-white p-1 sm:p-1.5 rounded-full">
-                            <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+            </div>
+
+            {/* Cooperating Agency */}
+            {project.cooperating_agency && (
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Cooperating Agency</h3>
+                </div>
+                {project.cooperating_agency.includes(',') ? (
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 ml-4 sm:ml-7">
+                    {project.cooperating_agency.split(',').map((agency, index) => (
+                      <span key={index} className="px-2 sm:px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs sm:text-sm">
+                        {agency.trim()}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm sm:text-base text-gray-700 ml-4 sm:ml-7">{project.cooperating_agency}</p>
+                )}
+              </div>
+            )}
+
+            {/* Gallery Section */}
+            {galleryImages.length > 0 && (
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Gallery</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({galleryImages.length} images)</span>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
+                  {galleryImages.map((image, index) => {
+                    const [galleryImgError, setGalleryImgError] = useState(false);
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="relative group cursor-pointer overflow-hidden rounded-lg bg-gray-100 border border-gray-200 hover:border-blue-300 transition-all duration-300"
+                        style={{ height: '120px' }}
+                        onClick={() => openGalleryModal(galleryImages, index)}
+                      >
+                        <div className="w-full h-full flex items-center justify-center p-1 sm:p-2">
+                          {!galleryImgError ? (
+                            <img
+                              src={image}
+                              alt={`Gallery ${index + 1}`}
+                              className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-sm group-hover:shadow-md transition-all duration-300"
+                              onError={() => setGalleryImgError(true)}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                              <ImageIcon className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="absolute bottom-1 sm:bottom-2 right-1 sm:right-2 flex items-center gap-1 sm:gap-2">
+                            <span className="bg-black/60 text-white text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full backdrop-blur-sm">
+                              {index + 1}/{galleryImages.length}
+                            </span>
+                            <div className="bg-blue-600 text-white p-1 sm:p-1.5 rounded-full">
+                              <Maximize2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Documents Section */}
-          {documents.length > 0 && (
-            <div className="border-t border-gray-200 pt-6 mt-6">
-              <div className="flex items-center gap-2 mb-4">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-                <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Documents</h3>
-                <span className="text-xs sm:text-sm text-gray-500 ml-2">({documents.length} files)</span>
-              </div>
-              <div className="space-y-2 sm:space-y-3">
-                {documents.map((document, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
-                  >
-                    <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm sm:text-base text-gray-900 font-medium truncate">
-                          {document.name || document.file_name || `Document ${index + 1}`}
-                        </p>
-                        {document.size && (
-                          <p className="text-xs sm:text-sm text-gray-500">{formatFileSize(document.size)}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
-                      <button
-                        onClick={() => handleDocumentDownload(document)}
-                        className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
-                        title="Download"
+            {/* Documents Section */}
+            {documents.length > 0 && (
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                  <h3 className="text-sm sm:text-md font-semibold text-gray-900">Project Documents</h3>
+                  <span className="text-xs sm:text-sm text-gray-500 ml-2">({documents.length} files)</span>
+                </div>
+                <div className="space-y-2 sm:space-y-3">
+                    {documents.map((doc, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors border border-gray-200 hover:border-blue-300"
                       >
-                        <Download className="w-3 h-3 sm:w-4 sm:h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+                          <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm sm:text-base text-gray-900 font-medium truncate">
+                              {doc.name || doc.file_name || `Document ${index + 1}`}
+                            </p>
+                            {doc.size && (
+                              <p className="text-xs sm:text-sm text-gray-500">{formatFileSize(doc.size)}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 sm:gap-2 ml-2 sm:ml-4">
+                          <button
+                            onClick={() => handleDocumentDownload(doc)}  // Pass 'doc' not 'document'
+                            className="p-1.5 sm:p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"
+                            title="Download"
+                          >
+                            <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
-}, [handleBackClick, formatDate, formatCurrency, formatStatus, parseGallery, parseDocuments, openGalleryModal, handleDocumentDownload]);
+    );
+  }, [handleBackClick, formatDate, formatCurrency, formatStatus, parseGallery, parseDocuments, openGalleryModal, handleDocumentDownload]);
 
 // Gallery Modal Component
   const GalleryModal = () => {
