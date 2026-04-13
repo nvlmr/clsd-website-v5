@@ -279,13 +279,6 @@ const ChatBot = () => {
               </div>
               <div className="flex items-center gap-1">
                 <button 
-                  onClick={clearChat}
-                  className="text-white hover:bg-white/20 p-2 rounded-lg transition-all text-xs"
-                  title="Clear Chat"
-                >
-                  Clear
-                </button>
-                <button 
                   onClick={() => setIsOpen(false)} 
                   className="text-white hover:bg-white/20 p-2 rounded-lg transition-all"
                 >
