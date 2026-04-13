@@ -369,16 +369,10 @@ function ResearchPaper() {
           <div className="flex sm:hidden flex-col space-y-1.5">
             <div className="text-gray-600 flex items-start gap-1.5">
               <User className="w-3 h-3 text-blue-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <span className="text-xs block">
-                  {paper.student.split(',').map((name, idx, arr) => (
-                    <React.Fragment key={idx}>
-                      {name.trim()}
-                      {idx < arr.length - 1 && ', '}
-                      {idx === 1 && arr.length > 3 && <span className="block text-xs text-gray-400 italic ml-0">+{arr.length - 2} more</span>}
-                    </React.Fragment>
-                  ))}
-                </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs truncate">
+                  {paper.student.split(',').map(name => name.trim()).join(', ')}
+                </p>
               </div>
             </div>
             <p className="text-gray-600 flex items-start gap-1.5">
@@ -386,25 +380,15 @@ function ResearchPaper() {
               <span className="text-xs">{paper.year}</span>
             </p>
           </div>
-          
+                              
           {/* Desktop view - Show all student names with proper wrapping */}
           <div className="hidden sm:block space-y-2">
             <div className="text-gray-600 flex items-start gap-2">
               <User className="w-4 h-4 text-blue-500 flex-shrink-0 mt-1" />
-              <div className="flex-1">
-                <span className="text-sm">
-                  {paper.student.split(',').map((name, idx, arr) => (
-                    <React.Fragment key={idx}>
-                      {name.trim()}
-                      {idx < arr.length - 1 && ', '}
-                      {idx === 1 && arr.length > 3 && (
-                        <span className="text-sm text-gray-400 italic">
-                          +{arr.length - 2} more
-                        </span>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm truncate">
+                  {paper.student.split(',').map(name => name.trim()).join(', ')}
+                </p>
               </div>
             </div>
             <p className="text-gray-600 flex items-start gap-2">
